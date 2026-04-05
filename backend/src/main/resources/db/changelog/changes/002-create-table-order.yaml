@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002
+      author: amena
+      description: Create Orders table
+
+      changes:
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
