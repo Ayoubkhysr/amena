@@ -197,7 +197,7 @@ function AdminDashboardPage() {
                   }}
                 />
                 <div>
-                  <h1 className="text-lg font-extrabold tracking-tight text-brand-blue">Etablissement El Amine</h1>
+                  <h1 className="text-lg font-extrabold tracking-tight text-brand-blue">Etablissement El Amena</h1>
                   <p className="mt-0.5 text-xs font-medium text-brand-light">Panneau d&apos;administration</p>
                 </div>
               </div>
