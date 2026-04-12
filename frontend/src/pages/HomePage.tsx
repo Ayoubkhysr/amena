@@ -1,9 +1,18 @@
 import { Button } from "../components";
+//import NavBar from "./NavBar";
+import { useNavigate } from "react-router-dom";
 
 function HomePage() {
-  const handleClick = () => {
-    console.log("Button clicked!");
+  const navigate  = useNavigate();
+  
+  const handleAddUser = () => {
+    navigate('/add-user');
   };
+
+  const handleAdminDashboard = () => {
+    navigate('/admin');
+  };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -11,18 +20,14 @@ function HomePage() {
         <h1 className="text-4xl font-bold text-gray-800 mb-4">
           Welcome to Amena
         </h1>
-        <p className="text-gray-600 mb-6">
-          React + Vite + Tailwind CSS + React Router
-        </p>
+
         <div className="flex gap-4 justify-center">
-          <Button variant="primary" onClick={handleClick}>
-            Primary
+        
+          <Button variant="outline" onClick={handleAddUser}>
+            Ajouter un utilisateur
           </Button>
-          <Button variant="secondary" onClick={handleClick}>
-            Secondary
-          </Button>
-          <Button variant="outline" onClick={handleClick}>
-            Outline
+          <Button onClick={handleAdminDashboard}>
+            Ouvrir le dashboard admin
           </Button>
         </div>
       </div>

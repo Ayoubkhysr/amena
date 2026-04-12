@@ -1,13 +1,28 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
-import App from './App'
+import HomePage from './pages/HomePage'
+import AddUser from './pages/AddUser'
+import AdminDashboardPage from './pages/admin/AdminDashboardPage'
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <HomePage />,
+  },
+  {
+    path: '/add-user',
+    element: <AddUser />,
+  },
+  {
+    path: '/admin',
+    element: <AdminDashboardPage />,
+  },
+])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </StrictMode>,
 )
