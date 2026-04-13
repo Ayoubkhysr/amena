@@ -27,6 +27,18 @@ type Order = {
   date: string
 }
 
+type ReviewStatus = 'En attente' | 'Approuvé' | 'Rejeté'
+
+type Review = {
+  id: number
+  author: string
+  product: string
+  rating: number
+  comment: string
+  date: string
+  status: ReviewStatus
+}
+
 type AdminSection =
   | 'dashboard-vue-generale'
   | 'produits-liste' | 'produits-ajouter' | 'produits-categories' | 'produits-rupture'
@@ -102,6 +114,13 @@ function AdminDashboardPage() {
     { id: 1003, client: 'Clinique Nour', total: 730, statut: 'Livrée', date: '2026-04-04' },
   ])
 
+  const [reviews, setReviews] = useState<Review[]>([
+    { id: 1, author: 'Alice Dupont', product: 'Détergent Sol Pro 5L', rating: 5, comment: 'Excellent produit, nettoie très bien.', date: '2026-04-10', status: 'En attente' },
+    { id: 2, author: 'Jean Martin', product: 'Liquide Vaisselle Ultra', rating: 4, comment: 'Bon rapport qualité/prix.', date: '2026-04-11', status: 'Approuvé' },
+    { id: 3, author: 'Sophie Laurent', product: 'Désinfectant Surfaces', rating: 2, comment: 'Odeur un peu trop forte.', date: '2026-04-12', status: 'Rejeté' },
+    { id: 4, author: 'Marc Tremblay', product: 'Pack Entretien Complet', rating: 5, comment: 'Parfait pour le bureau, je recommande fortement ce pack.', date: '2026-04-12', status: 'En attente' }
+  ])
+
   const salesStats = useMemo(() => {
     const totalCommandes = orders.length
     const chiffreAffaires = orders.reduce((sum, order) => sum + order.total, 0)
@@ -127,7 +146,12 @@ function AdminDashboardPage() {
 
   const meta = SECTION_META[activeSection]
   const pendingOrders = orders.filter((order) => order.statut === 'En attente').length
+  const pendingReviews = reviews.filter((review) => review.status === 'En attente').length
   const newClients = 12
+
+  const handleReviewStatus = (id: number, newStatus: ReviewStatus) => {
+    setReviews(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r))
+  }
 
   const NavLeaf = ({ sectionKey, label, Icon, badge }: { sectionKey: AdminSection; label: string; Icon: ElementType; badge?: string }) => {
     const isActive = activeSection === sectionKey
@@ -135,11 +159,10 @@ function AdminDashboardPage() {
       <button
         type="button"
         onClick={() => selectNav(sectionKey)}
-        className={`group relative flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-all duration-200 ease-out ${
-          isActive
+        className={`group relative flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-all duration-200 ease-out ${isActive
             ? 'bg-brand-blue text-white shadow-md'
             : 'text-brand-blue hover:bg-slate-100'
-        }`}
+          }`}
       >
         <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-brand-light'}`} />
         <span className="min-w-0 flex-1 text-[13px] font-medium leading-snug">{label}</span>
@@ -173,17 +196,15 @@ function AdminDashboardPage() {
       <button
         type="button"
         aria-label="Fermer le menu"
-        className={`fixed inset-0 z-40 bg-brand-blue/30 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${
-          sidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-        }`}
+        className={`fixed inset-0 z-40 bg-brand-blue/30 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${sidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          }`}
         onClick={() => setSidebarOpen(false)}
       />
 
       <div className="grid min-h-screen md:grid-cols-[310px_1fr]">
         <aside
-          className={`fixed inset-y-0 left-0 z-50 flex w-[310px] flex-col border-r border-slate-200 bg-white shadow-xl shadow-brand-blue/5 transition-transform duration-300 ease-out md:static md:z-auto md:translate-x-0 md:shadow-none ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`fixed inset-y-0 left-0 z-50 flex w-[310px] flex-col border-r border-slate-200 bg-white shadow-xl shadow-brand-blue/5 transition-transform duration-300 ease-out md:static md:z-auto md:translate-x-0 md:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           <div className="border-b border-slate-100 px-6 py-6">
             <div className="rounded-2xl border border-slate-200 bg-brand-surface px-4 py-4">
@@ -193,19 +214,18 @@ function AdminDashboardPage() {
                   alt="Logo Etablissement El Amine"
                   className="h-14 w-16 rounded-md object-contain bg-white p-1 shadow-sm"
                   onError={(e) => {
-                    ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                    ; (e.currentTarget as HTMLImageElement).style.display = 'none'
                   }}
                 />
                 <div>
                   <h1 className="text-lg font-extrabold tracking-tight text-brand-blue">Etablissement El Amena</h1>
-                  <p className="mt-0.5 text-xs font-medium text-brand-light">Panneau d&apos;administration</p>
+                  <p className="mt-0.5 text-xs font-medium text-brand-light">Panneau d'administration</p>
                 </div>
               </div>
             </div>
           </div>
 
           <nav className="flex-1 space-y-3 overflow-y-auto px-4 py-6 custom-scrollbar">
-            
             <div className="rounded-xl border border-slate-200 bg-white p-1">
               <NavLeaf sectionKey="dashboard-vue-generale" label="Dashboard" Icon={IconDashboard} />
             </div>
@@ -249,7 +269,7 @@ function AdminDashboardPage() {
               {navOpen.avis && (
                 <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
                   <NavLeaf sectionKey="avis-tous" label="Tous les avis" Icon={IconMessage} />
-                  <NavLeaf sectionKey="avis-attente" label="En attente de modération" Icon={IconEyeOff} badge="3" />
+                  <NavLeaf sectionKey="avis-attente" label="En attente de modération" Icon={IconEyeOff} badge={pendingReviews > 0 ? pendingReviews.toString() : undefined} />
                   <NavLeaf sectionKey="avis-approuves" label="Approuvés" Icon={IconStar} />
                   <NavLeaf sectionKey="avis-rejetes" label="Rejetés" Icon={IconArchive} />
                 </div>
@@ -432,6 +452,75 @@ function AdminDashboardPage() {
                     </article>
                   </section>
                 </>
+              ) : AVIS_KEYS.includes(activeSection) ? (
+                <div className="space-y-4">
+                  {(() => {
+                    let filteredReviews = reviews;
+                    if (activeSection === 'avis-attente') filteredReviews = reviews.filter(r => r.status === 'En attente');
+                    else if (activeSection === 'avis-approuves') filteredReviews = reviews.filter(r => r.status === 'Approuvé');
+                    else if (activeSection === 'avis-rejetes') filteredReviews = reviews.filter(r => r.status === 'Rejeté');
+
+                    if (filteredReviews.length === 0) {
+                      return (
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-brand-surface py-24 text-center">
+                          <IconMessage className="h-8 w-8 text-Brand-light mb-4 opacity-50" />
+                          <h3 className="text-lg font-bold text-brand-blue">Aucun avis trouvé</h3>
+                          <p className="mt-2 max-w-sm text-sm text-slate-500">
+                            Il n'y a aucun avis dans cette catégorie pour le moment.
+                          </p>
+                        </div>
+                      )
+                    }
+
+                    return filteredReviews.map(review => (
+                      <div key={review.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+                        <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
+                          <div className="flex-1">
+                            <h4 className="font-bold text-brand-blue text-base">{review.author}</h4>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {review.date} &bull; Produit : <span className="font-semibold text-slate-700">{review.product}</span>
+                            </p>
+                            <div className="my-2 flex text-amber-400 gap-0.5">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <IconStar key={i} className={`h-4 w-4 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`} />
+                              ))}
+                            </div>
+                            <p className="text-sm text-slate-700 mt-2 leading-relaxed bg-slate-50 p-3 rounded-lg">{review.comment}</p>
+                          </div>
+                          <div className="flex flex-col sm:items-end gap-3 w-full sm:w-auto">
+                            <span className={`inline-flex px-2.5 py-1 text-xs font-bold rounded-full w-fit ${review.status === 'En attente' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                review.status === 'Approuvé' ? 'bg-green-100 text-green-700 border border-green-200' :
+                                  'bg-red-100 text-red-700 border border-red-200'
+                              }`}>
+                              {review.status}
+                            </span>
+
+                            {['avis-tous', 'avis-attente', 'avis-rejetes'].includes(activeSection) || activeSection === 'avis-approuves' ? (
+                              <div className="flex gap-2 w-full sm:w-auto justify-end">
+                                {review.status !== 'Approuvé' && (
+                                  <button
+                                    onClick={() => handleReviewStatus(review.id, 'Approuvé')}
+                                    className="px-4 py-2 bg-green-50 hover:bg-green-500 hover:text-white text-green-600 text-xs font-bold rounded-lg transition-all duration-200 border border-green-200 shadow-sm flex-1 sm:flex-none"
+                                  >
+                                    Approuver
+                                  </button>
+                                )}
+                                {review.status !== 'Rejeté' && (
+                                  <button
+                                    onClick={() => handleReviewStatus(review.id, 'Rejeté')}
+                                    className="px-4 py-2 bg-red-50 hover:bg-red-500 hover:text-white text-red-600 text-xs font-bold rounded-lg transition-all duration-200 border border-red-200 shadow-sm flex-1 sm:flex-none"
+                                  >
+                                    Rejeter
+                                  </button>
+                                )}
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  })()}
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-brand-surface py-24 text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-brand-light shadow-sm">
