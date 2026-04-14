@@ -1,42 +1,39 @@
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { Button } from '../components';
 
-
-  const AddUser = () => {
-
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    navigate('/');
-  }
-
-  function FormUser(){
-    return(
-      <form onSubmit={handleClick}>
-        <label>
-          Nom:
-          <input type="text" name="Nom" />
-        </label>
-        <br />
-
-        <label>
-          Prénom:
-          <input type="text" name="Prénom" />
-        </label>
-
-        <br />
-        <label>
-          Email:
-          <input type="email" name="email" />
-        </label>
-        
-        <br />
-        <Button>Add User</Button>
-      </form>
-    );
-  }
-
-  return <FormUser />;
+interface FormUserProps {
+  onSubmit: () => void;
 }
 
-export default AddUser;
+const FormUser = ({ onSubmit }: FormUserProps) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSubmit();
+  };
+
+  return(
+    <form onSubmit={handleSubmit}>
+      <label>
+        Nom:
+        <input type="text" name="Nom" />
+      </label>
+      <br />
+
+      <label>
+        Prénom:
+        <input type="text" name="Prénom" />
+      </label>
+
+      <br />
+      <label>
+        Email:
+        <input type="email" name="email" />
+      </label>
+      
+      <br />
+      <Button type="submit">Add User</Button>
+    </form>
+  );
+}
+
+export default FormUser;
