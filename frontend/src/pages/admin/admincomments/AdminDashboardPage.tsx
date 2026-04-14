@@ -17,27 +17,20 @@ import {
   IconTag,
   IconTrending,
   IconUsers,
-} from '../../components/admin'
+} from '../../../components/admin'
 
-type Order = {
-  id: number
-  client: string
-  total: number
-  statut: 'En attente' | 'Préparée' | 'Livrée'
-  date: string
-}
+import { AdminCommandes, Order, OrderStatus } from '../admincommandes/AdminCommandes'
 
-type ReviewStatus = 'En attente' | 'Approuvé' | 'Rejeté'
+import { AdminComments, Review, ReviewStatus } from './AdminComments'
+import { AdminClients, Client } from '../adminclients/AdminClients'
+import { AdminProduits, Product } from '../adminproduits/AdminProduits'
 
-type Review = {
-  id: number
-  author: string
-  product: string
-  rating: number
-  comment: string
-  date: string
-  status: ReviewStatus
-}
+import p01 from '../adminproduits/images/p01.png'
+import p02 from '../adminproduits/images/p02.png'
+import p03 from '../adminproduits/images/p03.png'
+import p04 from '../adminproduits/images/p04.png'
+import p05 from '../adminproduits/images/p05.png'
+import p06 from '../adminproduits/images/p06.png'
 
 type AdminSection =
   | 'dashboard-vue-generale'
@@ -86,12 +79,6 @@ const CONTENU_KEYS: AdminSection[] = ['contenu-bannieres', 'contenu-pages']
 const RAPPORTS_KEYS: AdminSection[] = ['rapports-ventes', 'rapports-produits']
 const PARAM_KEYS: AdminSection[] = ['parametres-infos', 'parametres-paiement', 'parametres-livraison']
 
-const LOW_STOCK_PRODUCTS = [
-  { name: 'Détergent Sol Pro 5L', stock: 4 },
-  { name: 'Liquide Vaisselle Ultra', stock: 7 },
-  { name: 'Désinfectant Surfaces', stock: 3 },
-]
-
 function AdminDashboardPage() {
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard-vue-generale')
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -108,10 +95,28 @@ function AdminDashboardPage() {
   })
 
   // Exemples de données
-  const [orders] = useState<Order[]>([
-    { id: 1001, client: 'Société Atlas', total: 420, statut: 'En attente', date: '2026-04-01' },
-    { id: 1002, client: 'Hôtel Jasmin', total: 980, statut: 'Préparée', date: '2026-04-03' },
-    { id: 1003, client: 'Clinique Nour', total: 730, statut: 'Livrée', date: '2026-04-04' },
+  const [products, setProducts] = useState<Product[]>([
+    { id: 'P01', name: 'Détergent Sol Pro 5L', category: 'Entretien', price: 25.5, stock: 4, status: 'Actif', imageUrl: p01 },
+    { id: 'P02', name: 'Liquide Vaisselle Ultra', category: 'Entretien', price: 12.0, stock: 7, status: 'Actif', imageUrl: p02 },
+    { id: 'P03', name: 'Désinfectant Surfaces', category: 'Hygiène', price: 9.9, stock: 3, status: 'Actif', imageUrl: p03 },
+    { id: 'P04', name: 'Papier Toilette x12', category: 'Hygiène', price: 14.5, stock: 150, status: 'Actif', imageUrl: p04 },
+    { id: 'P05', name: 'Brosse de nettoyage', category: 'Accessoires', price: 4.5, stock: 0, status: 'Rupture', imageUrl: p05 },
+    { id: 'P06', name: 'Savon liquide mains', category: 'Hygiène', price: 8.0, stock: 45, status: 'Actif', imageUrl: p06 }
+  ])
+
+  const [categories, setCategories] = useState<string[]>(['Entretien', 'Hygiène', 'Accessoires', 'Autre'])
+
+  const [clients, setClients] = useState<Client[]>([
+    { id: 'C100', name: 'Société Atlas', email: 'contact@atlas.tn', phone: '+216 71 123 456', registrationDate: '2025-11-15', totalOrders: 14, totalSpent: 5600, status: 'Actif' },
+    { id: 'C101', name: 'Hôtel Jasmin', email: 'achats@jasmin.tn', phone: '+216 73 987 654', registrationDate: '2026-01-20', totalOrders: 5, totalSpent: 2150, status: 'Actif' },
+    { id: 'C102', name: 'Clinique Nour', email: 'direction@nour.tn', phone: '+216 70 555 444', registrationDate: '2026-03-05', totalOrders: 2, totalSpent: 1100, status: 'Actif' },
+    { id: 'C103', name: 'Ecole Primaire El Amal', email: 'ecole.amal@edunet.tn', phone: '+216 72 111 222', registrationDate: '2024-09-01', totalOrders: 28, totalSpent: 12400, status: 'Inactif' },
+  ])
+
+  const [orders, setOrders] = useState<Order[]>([
+    { id: 1001, client: 'Société Atlas', total: 410, statut: 'En attente', date: '2026-04-01', address: '15 Avenue Habib Bourguiba, Tunis, 1002', items: [{name: 'Détergent Sol Pro 5L', qty: 10, price: 25.5}, {name: 'Papier Toilette x12', qty: 10, price: 14.5}] },
+    { id: 1002, client: 'Hôtel Jasmin', total: 970, statut: 'Préparée', date: '2026-04-03', address: 'Zone Touristique El Kantaoui, Sousse, 4089', items: [{name: 'Liquide Vaisselle Ultra', qty: 50, price: 12.0}, {name: 'Savon liquide mains', qty: 45, price: 8.0}] },
+    { id: 1003, client: 'Clinique Nour', total: 496, statut: 'Livrée', date: '2026-04-04', address: 'Route de la Plage, La Marsa, 2070', items: [{name: 'Désinfectant Surfaces', qty: 40, price: 9.9}, {name: 'Brosse de nettoyage', qty: 20, price: 4.5}] },
   ])
 
   const [reviews, setReviews] = useState<Review[]>([
@@ -147,10 +152,37 @@ function AdminDashboardPage() {
   const meta = SECTION_META[activeSection]
   const pendingOrders = orders.filter((order) => order.statut === 'En attente').length
   const pendingReviews = reviews.filter((review) => review.status === 'En attente').length
-  const newClients = 12
+  const newClients = clients.length
+  const lowStockProducts = products.filter(p => p.stock <= 5 || p.status === 'Rupture')
 
   const handleReviewStatus = (id: number, newStatus: ReviewStatus) => {
     setReviews(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r))
+  }
+
+  const handleOrderStatus = (id: number, newStatus: OrderStatus) => {
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, statut: newStatus } : o))
+  }
+
+  const handleEditProduct = (updatedProduct: Product) => {
+    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))
+  }
+
+  const handleAddCategory = (cat: string) => {
+    if (!categories.includes(cat)) setCategories(prev => [...prev, cat])
+  }
+
+  const handleDeleteCategory = (cat: string) => {
+    setCategories(prev => prev.filter(c => c !== cat))
+    setProducts(prev => prev.map(p => p.category === cat ? { ...p, category: 'Autre' } : p))
+  }
+
+  const handleEditCategory = (oldCat: string, newCat: string) => {
+    setCategories(prev => prev.map(c => c === oldCat ? newCat : c))
+    setProducts(prev => prev.map(p => p.category === oldCat ? { ...p, category: newCat } : p))
+  }
+
+  const handleEditClient = (updatedClient: Client) => {
+    setClients(prev => prev.map(c => c.id === updatedClient.id ? updatedClient : c))
   }
 
   const NavLeaf = ({ sectionKey, label, Icon, badge }: { sectionKey: AdminSection; label: string; Icon: ElementType; badge?: string }) => {
@@ -160,8 +192,8 @@ function AdminDashboardPage() {
         type="button"
         onClick={() => selectNav(sectionKey)}
         className={`group relative flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-all duration-200 ease-out ${isActive
-            ? 'bg-brand-blue text-white shadow-md'
-            : 'text-brand-blue hover:bg-slate-100'
+          ? 'bg-brand-blue text-white shadow-md'
+          : 'text-brand-blue hover:bg-slate-100'
           }`}
       >
         <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-brand-light'}`} />
@@ -386,7 +418,7 @@ function AdminDashboardPage() {
                         <IconArchive className="h-5 w-5" />
                         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Stock faible</h3>
                       </div>
-                      <p className="text-3xl font-extrabold text-brand-blue">{LOW_STOCK_PRODUCTS.length}</p>
+                      <p className="text-3xl font-extrabold text-brand-blue">{lowStockProducts.length}</p>
                       <p className="mt-2 text-xs font-medium text-slate-500">Produits proches de la rupture</p>
                     </article>
 
@@ -440,8 +472,8 @@ function AdminDashboardPage() {
                         <p className="mt-1 text-xs text-slate-500">Action recommandee pour reapprovisionnement</p>
                       </header>
                       <div className="space-y-3">
-                        {LOW_STOCK_PRODUCTS.map((product) => (
-                          <div key={product.name} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+                        {lowStockProducts.map((product) => (
+                          <div key={product.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
                             <p className="text-sm font-semibold text-slate-700">{product.name}</p>
                             <span className="rounded-full bg-brand-red px-2 py-1 text-xs font-bold text-white">
                               {product.stock} restants
@@ -452,75 +484,26 @@ function AdminDashboardPage() {
                     </article>
                   </section>
                 </>
+              ) : PRODUITS_KEYS.includes(activeSection) ? (
+                <AdminProduits 
+                  products={products} 
+                  activeSection={activeSection} 
+                  categories={categories}
+                  handleEditProduct={handleEditProduct} 
+                  handleAddCategory={handleAddCategory}
+                  handleDeleteCategory={handleDeleteCategory}
+                  handleEditCategory={handleEditCategory}
+                />
+              ) : COMMANDES_KEYS.includes(activeSection) ? (
+                <AdminCommandes orders={orders} activeSection={activeSection} handleOrderStatus={handleOrderStatus} />
+              ) : CLIENTS_KEYS.includes(activeSection) ? (
+                <AdminClients clients={clients} activeSection={activeSection} orders={orders} handleEditClient={handleEditClient} />
               ) : AVIS_KEYS.includes(activeSection) ? (
-                <div className="space-y-4">
-                  {(() => {
-                    let filteredReviews = reviews;
-                    if (activeSection === 'avis-attente') filteredReviews = reviews.filter(r => r.status === 'En attente');
-                    else if (activeSection === 'avis-approuves') filteredReviews = reviews.filter(r => r.status === 'Approuvé');
-                    else if (activeSection === 'avis-rejetes') filteredReviews = reviews.filter(r => r.status === 'Rejeté');
-
-                    if (filteredReviews.length === 0) {
-                      return (
-                        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-brand-surface py-24 text-center">
-                          <IconMessage className="h-8 w-8 text-Brand-light mb-4 opacity-50" />
-                          <h3 className="text-lg font-bold text-brand-blue">Aucun avis trouvé</h3>
-                          <p className="mt-2 max-w-sm text-sm text-slate-500">
-                            Il n'y a aucun avis dans cette catégorie pour le moment.
-                          </p>
-                        </div>
-                      )
-                    }
-
-                    return filteredReviews.map(review => (
-                      <div key={review.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
-                        <div className="flex justify-between items-start gap-4 flex-col sm:flex-row">
-                          <div className="flex-1">
-                            <h4 className="font-bold text-brand-blue text-base">{review.author}</h4>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {review.date} &bull; Produit : <span className="font-semibold text-slate-700">{review.product}</span>
-                            </p>
-                            <div className="my-2 flex text-amber-400 gap-0.5">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <IconStar key={i} className={`h-4 w-4 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`} />
-                              ))}
-                            </div>
-                            <p className="text-sm text-slate-700 mt-2 leading-relaxed bg-slate-50 p-3 rounded-lg">{review.comment}</p>
-                          </div>
-                          <div className="flex flex-col sm:items-end gap-3 w-full sm:w-auto">
-                            <span className={`inline-flex px-2.5 py-1 text-xs font-bold rounded-full w-fit ${review.status === 'En attente' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                                review.status === 'Approuvé' ? 'bg-green-100 text-green-700 border border-green-200' :
-                                  'bg-red-100 text-red-700 border border-red-200'
-                              }`}>
-                              {review.status}
-                            </span>
-
-                            {['avis-tous', 'avis-attente', 'avis-rejetes'].includes(activeSection) || activeSection === 'avis-approuves' ? (
-                              <div className="flex gap-2 w-full sm:w-auto justify-end">
-                                {review.status !== 'Approuvé' && (
-                                  <button
-                                    onClick={() => handleReviewStatus(review.id, 'Approuvé')}
-                                    className="px-4 py-2 bg-green-50 hover:bg-green-500 hover:text-white text-green-600 text-xs font-bold rounded-lg transition-all duration-200 border border-green-200 shadow-sm flex-1 sm:flex-none"
-                                  >
-                                    Approuver
-                                  </button>
-                                )}
-                                {review.status !== 'Rejeté' && (
-                                  <button
-                                    onClick={() => handleReviewStatus(review.id, 'Rejeté')}
-                                    className="px-4 py-2 bg-red-50 hover:bg-red-500 hover:text-white text-red-600 text-xs font-bold rounded-lg transition-all duration-200 border border-red-200 shadow-sm flex-1 sm:flex-none"
-                                  >
-                                    Rejeter
-                                  </button>
-                                )}
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  })()}
-                </div>
+                <AdminComments
+                  reviews={reviews}
+                  activeSection={activeSection}
+                  handleReviewStatus={handleReviewStatus}
+                />
               ) : (
                 <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-brand-surface py-24 text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-brand-light shadow-sm">
