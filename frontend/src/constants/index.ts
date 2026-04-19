@@ -1,2 +1,2 @@
 // Application constants
-export const APP_NAME = 'Amena'
+export const APP_NAME = 'Al Amine'

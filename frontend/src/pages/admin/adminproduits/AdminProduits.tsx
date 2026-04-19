@@ -1,29 +1,26 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { IconPackage, IconTag, IconTrending, IconEye, IconArchive } from '../../../components/admin'
-
-export type Product = {
-  id: string
-  name: string
-  category: string
-  price: number
-  stock: number
-  status: 'Actif' | 'Inactif' | 'Rupture'
-  imageUrl?: string
-}
+import { Product } from '../../../context/StoreContext'
 
 export type AdminProduitsProps = {
   products: Product[]
   activeSection: string
   categories: string[]
   handleEditProduct?: (p: Product) => void
+  handleAddProduct?: (p: Product) => void
   handleAddCategory?: (cat: string) => void
   handleDeleteCategory?: (cat: string) => void
   handleEditCategory?: (oldCat: string, newCat: string) => void
 }
 
-export function AdminProduits({ products, activeSection, categories, handleEditProduct, handleAddCategory, handleDeleteCategory, handleEditCategory }: AdminProduitsProps) {
+export function AdminProduits({ products, activeSection, categories, handleEditProduct, handleAddProduct, handleAddCategory, handleDeleteCategory, handleEditCategory }: AdminProduitsProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Product | null>(null)
+  
+  const [newProduct, setNewProduct] = useState<Partial<Product>>({
+    name: '', category: categories[0] || 'Entretien', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''
+  })
+
   const [newCat, setNewCat] = useState('')
   const [editingCat, setEditingCat] = useState<{old: string, new: string} | null>(null)
   
@@ -38,11 +35,11 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
           <div className="grid gap-6 md:grid-cols-2">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Nom du produit</label>
-              <input type="text" className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: Détergent Sol Pro" />
+              <input type="text" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: Détergent Sol Pro" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Catégorie</label>
-              <select className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue">
+              <select value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue">
                 {categories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -50,24 +47,39 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Prix (TND)</label>
-              <input type="number" step="0.01" className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: 15.50" />
+              <input type="number" step="0.01" value={newProduct.price || ''} onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value)})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: 15.50" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Stock initial</label>
-              <input type="number" className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: 50" />
+              <input type="number" value={newProduct.stock || ''} onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value)})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: 50" />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-slate-700 mb-2">Lien de l'image (URL)</label>
-              <input type="url" className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: https://example.com/image.jpg" />
+              <input type="url" value={newProduct.imageUrl} onChange={e => setNewProduct({...newProduct, imageUrl: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: https://example.com/image.jpg" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">Description</label>
-            <textarea rows={4} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Description détaillée du produit..."></textarea>
+            <textarea rows={4} value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Description détaillée du produit..."></textarea>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <button type="button" className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">Annuler</button>
-            <button type="button" className="rounded-xl bg-brand-blue px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-brand-light transition-colors">Enregistrer le produit</button>
+            <button type="button" onClick={() => setNewProduct({name: '', category: categories[0] || 'Entretien', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''})} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">Annuler</button>
+            <button type="button" onClick={() => {
+              if (handleAddProduct && newProduct.name) {
+                handleAddProduct({
+                  id: 'P' + Math.floor(Math.random() * 10000),
+                  name: newProduct.name,
+                  category: newProduct.category || categories[0],
+                  price: newProduct.price || 0,
+                  stock: newProduct.stock || 0,
+                  status: (newProduct.stock || 0) > 0 ? 'Actif' : 'Rupture',
+                  imageUrl: newProduct.imageUrl || '',
+                  description: newProduct.description || ''
+                })
+                setNewProduct({name: '', category: categories[0] || 'Entretien', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''})
+                alert('Produit ajouté !')
+              }
+            }} className="rounded-xl bg-brand-blue px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-brand-light transition-colors">Enregistrer le produit</button>
           </div>
         </form>
       </div>
@@ -189,7 +201,8 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
 
               if (isEditing && editForm) {
                 return (
-                  <tr key={product.id} className="border-b border-slate-200 bg-brand-blue/5">
+                  <React.Fragment key={product.id}>
+                    <tr className="bg-brand-blue/5">
                     <td className="px-4 py-4 font-semibold text-slate-500">{product.id}</td>
                     <td className="px-4 py-4">
                       <input 
@@ -257,6 +270,19 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                       </div>
                     </td>
                   </tr>
+                  <tr className="border-b border-slate-200 bg-brand-blue/5">
+                    <td colSpan={7} className="px-4 py-4 pt-0">
+                      <label className="block text-xs font-semibold text-brand-blue mb-1 uppercase tracking-wider">Description</label>
+                      <textarea 
+                        rows={3} 
+                        value={editForm.description || ''} 
+                        onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none"
+                        placeholder="Description du produit..."
+                      />
+                    </td>
+                  </tr>
+                </React.Fragment>
                 )
               }
 

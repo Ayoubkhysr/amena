@@ -145,7 +145,7 @@
                         </goals>
                         <phase>generate-sources</phase>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi.yaml</inputSpec>
+                            <inputSpec>src/main/resources/openapi/openapi.yaml</inputSpec>
                             <generatorName>spring</generatorName>
                             <outputDir>${project.build.directory}/generated-sources/openapi</outputDir>
                             <generateApiTests>false</generateApiTests>

@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/changes/001-initial-schema.yaml
   - include:
       file: db/changelog/changes/002-create-table-order.yaml
+  - include:
+      file: db/changelog/changes/003-create-table-product.yaml

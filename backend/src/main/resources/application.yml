@@ -3,9 +3,9 @@ spring:
     name: amena-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/amena
-    username: amena
-    password: amena123
+    url: jdbc:postgresql://localhost:5432/alamine
+    username: alamine
+    password: alamine123
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10

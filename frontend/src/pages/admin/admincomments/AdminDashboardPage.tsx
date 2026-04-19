@@ -23,7 +23,12 @@ import { AdminCommandes, Order, OrderStatus } from '../admincommandes/AdminComma
 
 import { AdminComments, Review, ReviewStatus } from './AdminComments'
 import { AdminClients, Client } from '../adminclients/AdminClients'
-import { AdminProduits, Product } from '../adminproduits/AdminProduits'
+import { AdminProduits } from '../adminproduits/AdminProduits'
+import { AdminContenu, Banner, StaticPage } from '../admincontenu/AdminContenu'
+import { AdminPromotions, PromoCode, Offre } from '../adminpromotions/AdminPromotions'
+import { AdminRapports } from '../adminrapports/AdminRapports'
+import { AdminParametres } from '../adminparametres/AdminParametres'
+import { useStore, Product } from '../../../context/StoreContext'
 
 import p01 from '../adminproduits/images/p01.png'
 import p02 from '../adminproduits/images/p02.png'
@@ -94,17 +99,13 @@ function AdminDashboardPage() {
     parametres: false,
   })
 
-  // Exemples de données
-  const [products, setProducts] = useState<Product[]>([
-    { id: 'P01', name: 'Détergent Sol Pro 5L', category: 'Entretien', price: 25.5, stock: 4, status: 'Actif', imageUrl: p01 },
-    { id: 'P02', name: 'Liquide Vaisselle Ultra', category: 'Entretien', price: 12.0, stock: 7, status: 'Actif', imageUrl: p02 },
-    { id: 'P03', name: 'Désinfectant Surfaces', category: 'Hygiène', price: 9.9, stock: 3, status: 'Actif', imageUrl: p03 },
-    { id: 'P04', name: 'Papier Toilette x12', category: 'Hygiène', price: 14.5, stock: 150, status: 'Actif', imageUrl: p04 },
-    { id: 'P05', name: 'Brosse de nettoyage', category: 'Accessoires', price: 4.5, stock: 0, status: 'Rupture', imageUrl: p05 },
-    { id: 'P06', name: 'Savon liquide mains', category: 'Hygiène', price: 8.0, stock: 45, status: 'Actif', imageUrl: p06 }
-  ])
-
-  const [categories, setCategories] = useState<string[]>(['Entretien', 'Hygiène', 'Accessoires', 'Autre'])
+  // Global Exemples de données
+  const { 
+    products, setProducts, 
+    categories, setCategories, 
+    banners, setBanners, 
+    staticPages, setStaticPages 
+  } = useStore()
 
   const [clients, setClients] = useState<Client[]>([
     { id: 'C100', name: 'Société Atlas', email: 'contact@atlas.tn', phone: '+216 71 123 456', registrationDate: '2025-11-15', totalOrders: 14, totalSpent: 5600, status: 'Actif' },
@@ -117,6 +118,17 @@ function AdminDashboardPage() {
     { id: 1001, client: 'Société Atlas', total: 410, statut: 'En attente', date: '2026-04-01', address: '15 Avenue Habib Bourguiba, Tunis, 1002', items: [{name: 'Détergent Sol Pro 5L', qty: 10, price: 25.5}, {name: 'Papier Toilette x12', qty: 10, price: 14.5}] },
     { id: 1002, client: 'Hôtel Jasmin', total: 970, statut: 'Préparée', date: '2026-04-03', address: 'Zone Touristique El Kantaoui, Sousse, 4089', items: [{name: 'Liquide Vaisselle Ultra', qty: 50, price: 12.0}, {name: 'Savon liquide mains', qty: 45, price: 8.0}] },
     { id: 1003, client: 'Clinique Nour', total: 496, statut: 'Livrée', date: '2026-04-04', address: 'Route de la Plage, La Marsa, 2070', items: [{name: 'Désinfectant Surfaces', qty: 40, price: 9.9}, {name: 'Brosse de nettoyage', qty: 20, price: 4.5}] },
+  ])
+
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([
+    { id: 'PC1', code: 'BIENVENUE10', discount: 10, expiresAt: '2026-06-30', usageLimit: 50, usedCount: 12, status: 'Actif' },
+    { id: 'PC2', code: 'ETE20', discount: 20, expiresAt: '2026-08-31', usageLimit: 100, usedCount: 0, status: 'Inactif' },
+    { id: 'PC3', code: 'FIDELITE15', discount: 15, expiresAt: '', usageLimit: 200, usedCount: 47, status: 'Actif' },
+  ])
+
+  const [offres, setOffres] = useState<Offre[]>([
+    { id: 'OF1', label: 'Promo Hygiène Printemps', category: 'Hygiène', discount: 15, startsAt: '2026-04-01', endsAt: '2026-05-31', status: 'Actif' },
+    { id: 'OF2', label: 'Destockage Accessoires', category: 'Accessoires', discount: 30, startsAt: '2026-04-15', endsAt: '2026-04-30', status: 'Inactif' },
   ])
 
   const [reviews, setReviews] = useState<Review[]>([
@@ -163,9 +175,72 @@ function AdminDashboardPage() {
     setOrders(prev => prev.map(o => o.id === id ? { ...o, statut: newStatus } : o))
   }
 
-  const handleEditProduct = (updatedProduct: Product) => {
-    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p))
+  const handleEditBanner = (updatedBanner: Banner) => {
+    setBanners(prev => prev.map(b => b.id === updatedBanner.id ? updatedBanner : b))
   }
+
+  const handleAddBanner = (newBanner: Banner) => {
+    setBanners(prev => [...prev, newBanner])
+  }
+
+  const handleEditPage = (updatedPage: StaticPage) => {
+    setStaticPages(prev => prev.map(p => p.id === updatedPage.id ? updatedPage : p))
+  }
+
+  const handleAddPage = (newPage: StaticPage) => {
+    setStaticPages(prev => [...prev, newPage])
+  }
+
+  const handleEditProduct = (updatedProduct: Product) => {
+    fetch(`http://localhost:8080/api/products/${updatedProduct.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedProduct)
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Backend non accessible");
+      return res.json();
+    })
+    .then(savedProduct => {
+      setProducts(prev => prev.map(p => p.id === savedProduct.id ? savedProduct : p));
+    })
+    .catch(err => {
+      console.warn("⚠️ Sauvegarde locale uniquement. Base de données injoignable :", err);
+      setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+    });
+  }
+
+  const handleAddProduct = (newProduct: Product) => {
+    fetch('http://localhost:8080/api/products', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newProduct)
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Backend non accessible");
+      return res.json();
+    })
+    .then(savedProduct => {
+      setProducts(prev => [...prev, savedProduct]);
+    })
+    .catch(err => {
+      console.warn("⚠️ Sauvegarde locale uniquement. Base de données injoignable :", err);
+      setProducts(prev => [...prev, newProduct]);
+    });
+  }
+
+  // Promo handlers
+  const handleAddPromoCode = (p: PromoCode) => setPromoCodes(prev => [...prev, p])
+  const handleEditPromoCode = (p: PromoCode) => setPromoCodes(prev => prev.map(c => c.id === p.id ? p : c))
+  const handleDeletePromoCode = (id: string) => setPromoCodes(prev => prev.filter(c => c.id !== id))
+
+  const handleAddOffre = (o: Offre) => setOffres(prev => [...prev, o])
+  const handleEditOffre = (o: Offre) => setOffres(prev => prev.map(x => x.id === o.id ? o : x))
+  const handleDeleteOffre = (id: string) => setOffres(prev => prev.filter(x => x.id !== id))
 
   const handleAddCategory = (cat: string) => {
     if (!categories.includes(cat)) setCategories(prev => [...prev, cat])
@@ -250,7 +325,7 @@ function AdminDashboardPage() {
                   }}
                 />
                 <div>
-                  <h1 className="text-lg font-extrabold tracking-tight text-brand-blue">Etablissement El Amena</h1>
+                  <h1 className="text-lg font-extrabold tracking-tight text-brand-blue">Etablissement Al Amine</h1>
                   <p className="mt-0.5 text-xs font-medium text-brand-light">Panneau d&apos;administration</p>
                 </div>
               </div>
@@ -491,6 +566,7 @@ function AdminDashboardPage() {
                   activeSection={activeSection} 
                   categories={categories}
                   handleEditProduct={handleEditProduct} 
+                  handleAddProduct={handleAddProduct}
                   handleAddCategory={handleAddCategory}
                   handleDeleteCategory={handleDeleteCategory}
                   handleEditCategory={handleEditCategory}
@@ -505,17 +581,38 @@ function AdminDashboardPage() {
                   activeSection={activeSection}
                   handleReviewStatus={handleReviewStatus}
                 />
-              ) : (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-brand-surface py-24 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-brand-light shadow-sm">
-                    <IconDashboard className="h-8 w-8" />
-                  </div>
-                  <h3 className="mt-4 text-lg font-bold text-brand-blue">Section prete pour implementation</h3>
-                  <p className="mt-2 max-w-sm text-sm text-slate-500">
-                    La vue "{meta.title}" est structuree dans la navigation et peut etre branchee sur vos donnees metier.
-                  </p>
-                </div>
-              )}
+              ) : CONTENU_KEYS.includes(activeSection) ? (
+                <AdminContenu
+                  activeSection={activeSection}
+                  banners={banners}
+                  staticPages={staticPages}
+                  handleEditBanner={handleEditBanner}
+                  handleEditPage={handleEditPage}
+                  handleAddBanner={handleAddBanner}
+                  handleAddPage={handleAddPage}
+                />
+              ) : PROMOS_KEYS.includes(activeSection) ? (
+                <AdminPromotions
+                  activeSection={activeSection}
+                  categories={categories}
+                  promoCodes={promoCodes}
+                  offres={offres}
+                  handleAddPromoCode={handleAddPromoCode}
+                  handleEditPromoCode={handleEditPromoCode}
+                  handleDeletePromoCode={handleDeletePromoCode}
+                  handleAddOffre={handleAddOffre}
+                  handleEditOffre={handleEditOffre}
+                  handleDeleteOffre={handleDeleteOffre}
+                />
+              ) : RAPPORTS_KEYS.includes(activeSection) ? (
+                <AdminRapports
+                  activeSection={activeSection}
+                  orders={orders}
+                  products={products}
+                />
+              ) : PARAM_KEYS.includes(activeSection) ? (
+                <AdminParametres activeSection={activeSection} />
+              ) : null}
             </div>
           </div>
         </main>
