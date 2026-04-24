@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { Banner, StaticPage } from '../pages/admin/admincontenu/AdminContenu'
 
-import p01 from '../pages/admin/adminproduits/images/p01.png'
-import p02 from '../pages/admin/adminproduits/images/p02.png'
-import p03 from '../pages/admin/adminproduits/images/p03.png'
-import p04 from '../pages/admin/adminproduits/images/p04.png'
-import p05 from '../pages/admin/adminproduits/images/p05.png'
-import p06 from '../pages/admin/adminproduits/images/p06.png'
+import adoucissant from '../pages/admin/adminproduits/images/adoucissant.png'
+import bhy_vaisselle from '../pages/admin/adminproduits/images/bhy_vaisselle.png'
+import gold from '../pages/admin/adminproduits/images/gold.png'
+import javel from '../pages/admin/adminproduits/images/javel.png'
+import oxybain from '../pages/admin/adminproduits/images/oxybain.png'
+import sol_et_surface from '../pages/admin/adminproduits/images/sol_et_surface.png'
 
 export type Product = {
   id: string
@@ -48,12 +48,12 @@ const MOCK_PAGES: StaticPage[] = [
 ]
 
 const MOCK_PRODUCTS: Product[] = [
-  { id: 'P01', name: 'Détergent Sol Pro 5L', category: 'Entretien', price: 25.5, stock: 4, status: 'Actif', imageUrl: p01, description: "Un détergent professionnel ultra-performant conçu pour le nettoyage en profondeur de tous types de sols. Idéal pour les grandes surfaces et les environnements exigeants. Laisse un parfum frais et durable." },
-  { id: 'P02', name: 'Liquide Vaisselle Ultra', category: 'Entretien', price: 12.0, stock: 7, status: 'Actif', imageUrl: p02, description: "Formule concentrée dégraissante pour un nettoyage impeccable de votre vaisselle. Doux pour les mains tout en restant redoutable contre les graisses incrustées." },
-  { id: 'P03', name: 'Désinfectant Surfaces', category: 'Hygiène', price: 9.9, stock: 3, status: 'Actif', imageUrl: p03, description: "Spray désinfectant multi-surfaces éliminant 99.9% des bactéries et virus. Séchage rapide sans laisser de traces, parfait pour les espaces médicaux, les bureaux et la maison." },
-  { id: 'P04', name: 'Papier Toilette x12', category: 'Hygiène', price: 14.5, stock: 150, status: 'Actif', imageUrl: p04, description: "Pack économique de 12 rouleaux de papier toilette double épaisseur. Confort supérieur et résistance optimale, respectueux des peaux sensibles." },
-  { id: 'P05', name: 'Brosse de nettoyage', category: 'Accessoires', price: 4.5, stock: 0, status: 'Rupture', imageUrl: p05, description: "Brosse ergonomique à poils durs, parfaite pour récurer les surfaces difficiles, les joints et les carrelages. Manche antidérapant pour une prise en main optimale." },
-  { id: 'P06', name: 'Savon liquide mains', category: 'Hygiène', price: 8.0, stock: 45, status: 'Actif', imageUrl: p06, description: "Savon liquide antibactérien enrichi en aloé vera. Nettoie efficacement vos mains tout en préservant leur hydratation naturelle. Parfum lavande doux." }
+  { id: 'P01', name: 'Bhy vaisselle', category: 'Entretien', price: 13.6, stock: 50, status: 'Actif', imageUrl: bhy_vaisselle, description: "Liquide vaisselle ultra dégraissant pour une propreté éclatante." },
+  { id: 'P02', name: 'Oxybain', category: 'Hygiène', price: 13.9, stock: 35, status: 'Actif', imageUrl: oxybain, description: "Nettoyant désinfectant pour salle de bain, efficace contre le calcaire." },
+  { id: 'P03', name: 'Gold', category: 'Entretien', price: 17.5, stock: 20, status: 'Actif', imageUrl: gold, description: "Nettoyant premium pour surfaces délicates et sols brillants." },
+  { id: 'P04', name: 'Adoucissant', category: 'Hygiène', price: 5.5, stock: 100, status: 'Actif', imageUrl: adoucissant, description: "Adoucissant textile pour un linge souple et délicatement parfumé." },
+  { id: 'P05', name: 'Javel', category: 'Hygiène', price: 5.5, stock: 150, status: 'Actif', imageUrl: javel, description: "Eau de javel classique pour une désinfection totale." },
+  { id: 'P06', name: 'Sol et surface', category: 'Entretien', price: 4.5, stock: 80, status: 'Actif', imageUrl: sol_et_surface, description: "Nettoyant multi-usages pour tous types de sols et surfaces." }
 ]
 
 export function StoreProvider({ children }: { children: ReactNode }) {
