@@ -3,10 +3,15 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import { StoreProvider } from './context/StoreContext'
+import HomePage from './pages/HomePage'
 import AdminDashboardPage from './pages/admin/admincomments/AdminDashboardPage'
 import StaticPageView from './pages/StaticPageView'
 
 const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <HomePage />,
+  },
   {
     path: '/admin',
     element: <AdminDashboardPage />,
