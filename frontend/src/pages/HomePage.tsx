@@ -18,7 +18,7 @@ function HomePage() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-800 mb-4">
-          Welcome to Amena
+          Welcome to Al Amine
         </h1>
 
         <div className="flex gap-4 justify-center">

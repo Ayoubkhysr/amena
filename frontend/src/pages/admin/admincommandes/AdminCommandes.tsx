@@ -94,12 +94,11 @@ export function AdminCommandes({ orders, activeSection, handleOrderStatus }: Adm
                       onClick={(e) => e.stopPropagation()}
                       value={order.statut}
                       onChange={(e) => handleOrderStatus(order.id, e.target.value as OrderStatus)}
-                      className={`rounded-full px-3 py-1 font-bold text-xs uppercase cursor-pointer outline-none border transition-colors ${
-                        order.statut === 'Livrée' ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200' :
-                        order.statut === 'En attente' ? 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200' :
-                        order.statut === 'Retournée' ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200' :
-                        'bg-brand-blue/10 text-brand-blue border-brand-blue/20 hover:bg-brand-blue/20'
-                      }`}
+                      className={`rounded-full px-3 py-1 font-bold text-xs uppercase cursor-pointer outline-none border transition-colors ${order.statut === 'Livrée' ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200' :
+                          order.statut === 'En attente' ? 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200' :
+                            order.statut === 'Retournée' ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200' :
+                              'bg-brand-blue/10 text-brand-blue border-brand-blue/20 hover:bg-brand-blue/20'
+                        }`}
                     >
                       <option value="En attente" className="text-amber-700">En attente</option>
                       <option value="Préparée" className="text-brand-blue">Préparée</option>
@@ -109,9 +108,9 @@ export function AdminCommandes({ orders, activeSection, handleOrderStatus }: Adm
                   </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex justify-end gap-2">
-                      <button 
+                      <button
                         onClick={() => toggleExpand(order.id)}
-                        className={`p-2 rounded-lg transition-colors inline-flex ${expandedOrderId === order.id ? 'bg-brand-blue text-white' : 'text-slate-400 hover:text-brand-blue bg-slate-50 hover:bg-slate-200'}`} 
+                        className={`p-2 rounded-lg transition-colors inline-flex ${expandedOrderId === order.id ? 'bg-brand-blue text-white' : 'text-slate-400 hover:text-brand-blue bg-slate-50 hover:bg-slate-200'}`}
                         title="Voir détails"
                       >
                         <IconClipboard className="h-4 w-4" />
@@ -127,49 +126,49 @@ export function AdminCommandes({ orders, activeSection, handleOrderStatus }: Adm
                     <td colSpan={6} className="p-0">
                       <div className="px-6 py-5 animate-admin-panel-in">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Détails de Livraison</h4>
-                                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                                    <p className="font-semibold text-brand-blue">{order.client}</p>
-                                    <p className="text-sm text-slate-600 mt-2 leading-relaxed">{order.address}</p>
-                                </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Détails de Livraison</h4>
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                              <p className="font-semibold text-brand-blue">{order.client}</p>
+                              <p className="text-sm text-slate-600 mt-2 leading-relaxed">{order.address}</p>
                             </div>
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Articles commandés</h4>
-                                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                                  <table className="min-w-full text-xs text-left">
-                                      <thead className="bg-slate-50 border-b border-slate-100">
-                                          <tr>
-                                              <th className="px-4 py-2 text-slate-500 font-semibold">Produit</th>
-                                              <th className="px-4 py-2 text-slate-500 font-semibold text-center">Qté</th>
-                                              <th className="px-4 py-2 text-slate-500 font-semibold text-right">Total</th>
-                                          </tr>
-                                      </thead>
-                                      <tbody>
-                                          {order.items.map((item, idx) => (
-                                              <tr key={idx} className="border-b border-slate-50 last:border-none">
-                                                  <td className="px-4 py-3 font-medium text-slate-700 flex items-center gap-2">
-                                                    <IconPackage className="h-3 w-3 text-brand-light" />
-                                                    {item.name}
-                                                  </td>
-                                                  <td className="px-4 py-3 text-center text-slate-600 font-semibold">{item.qty}</td>
-                                                  <td className="px-4 py-3 text-right font-semibold text-brand-blue">{item.qty * item.price} TND</td>
-                                              </tr>
-                                          ))}
-                                      </tbody>
-                                      <tfoot className="bg-slate-50 border-t border-slate-200">
-                                        <tr>
-                                            <td colSpan={2} className="px-4 py-3 font-bold text-slate-600 text-right">Frais Livraison:</td>
-                                            <td className="px-4 py-3 font-bold text-slate-700 text-right">10 TND</td>
-                                        </tr>
-                                        <tr>
-                                            <td colSpan={2} className="px-4 py-3 font-extrabold text-brand-blue text-right uppercase tracking-wider">Total Final:</td>
-                                            <td className="px-4 py-3 font-extrabold text-brand-blue text-right text-sm">{order.total} TND</td>
-                                        </tr>
-                                      </tfoot>
-                                  </table>
-                                </div>
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Articles commandés</h4>
+                            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                              <table className="min-w-full text-xs text-left">
+                                <thead className="bg-slate-50 border-b border-slate-100">
+                                  <tr>
+                                    <th className="px-4 py-2 text-slate-500 font-semibold">Produit</th>
+                                    <th className="px-4 py-2 text-slate-500 font-semibold text-center">Qté</th>
+                                    <th className="px-4 py-2 text-slate-500 font-semibold text-right">Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {order.items.map((item, idx) => (
+                                    <tr key={idx} className="border-b border-slate-50 last:border-none">
+                                      <td className="px-4 py-3 font-medium text-slate-700 flex items-center gap-2">
+                                        <IconPackage className="h-3 w-3 text-brand-light" />
+                                        {item.name}
+                                      </td>
+                                      <td className="px-4 py-3 text-center text-slate-600 font-semibold">{item.qty}</td>
+                                      <td className="px-4 py-3 text-right font-semibold text-brand-blue">{item.qty * item.price} TND</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                                <tfoot className="bg-slate-50 border-t border-slate-200">
+                                  <tr>
+                                    <td colSpan={2} className="px-4 py-3 font-bold text-slate-600 text-right">Frais Livraison:</td>
+                                    <td className="px-4 py-3 font-bold text-slate-700 text-right">10 TND</td>
+                                  </tr>
+                                  <tr>
+                                    <td colSpan={2} className="px-4 py-3 font-extrabold text-brand-blue text-right uppercase tracking-wider">Total Final:</td>
+                                    <td className="px-4 py-3 font-extrabold text-brand-blue text-right text-sm">{order.total} TND</td>
+                                  </tr>
+                                </tfoot>
+                              </table>
                             </div>
+                          </div>
                         </div>
                       </div>
                     </td>
