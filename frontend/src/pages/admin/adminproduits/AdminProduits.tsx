@@ -8,12 +8,13 @@ export type AdminProduitsProps = {
   categories: string[]
   handleEditProduct?: (p: Product) => void
   handleAddProduct?: (p: Product) => void
+  handleDeleteProduct?: (productId: string) => void
   handleAddCategory?: (cat: string) => void
   handleDeleteCategory?: (cat: string) => void
   handleEditCategory?: (oldCat: string, newCat: string) => void
 }
 
-export function AdminProduits({ products, activeSection, categories, handleEditProduct, handleAddProduct, handleAddCategory, handleDeleteCategory, handleEditCategory }: AdminProduitsProps) {
+export function AdminProduits({ products, activeSection, categories, handleEditProduct, handleAddProduct, handleDeleteProduct, handleAddCategory, handleDeleteCategory, handleEditCategory }: AdminProduitsProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Product | null>(null)
   
@@ -23,6 +24,31 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
 
   const [newCat, setNewCat] = useState('')
   const [editingCat, setEditingCat] = useState<{old: string, new: string} | null>(null)
+  const normalizeImagePath = (rawPath?: string) => (rawPath || '').trim().replace(/\\/g, '/')
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result || ''))
+      reader.onerror = () => reject(new Error('Impossible de lire le fichier image'))
+      reader.readAsDataURL(file)
+    })
+
+  const handleNewProductImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner un fichier image valide.')
+      return
+    }
+    try {
+      const dataUrl = await fileToDataUrl(file)
+      setNewProduct(prev => ({ ...prev, imageUrl: dataUrl }))
+    } catch {
+      alert("Le fichier n'a pas pu être chargé.")
+    } finally {
+      event.target.value = ''
+    }
+  }
   
   if (activeSection === 'produits-ajouter') {
     return (
@@ -54,8 +80,26 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
               <input type="number" value={newProduct.stock || ''} onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value)})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: 50" />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Lien de l'image (URL)</label>
-              <input type="url" value={newProduct.imageUrl} onChange={e => setNewProduct({...newProduct, imageUrl: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: https://example.com/image.jpg" />
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Lien/chemin de l'image</label>
+              <input type="text" value={newProduct.imageUrl} onChange={e => setNewProduct({...newProduct, imageUrl: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: https://... ou /images/produit.jpg" />
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <label className="cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                  Choisir une image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleNewProductImageUpload}
+                    className="hidden"
+                  />
+                </label>
+                {newProduct.imageUrl ? (
+                  <img
+                    src={normalizeImagePath(newProduct.imageUrl)}
+                    alt="Aperçu produit"
+                    className="h-14 w-14 rounded-lg object-cover border border-slate-200 bg-white"
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
           <div>
@@ -73,7 +117,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                   price: newProduct.price || 0,
                   stock: newProduct.stock || 0,
                   status: (newProduct.stock || 0) > 0 ? 'Actif' : 'Rupture',
-                  imageUrl: newProduct.imageUrl || '',
+                  imageUrl: normalizeImagePath(newProduct.imageUrl),
                   description: newProduct.description || ''
                 })
                 setNewProduct({name: '', category: categories[0] || 'Entretien', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''})
@@ -292,7 +336,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                   <td className="px-4 py-4 font-bold text-brand-blue">
                     <div className="flex items-center gap-3">
                       {product.imageUrl ? (
-                        <img src={product.imageUrl} alt={product.name} className="h-10 w-10 shrink-0 rounded-lg object-cover border border-slate-200 bg-white" />
+                        <img src={normalizeImagePath(product.imageUrl)} alt={product.name} className="h-10 w-10 shrink-0 rounded-lg object-cover border border-slate-200 bg-white" />
                       ) : (
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400 border border-slate-200">
                           <IconPackage className="h-5 w-5" />
@@ -325,7 +369,16 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                       >
                         <IconEye className="h-4 w-4" />
                       </button>
-                      <button className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Archiver">
+                      <button
+                        onClick={() => {
+                          if (!handleDeleteProduct) return
+                          const confirmed = window.confirm(`Supprimer définitivement le produit "${product.name}" ?`)
+                          if (!confirmed) return
+                          handleDeleteProduct(product.id)
+                        }}
+                        className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex"
+                        title="Supprimer"
+                      >
                         <IconArchive className="h-4 w-4" />
                       </button>
                     </div>

@@ -203,8 +203,14 @@ function AdminDashboardPage() {
       if (!res.ok) throw new Error("Backend non accessible");
       return res.json();
     })
-    .then(savedProduct => {
-      setProducts(prev => prev.map(p => p.id === savedProduct.id ? savedProduct : p));
+    .then((savedProduct: Partial<Product>) => {
+      const mergedProduct: Product = {
+        ...updatedProduct,
+        ...savedProduct,
+        imageUrl: (savedProduct.imageUrl ?? updatedProduct.imageUrl ?? '').trim(),
+        description: (savedProduct.description ?? updatedProduct.description ?? '').trim(),
+      }
+      setProducts(prev => prev.map(p => p.id === mergedProduct.id ? mergedProduct : p));
     })
     .catch(err => {
       console.warn("⚠️ Sauvegarde locale uniquement. Base de données injoignable :", err);
@@ -224,13 +230,33 @@ function AdminDashboardPage() {
       if (!res.ok) throw new Error("Backend non accessible");
       return res.json();
     })
-    .then(savedProduct => {
-      setProducts(prev => [...prev, savedProduct]);
+    .then((savedProduct: Partial<Product>) => {
+      const mergedProduct: Product = {
+        ...newProduct,
+        ...savedProduct,
+        imageUrl: (savedProduct.imageUrl ?? newProduct.imageUrl ?? '').trim(),
+        description: (savedProduct.description ?? newProduct.description ?? '').trim(),
+      }
+      setProducts(prev => [...prev, mergedProduct]);
     })
     .catch(err => {
       console.warn("⚠️ Sauvegarde locale uniquement. Base de données injoignable :", err);
       setProducts(prev => [...prev, newProduct]);
     });
+  }
+
+  const handleDeleteProduct = (productId: string) => {
+    fetch(`http://localhost:8080/api/products/${productId}`, {
+      method: 'DELETE',
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Backend non accessible')
+        setProducts(prev => prev.filter(p => p.id !== productId))
+      })
+      .catch(err => {
+        console.warn('⚠️ Suppression locale uniquement. Base de données injoignable :', err)
+        setProducts(prev => prev.filter(p => p.id !== productId))
+      })
   }
 
   // Promo handlers
@@ -567,6 +593,7 @@ function AdminDashboardPage() {
                   categories={categories}
                   handleEditProduct={handleEditProduct} 
                   handleAddProduct={handleAddProduct}
+                  handleDeleteProduct={handleDeleteProduct}
                   handleAddCategory={handleAddCategory}
                   handleDeleteCategory={handleDeleteCategory}
                   handleEditCategory={handleEditCategory}
