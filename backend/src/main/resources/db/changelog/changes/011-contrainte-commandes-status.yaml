@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-constraint
+      author: amena
+      description: Add CHECK constraint on orders.status
+
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE orders
+              ADD CONSTRAINT chk_order_status
+              CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'));
+
+      rollback:
+        - sql:
+            sql: ALTER TABLE orders DROP CONSTRAINT chk_order_status;

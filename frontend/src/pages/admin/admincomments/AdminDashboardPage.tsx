@@ -1,4 +1,4 @@
-import { useMemo, useState, type ElementType } from 'react'
+import { useEffect, useMemo, useState, type ElementType } from 'react'
 import { Link } from 'react-router-dom'
 import {
   IconArchive,
@@ -29,13 +29,38 @@ import { AdminPromotions, PromoCode, Offre } from '../adminpromotions/AdminPromo
 import { AdminRapports } from '../adminrapports/AdminRapports'
 import { AdminParametres } from '../adminparametres/AdminParametres'
 import { useStore, Product } from '../../../context/StoreContext'
-
-import p01 from '../adminproduits/images/p01.png'
-import p02 from '../adminproduits/images/p02.png'
-import p03 from '../adminproduits/images/p03.png'
-import p04 from '../adminproduits/images/p04.png'
-import p05 from '../adminproduits/images/p05.png'
-import p06 from '../adminproduits/images/p06.png'
+import {
+  createProduct,
+  deleteProduct as deleteProductApi,
+  resolveImageUrl,
+  toApiRequest,
+  toUiProduct,
+  updateProduct,
+} from '../../../services/productService'
+import { uploadProductImage } from '../../../services/productImageService'
+import {
+  createCategory,
+  deleteCategory as deleteCategoryApi,
+  findCategoryByName,
+  updateCategory,
+} from '../../../services/categoryService'
+import { fetchOrders, toUiOrder, updateOrderStatus } from '../../../services/orderService'
+import {
+  fetchCoupons,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+  toUiPromoCode,
+  toApiCouponRequest,
+} from '../../../services/couponService'
+import {
+  fetchOffres,
+  createOffre as createOffreApi,
+  updateOffre as updateOffreApi,
+  deleteOffre as deleteOffreApi,
+  toUiOffre,
+  toApiOffreRequest,
+} from '../../../services/offreService'
 
 type AdminSection =
   | 'dashboard-vue-generale'
@@ -114,22 +139,34 @@ function AdminDashboardPage() {
     { id: 'C103', name: 'Ecole Primaire El Amal', email: 'ecole.amal@edunet.tn', phone: '+216 72 111 222', registrationDate: '2024-09-01', totalOrders: 28, totalSpent: 12400, status: 'Inactif' },
   ])
 
-  const [orders, setOrders] = useState<Order[]>([
-    { id: 1001, client: 'Société Atlas', total: 410, statut: 'En attente', date: '2026-04-01', address: '15 Avenue Habib Bourguiba, Tunis, 1002', items: [{name: 'Détergent Sol Pro 5L', qty: 10, price: 25.5}, {name: 'Papier Toilette x12', qty: 10, price: 14.5}] },
-    { id: 1002, client: 'Hôtel Jasmin', total: 970, statut: 'Préparée', date: '2026-04-03', address: 'Zone Touristique El Kantaoui, Sousse, 4089', items: [{name: 'Liquide Vaisselle Ultra', qty: 50, price: 12.0}, {name: 'Savon liquide mains', qty: 45, price: 8.0}] },
-    { id: 1003, client: 'Clinique Nour', total: 496, statut: 'Livrée', date: '2026-04-04', address: 'Route de la Plage, La Marsa, 2070', items: [{name: 'Désinfectant Surfaces', qty: 40, price: 9.9}, {name: 'Brosse de nettoyage', qty: 20, price: 4.5}] },
-  ])
+  const [orders, setOrders] = useState<Order[]>([])
 
-  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([
-    { id: 'PC1', code: 'BIENVENUE10', discount: 10, expiresAt: '2026-06-30', usageLimit: 50, usedCount: 12, status: 'Actif' },
-    { id: 'PC2', code: 'ETE20', discount: 20, expiresAt: '2026-08-31', usageLimit: 100, usedCount: 0, status: 'Inactif' },
-    { id: 'PC3', code: 'FIDELITE15', discount: 15, expiresAt: '', usageLimit: 200, usedCount: 47, status: 'Actif' },
-  ])
+  useEffect(() => {
+    fetchOrders()
+      .then((apiOrders) => setOrders(apiOrders.map(toUiOrder)))
+      .catch((error) => {
+        console.warn('Impossible de charger les commandes depuis l\'API:', error)
+      })
+  }, [])
 
-  const [offres, setOffres] = useState<Offre[]>([
-    { id: 'OF1', label: 'Promo Hygiène Printemps', category: 'Hygiène', discount: 15, startsAt: '2026-04-01', endsAt: '2026-05-31', status: 'Actif' },
-    { id: 'OF2', label: 'Destockage Accessoires', category: 'Accessoires', discount: 30, startsAt: '2026-04-15', endsAt: '2026-04-30', status: 'Inactif' },
-  ])
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([])
+  const [offres, setOffres] = useState<Offre[]>([])
+
+  useEffect(() => {
+    fetchCoupons()
+      .then((apiCoupons) => setPromoCodes(apiCoupons.map(toUiPromoCode)))
+      .catch((error) => {
+        console.warn('Impossible de charger les coupons depuis l\'API:', error)
+      })
+  }, [])
+
+  useEffect(() => {
+    fetchOffres()
+      .then((apiOffres) => setOffres(apiOffres.map(toUiOffre)))
+      .catch((error) => {
+        console.warn('Impossible de charger les offres depuis l\'API:', error)
+      })
+  }, [])
 
   const [reviews, setReviews] = useState<Review[]>([
     { id: 1, author: 'Alice Dupont', product: 'Détergent Sol Pro 5L', rating: 5, comment: 'Excellent produit, nettoie très bien.', date: '2026-04-10', status: 'En attente' },
@@ -166,13 +203,22 @@ function AdminDashboardPage() {
   const pendingReviews = reviews.filter((review) => review.status === 'En attente').length
   const newClients = clients.length
   const lowStockProducts = products.filter(p => p.stock <= 5 || p.status === 'Rupture')
+  const rupturedProductsCount = products.filter(p => p.stock <= 5 || p.status === 'Rupture').length
 
   const handleReviewStatus = (id: number, newStatus: ReviewStatus) => {
     setReviews(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r))
   }
 
-  const handleOrderStatus = (id: number, newStatus: OrderStatus) => {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, statut: newStatus } : o))
+  const handleOrderStatus = async (id: number, newStatus: OrderStatus) => {
+    try {
+      const saved = await updateOrderStatus(id, newStatus)
+      const updated = toUiOrder(saved)
+      setOrders((prev) => prev.map((order) => (order.id === id ? updated : order)))
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour du statut:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible de mettre à jour la commande : ${message}`)
+    }
   }
 
   const handleEditBanner = (updatedBanner: Banner) => {
@@ -191,95 +237,179 @@ function AdminDashboardPage() {
     setStaticPages(prev => [...prev, newPage])
   }
 
-  const handleEditProduct = (updatedProduct: Product) => {
-    fetch(`http://localhost:8080/api/products/${updatedProduct.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updatedProduct)
-    })
-    .then(res => {
-      if (!res.ok) throw new Error("Backend non accessible");
-      return res.json();
-    })
-    .then((savedProduct: Partial<Product>) => {
-      const mergedProduct: Product = {
-        ...updatedProduct,
-        ...savedProduct,
-        imageUrl: (savedProduct.imageUrl ?? updatedProduct.imageUrl ?? '').trim(),
-        description: (savedProduct.description ?? updatedProduct.description ?? '').trim(),
+  const handleEditProduct = async (updatedProduct: Product) => {
+    try {
+      const saved = await updateProduct(
+        Number(updatedProduct.id),
+        toApiRequest(updatedProduct, categories, {
+          sku: updatedProduct.sku,
+          slug: updatedProduct.slug,
+        })
+      )
+      let ui = toUiProduct(saved, categories)
+      if (updatedProduct.pendingImageFile) {
+        const image = await uploadProductImage(Number(saved.id), updatedProduct.pendingImageFile)
+        ui = { ...ui, imageUrl: resolveImageUrl(image.imageUrl) }
       }
-      setProducts(prev => prev.map(p => p.id === mergedProduct.id ? mergedProduct : p));
-    })
-    .catch(err => {
-      console.warn("⚠️ Sauvegarde locale uniquement. Base de données injoignable :", err);
-      setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-    });
+      const merged = {
+        ...ui,
+        stock: updatedProduct.stock,
+        status: updatedProduct.status,
+      }
+      setProducts((prev) => prev.map((p) => (p.id === updatedProduct.id ? merged : p)))
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour du produit:', error)
+      alert('Impossible de mettre à jour le produit. Vérifiez que le backend est démarré.')
+    }
   }
 
-  const handleAddProduct = (newProduct: Product) => {
-    fetch('http://localhost:8080/api/products', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newProduct)
-    })
-    .then(res => {
-      if (!res.ok) throw new Error("Backend non accessible");
-      return res.json();
-    })
-    .then((savedProduct: Partial<Product>) => {
-      const mergedProduct: Product = {
-        ...newProduct,
-        ...savedProduct,
-        imageUrl: (savedProduct.imageUrl ?? newProduct.imageUrl ?? '').trim(),
-        description: (savedProduct.description ?? newProduct.description ?? '').trim(),
+  const handleAddProduct = async (newProduct: Product) => {
+    try {
+      const saved = await createProduct(toApiRequest(newProduct, categories))
+      let ui = toUiProduct(saved, categories)
+      if (newProduct.pendingImageFile) {
+        const image = await uploadProductImage(Number(saved.id), newProduct.pendingImageFile)
+        ui = { ...ui, imageUrl: resolveImageUrl(image.imageUrl) }
       }
-      setProducts(prev => [...prev, mergedProduct]);
-    })
-    .catch(err => {
-      console.warn("⚠️ Sauvegarde locale uniquement. Base de données injoignable :", err);
-      setProducts(prev => [...prev, newProduct]);
-    });
+      const merged = {
+        ...ui,
+        stock: newProduct.stock,
+        status: newProduct.status,
+      }
+      setProducts((prev) => [...prev, merged])
+    } catch (error) {
+      console.warn('Erreur lors de la création du produit:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible d'ajouter le produit : ${message}`)
+    }
   }
 
-  const handleDeleteProduct = (productId: string) => {
-    fetch(`http://localhost:8080/api/products/${productId}`, {
-      method: 'DELETE',
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Backend non accessible')
-        setProducts(prev => prev.filter(p => p.id !== productId))
-      })
-      .catch(err => {
-        console.warn('⚠️ Suppression locale uniquement. Base de données injoignable :', err)
-        setProducts(prev => prev.filter(p => p.id !== productId))
-      })
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      await deleteProductApi(Number(productId))
+      setProducts((prev) => prev.filter((p) => p.id !== productId))
+    } catch (error) {
+      console.warn('Erreur lors de la suppression du produit:', error)
+      alert('Impossible de supprimer le produit. Vérifiez que le backend est démarré.')
+    }
   }
 
   // Promo handlers
-  const handleAddPromoCode = (p: PromoCode) => setPromoCodes(prev => [...prev, p])
-  const handleEditPromoCode = (p: PromoCode) => setPromoCodes(prev => prev.map(c => c.id === p.id ? p : c))
-  const handleDeletePromoCode = (id: string) => setPromoCodes(prev => prev.filter(c => c.id !== id))
-
-  const handleAddOffre = (o: Offre) => setOffres(prev => [...prev, o])
-  const handleEditOffre = (o: Offre) => setOffres(prev => prev.map(x => x.id === o.id ? o : x))
-  const handleDeleteOffre = (id: string) => setOffres(prev => prev.filter(x => x.id !== id))
-
-  const handleAddCategory = (cat: string) => {
-    if (!categories.includes(cat)) setCategories(prev => [...prev, cat])
+  const handleAddPromoCode = async (p: PromoCode) => {
+    try {
+      const saved = await createCoupon(toApiCouponRequest(p))
+      setPromoCodes(prev => [...prev, toUiPromoCode(saved)])
+    } catch (error) {
+      console.warn('Erreur lors de la création du code promo:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible d'ajouter le code promo : ${message}`)
+    }
+  }
+  const handleEditPromoCode = async (p: PromoCode) => {
+    try {
+      const saved = await updateCoupon(Number(p.id), toApiCouponRequest(p))
+      setPromoCodes(prev => prev.map(c => c.id === p.id ? toUiPromoCode(saved) : c))
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour du code promo:', error)
+      alert('Impossible de modifier le code promo.')
+    }
+  }
+  const handleDeletePromoCode = async (id: string) => {
+    try {
+      await deleteCoupon(Number(id))
+      setPromoCodes(prev => prev.filter(c => c.id !== id))
+    } catch (error) {
+      console.warn('Erreur lors de la suppression du code promo:', error)
+      alert('Impossible de supprimer le code promo.')
+    }
   }
 
-  const handleDeleteCategory = (cat: string) => {
-    setCategories(prev => prev.filter(c => c !== cat))
-    setProducts(prev => prev.map(p => p.category === cat ? { ...p, category: 'Autre' } : p))
+  const handleAddOffre = async (o: Offre) => {
+    try {
+      const saved = await createOffreApi(toApiOffreRequest(o, categories))
+      setOffres(prev => [...prev, toUiOffre(saved)])
+    } catch (error) {
+      console.warn('Erreur lors de la création de l\'offre:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible d'ajouter l'offre : ${message}`)
+    }
+  }
+  const handleEditOffre = async (o: Offre) => {
+    try {
+      const saved = await updateOffreApi(Number(o.id), toApiOffreRequest(o, categories))
+      setOffres(prev => prev.map(x => x.id === o.id ? toUiOffre(saved) : x))
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour de l\'offre:', error)
+      alert('Impossible de modifier l\'offre.')
+    }
+  }
+  const handleDeleteOffre = async (id: string) => {
+    try {
+      await deleteOffreApi(Number(id))
+      setOffres(prev => prev.filter(x => x.id !== id))
+    } catch (error) {
+      console.warn('Erreur lors de la suppression de l\'offre:', error)
+      alert('Impossible de supprimer l\'offre.')
+    }
   }
 
-  const handleEditCategory = (oldCat: string, newCat: string) => {
-    setCategories(prev => prev.map(c => c === oldCat ? newCat : c))
-    setProducts(prev => prev.map(p => p.category === oldCat ? { ...p, category: newCat } : p))
+  const handleAddCategory = async (cat: string) => {
+    const name = cat.trim()
+    if (!name || categories.some((item) => item.name === name)) return
+
+    try {
+      const saved = await createCategory({ name })
+      setCategories((prev) => [...prev, { id: String(saved.id), name: saved.name, slug: saved.slug }])
+    } catch (error) {
+      console.warn('Erreur lors de la création de la catégorie:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible d'ajouter la catégorie : ${message}`)
+    }
+  }
+
+  const handleDeleteCategory = async (cat: string) => {
+    const category = findCategoryByName(categories, cat)
+    if (!category) return
+
+    try {
+      await deleteCategoryApi(Number(category.id))
+      setCategories((prev) => prev.filter((item) => item.id !== category.id))
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.category === cat ? { ...product, category: 'Autre' } : product
+        )
+      )
+    } catch (error) {
+      console.warn('Erreur lors de la suppression de la catégorie:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible de supprimer la catégorie : ${message}`)
+    }
+  }
+
+  const handleEditCategory = async (oldCat: string, newCat: string) => {
+    const category = findCategoryByName(categories, oldCat)
+    const name = newCat.trim()
+    if (!category || !name) return
+
+    try {
+      const saved = await updateCategory(Number(category.id), { name, slug: category.slug })
+      setCategories((prev) =>
+        prev.map((item) =>
+          item.id === category.id
+            ? { id: String(saved.id), name: saved.name, slug: saved.slug }
+            : item
+        )
+      )
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.category === oldCat ? { ...product, category: saved.name } : product
+        )
+      )
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour de la catégorie:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible de modifier la catégorie : ${message}`)
+    }
   }
 
   const handleEditClient = (updatedClient: Client) => {
@@ -371,7 +501,7 @@ function AdminDashboardPage() {
                   <NavLeaf sectionKey="produits-liste" label="Liste des produits" Icon={IconArchive} />
                   <NavLeaf sectionKey="produits-ajouter" label="Ajouter un produit" Icon={IconPackage} />
                   <NavLeaf sectionKey="produits-categories" label="Catégories" Icon={IconTag} />
-                  <NavLeaf sectionKey="produits-rupture" label="Stock & alertes de rupture" Icon={IconTrending} badge="5" />
+                  <NavLeaf sectionKey="produits-rupture" label="Stock & alertes de rupture" Icon={IconTrending} badge={rupturedProductsCount > 0 ? rupturedProductsCount.toString() : undefined} />
                 </div>
               )}
             </div>

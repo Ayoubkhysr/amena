@@ -1,7 +1,33 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/changes/001-initial-schema.yaml
-  - include:
       file: db/changelog/changes/002-create-table-order.yaml
   - include:
-      file: db/changelog/changes/003-create-table-product.yaml
+      file: db/changelog/changes/003-create-table-categories.yaml
+  - include:
+      file: db/changelog/changes/004-create-table-produits.yaml
+  - include:
+      file: db/changelog/changes/005-create-table-imageProduit.yaml
+  - include:
+      file: db/changelog/changes/006-create-table-users.yaml
+  - include:
+      file: db/changelog/changes/007-create-table-panier.yaml
+  - include:
+      file: db/changelog/changes/008-create-table-contenuPanier.yaml
+  - include:
+      file: db/changelog/changes/009-create-table-adresses.yaml
+  - include:
+      file: db/changelog/changes/010-create-table-commandes.yaml
+  - include:
+      file: db/changelog/changes/011-contrainte-commandes-status.yaml
+  - include:
+      file: db/changelog/changes/012-create-table-contenu-commandes.yaml
+  - include:
+      file: db/changelog/changes/013-create-table-reviews.yaml
+  - include:
+      file: db/changelog/changes/014-create-table-coupons.yaml
+  - include:
+      file: db/changelog/changes/015-create-table-commentaires.yaml
+  - include:
+      file: db/changelog/changes/016-seed-demo-commandes.yaml
+  - include:
+      file: db/changelog/changes/017-create-table-offres.yaml

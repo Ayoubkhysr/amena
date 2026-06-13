@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - changeSet:
+      id: 017
+      author: amena
+      description: Create offres table for category-based discount offers
+
+      changes:
+        - createTable:
+            tableName: offres
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: label
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: category_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_offres_category
+                    references: categories(id)
+
+              - column:
+                  name: discount_percentage
+                  type: DECIMAL(5,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: starts_at
+                  type: TIMESTAMP
+
+              - column:
+                  name: ends_at
+                  type: TIMESTAMP
+
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - createIndex:
+            tableName: offres
+            indexName: idx_offres_category_id
+            columns:
+              - column:
+                  name: category_id
+
+        - createIndex:
+            tableName: offres
+            indexName: idx_offres_is_active
+            columns:
+              - column:
+                  name: is_active
+
+      rollback:
+        - dropTable:
+            tableName: offres

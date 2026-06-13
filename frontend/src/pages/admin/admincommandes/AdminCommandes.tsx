@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { IconClipboard, IconArchive, IconTrending, IconSettings, IconPackage } from '../../../components/admin'
+import { IconClipboard, IconArchive, IconPackage } from '../../../components/admin'
 
 export type OrderStatus = 'En attente' | 'Préparée' | 'Livrée' | 'Retournée'
 
@@ -22,7 +22,7 @@ export type Order = {
 export type AdminCommandesProps = {
   orders: Order[]
   activeSection: string
-  handleOrderStatus: (id: number, newStatus: OrderStatus) => void
+  handleOrderStatus: (id: number, newStatus: OrderStatus) => void | Promise<void>
 }
 
 export function AdminCommandes({ orders, activeSection, handleOrderStatus }: AdminCommandesProps) {

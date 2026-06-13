@@ -1,0 +1,131 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004
+      author: amena
+      description: Create produits table
+
+      changes:
+        - createTable:
+            tableName: produits
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: sku
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: slug
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: description
+                  type: TEXT
+
+              - column:
+                  name: price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: compare_at_price
+                  type: DECIMAL(10,2)
+
+              - column:
+                  name: cost_price
+                  type: DECIMAL(10,2)
+
+              - column:
+                  name: category_id
+                  type: BIGINT
+
+              - column:
+                  name: brand
+                  type: VARCHAR(100)
+
+              - column:
+                  name: weight
+                  type: DECIMAL(8,2)
+
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+
+              - column:
+                  name: is_featured
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+
+              - column:
+                  name: meta_title
+                  type: VARCHAR(255)
+
+              - column:
+                  name: meta_description
+                  type: TEXT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: produits
+            baseColumnNames: category_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_produits_category
+            onDelete: SET NULL
+
+        - createIndex:
+            tableName: produits
+            indexName: idx_produits_category
+            columns:
+              - column:
+                  name: category_id
+
+        - createIndex:
+            tableName: produits
+            indexName: idx_produits_slug
+            columns:
+              - column:
+                  name: slug
+
+        - createIndex:
+            tableName: produits
+            indexName: idx_produits_sku
+            columns:
+              - column:
+                  name: sku
+
+        - createIndex:
+            tableName: produits
+            indexName: idx_produits_active
+            columns:
+              - column:
+                  name: is_active

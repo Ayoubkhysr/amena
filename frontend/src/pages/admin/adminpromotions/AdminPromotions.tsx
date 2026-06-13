@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { IconTag, IconTrending, IconArchive, IconEye } from '../../../components/admin'
+import { Category } from '../../../context/StoreContext'
 
 export type PromoCode = {
   id: string
@@ -23,7 +24,7 @@ export type Offre = {
 
 type AdminPromotionsProps = {
   activeSection: string
-  categories: string[]
+  categories: Category[]
   promoCodes: PromoCode[]
   offres: Offre[]
   handleAddPromoCode: (p: PromoCode) => void
@@ -58,7 +59,7 @@ export function AdminPromotions({
   const [editOffreForm, setEditOffreForm] = useState<Offre | null>(null)
   const [isAddingOffre, setIsAddingOffre] = useState(false)
   const [newOffreForm, setNewOffreForm] = useState<Offre>({
-    id: '', label: '', category: categories[0] ?? 'Autre', discount: 10,
+    id: '', label: '', category: categories[0]?.name ?? 'Autre', discount: 10,
     startsAt: new Date().toISOString().split('T')[0],
     endsAt: '', status: 'Actif',
   })
@@ -269,7 +270,7 @@ export function AdminPromotions({
             onClick={() => {
               setIsAddingOffre(true)
               setNewOffreForm({
-                id: `OF${Date.now()}`, label: '', category: categories[0] ?? 'Autre',
+                id: `OF${Date.now()}`, label: '', category: categories[0]?.name ?? 'Autre',
                 discount: 10, startsAt: new Date().toISOString().split('T')[0], endsAt: '', status: 'Actif'
               })
             }}
@@ -316,7 +317,7 @@ export function AdminPromotions({
                     <select value={newOffreForm.category}
                       onChange={e => setNewOffreForm({ ...newOffreForm, category: e.target.value })}
                       className={INPUT}>
-                      {categories.map(c => <option key={c}>{c}</option>)}
+                      {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                     </select>
                   </td>
                   <td className="px-4 py-3">
@@ -368,7 +369,7 @@ export function AdminPromotions({
                         <select value={editOffreForm.category}
                           onChange={e => setEditOffreForm({ ...editOffreForm, category: e.target.value })}
                           className={INPUT}>
-                          {categories.map(c => <option key={c}>{c}</option>)}
+                          {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                         </select>
                       </td>
                       <td className="px-4 py-3">

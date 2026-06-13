@@ -1,0 +1,92 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013
+      author: amena
+      description: Create coupons table
+
+      changes:
+        - createTable:
+            tableName: coupons
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: code
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+
+              - column:
+                  name: discount_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: discount_value
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: minimum_order_amount
+                  type: DECIMAL(10,2)
+
+              - column:
+                  name: maximum_discount
+                  type: DECIMAL(10,2)
+
+              - column:
+                  name: usage_limit
+                  type: INT
+
+              - column:
+                  name: used_count
+                  type: INT
+                  defaultValueNumeric: 0
+
+              - column:
+                  name: starts_at
+                  type: TIMESTAMP
+
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP
+
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - createIndex:
+            tableName: coupons
+            indexName: idx_coupons_code
+            columns:
+              - column:
+                  name: code
+
+        - sql:
+            sql: >
+              ALTER TABLE coupons
+              ADD CONSTRAINT chk_coupons_discount_type
+              CHECK (discount_type IN ('percentage', 'fixed_amount'));
+
+      rollback:
+        - sql:
+            sql: ALTER TABLE coupons DROP CONSTRAINT chk_coupons_discount_type;

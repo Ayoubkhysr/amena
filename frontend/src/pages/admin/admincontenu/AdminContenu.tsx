@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { IconImage, IconSettings, IconEye, IconArchive, IconSettings as IconCheck } from '../../../components/admin'
+import { IconImage, IconEye, IconArchive } from '../../../components/admin'
 
 export type Banner = {
   id: string

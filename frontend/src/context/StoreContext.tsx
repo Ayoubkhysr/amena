@@ -1,8 +1,18 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { fetchCategories, toUiCategory } from '../services/categoryService'
+import { fetchProducts, toUiProduct } from '../services/productService'
 import { Banner, StaticPage } from '../pages/admin/admincontenu/AdminContenu'
+
+export type Category = {
+  id: string
+  name: string
+  slug?: string
+}
 
 export type Product = {
   id: string
+  sku?: string
+  slug?: string
   name: string
   category: string
   price: number
@@ -10,13 +20,15 @@ export type Product = {
   status: 'Actif' | 'Inactif' | 'Rupture'
   imageUrl?: string
   description?: string
+  /** Local file selected in the admin form; uploaded after product save. */
+  pendingImageFile?: File
 }
 
 type StoreContextType = {
   products: Product[]
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>
-  categories: string[]
-  setCategories: React.Dispatch<React.SetStateAction<string[]>>
+  categories: Category[]
+  setCategories: React.Dispatch<React.SetStateAction<Category[]>>
   banners: Banner[]
   setBanners: React.Dispatch<React.SetStateAction<Banner[]>>
   staticPages: StaticPage[]
@@ -24,8 +36,6 @@ type StoreContextType = {
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
-
-const MOCK_CATEGORIES: string[] = ['Entretien', 'Hygiène', 'Accessoires', 'Autre']
 
 const MOCK_BANNERS: Banner[] = [
   { id: 'B1', title: 'Promo Printemps', imageUrl: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=1200', targetUrl: '/promotions', position: 1, status: 'Actif' },
@@ -40,20 +50,35 @@ const MOCK_PAGES: StaticPage[] = [
   { id: 'P4', title: 'Politique de Retour', slug: 'retours', lastModified: '2026-04-05', status: 'Brouillon' },
 ]
 
-const MOCK_PRODUCTS: Product[] = []
-
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS)
-  const [categories, setCategories] = useState<string[]>(MOCK_CATEGORIES)
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [banners, setBanners] = useState<Banner[]>(MOCK_BANNERS)
   const [staticPages, setStaticPages] = useState<StaticPage[]>(MOCK_PAGES)
 
+  useEffect(() => {
+    async function loadStore() {
+      try {
+        const apiCategories = await fetchCategories()
+        const uiCategories = apiCategories.map(toUiCategory)
+        setCategories(uiCategories)
+
+        const apiProducts = await fetchProducts()
+        setProducts(apiProducts.map((product) => toUiProduct(product, uiCategories)))
+      } catch (error) {
+        console.warn('Impossible de charger les données depuis l\'API:', error)
+      }
+    }
+
+    loadStore()
+  }, [])
+
   return (
-    <StoreContext.Provider value={{ 
-      products, setProducts, 
+    <StoreContext.Provider value={{
+      products, setProducts,
       categories, setCategories,
-      banners, setBanners, 
-      staticPages, setStaticPages, 
+      banners, setBanners,
+      staticPages, setStaticPages,
     }}>
       {children}
     </StoreContext.Provider>

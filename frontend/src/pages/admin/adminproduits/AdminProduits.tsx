@@ -1,14 +1,153 @@
-import React, { useState } from 'react'
-import { IconPackage, IconTag, IconTrending, IconEye, IconArchive } from '../../../components/admin'
-import { Product } from '../../../context/StoreContext'
+import React, { useEffect, useMemo, useState } from 'react'
+import { IconPackage, IconTag, IconEye, IconArchive } from '../../../components/admin'
+import { Product, Category } from '../../../context/StoreContext'
+import { resolveImageUrl } from '../../../services/productService'
+
+type ProductSortKey = 'id' | 'name' | 'category' | 'price' | 'stock' | 'status'
+type SortOrder = 'asc' | 'desc'
+
+const compareProducts = (a: Product, b: Product, sortBy: ProductSortKey, order: SortOrder) => {
+  let cmp = 0
+  switch (sortBy) {
+    case 'id':
+      cmp = a.id.localeCompare(b.id, 'fr', { numeric: true, sensitivity: 'base' })
+      break
+    case 'name':
+      cmp = a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+      break
+    case 'category':
+      cmp = a.category.localeCompare(b.category, 'fr', { sensitivity: 'base' })
+      break
+    case 'price':
+      cmp = a.price - b.price
+      break
+    case 'stock':
+      cmp = a.stock - b.stock
+      break
+    case 'status':
+      cmp = a.status.localeCompare(b.status, 'fr', { sensitivity: 'base' })
+      break
+  }
+  return order === 'asc' ? cmp : -cmp
+}
+
+type ProductListToolbarProps = {
+  searchId: string
+  searchName: string
+  searchCategory: string
+  sortBy: ProductSortKey
+  sortOrder: SortOrder
+  categories: Category[]
+  onSearchIdChange: (value: string) => void
+  onSearchNameChange: (value: string) => void
+  onSearchCategoryChange: (value: string) => void
+  onSortByChange: (value: ProductSortKey) => void
+  onSortOrderChange: (value: SortOrder) => void
+  onReset: () => void
+}
+
+function ProductListToolbar({
+  searchId,
+  searchName,
+  searchCategory,
+  sortBy,
+  sortOrder,
+  categories,
+  onSearchIdChange,
+  onSearchNameChange,
+  onSearchCategoryChange,
+  onSortByChange,
+  onSortOrderChange,
+  onReset,
+}: ProductListToolbarProps) {
+  const hasFilters = Boolean(searchId.trim() || searchName.trim() || searchCategory)
+
+  return (
+    <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Recherche et tri</p>
+        {hasFilters ? (
+          <button
+            type="button"
+            onClick={onReset}
+            className="text-xs font-bold text-brand-blue hover:text-brand-light"
+          >
+            Réinitialiser
+          </button>
+        ) : null}
+      </div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">ID produit</label>
+          <input
+            type="text"
+            value={searchId}
+            onChange={(e) => onSearchIdChange(e.target.value)}
+            placeholder="Ex: P01"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Nom du produit</label>
+          <input
+            type="text"
+            value={searchName}
+            onChange={(e) => onSearchNameChange(e.target.value)}
+            placeholder="Ex: Détergent"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Catégorie</label>
+          <select
+            value={searchCategory}
+            onChange={(e) => onSearchCategoryChange(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+          >
+            <option value="">Toutes les catégories</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Trier par</label>
+          <select
+            value={sortBy}
+            onChange={(e) => onSortByChange(e.target.value as ProductSortKey)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+          >
+            <option value="name">Nom</option>
+            <option value="id">ID</option>
+            <option value="category">Catégorie</option>
+            <option value="price">Prix</option>
+            <option value="stock">Stock</option>
+            <option value="status">Statut</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Ordre</label>
+          <select
+            value={sortOrder}
+            onChange={(e) => onSortOrderChange(e.target.value as SortOrder)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+          >
+            <option value="asc">Croissant</option>
+            <option value="desc">Décroissant</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export type AdminProduitsProps = {
   products: Product[]
   activeSection: string
-  categories: string[]
-  handleEditProduct?: (p: Product) => void
-  handleAddProduct?: (p: Product) => void
-  handleDeleteProduct?: (productId: string) => void
+  categories: Category[]
+  handleEditProduct?: (p: Product) => void | Promise<void>
+  handleAddProduct?: (p: Product) => void | Promise<void>
+  handleDeleteProduct?: (productId: string) => void | Promise<void>
   handleAddCategory?: (cat: string) => void
   handleDeleteCategory?: (cat: string) => void
   handleEditCategory?: (oldCat: string, newCat: string) => void
@@ -19,36 +158,132 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const [editForm, setEditForm] = useState<Product | null>(null)
   
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
-    name: '', category: categories[0] || 'Entretien', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''
+    name: '', category: categories[0]?.name || 'Autre', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''
   })
 
   const [newCat, setNewCat] = useState('')
   const [editingCat, setEditingCat] = useState<{old: string, new: string} | null>(null)
-  const normalizeImagePath = (rawPath?: string) => (rawPath || '').trim().replace(/\\/g, '/')
-  const fileToDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(String(reader.result || ''))
-      reader.onerror = () => reject(new Error('Impossible de lire le fichier image'))
-      reader.readAsDataURL(file)
-    })
+  const [searchId, setSearchId] = useState('')
+  const [searchName, setSearchName] = useState('')
+  const [searchCategory, setSearchCategory] = useState('')
+  const [sortBy, setSortBy] = useState<ProductSortKey>('name')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [newProductImageFile, setNewProductImageFile] = useState<File | null>(null)
+  const [newProductImagePreview, setNewProductImagePreview] = useState('')
+  const [editProductImageFile, setEditProductImageFile] = useState<File | null>(null)
+  const [editProductImagePreview, setEditProductImagePreview] = useState('')
 
-  const handleNewProductImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const revokePreview = (preview: string) => {
+    if (preview.startsWith('blob:')) {
+      URL.revokeObjectURL(preview)
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      revokePreview(newProductImagePreview)
+      revokePreview(editProductImagePreview)
+    }
+  }, [newProductImagePreview, editProductImagePreview])
+
+  const resetNewProductForm = () => {
+    revokePreview(newProductImagePreview)
+    setNewProductImageFile(null)
+    setNewProductImagePreview('')
+    setNewProduct({
+      name: '',
+      category: categories[0]?.name || 'Autre',
+      price: 0,
+      stock: 0,
+      status: 'Actif',
+      imageUrl: '',
+      description: '',
+    })
+  }
+
+  const resetEditProductImage = () => {
+    revokePreview(editProductImagePreview)
+    setEditProductImageFile(null)
+    setEditProductImagePreview('')
+  }
+
+  const handleNewProductImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      alert('Veuillez sélectionner un fichier image valide.')
+      alert('Veuillez sélectionner un fichier image valide (JPEG, PNG, WebP ou GIF).')
       return
     }
-    try {
-      const dataUrl = await fileToDataUrl(file)
-      setNewProduct(prev => ({ ...prev, imageUrl: dataUrl }))
-    } catch {
-      alert("Le fichier n'a pas pu être chargé.")
-    } finally {
-      event.target.value = ''
+    if (file.size > 5 * 1024 * 1024) {
+      alert("L'image ne doit pas dépasser 5 Mo.")
+      return
     }
+    setNewProductImageFile(file)
+    setNewProductImagePreview((prev) => {
+      revokePreview(prev)
+      return URL.createObjectURL(file)
+    })
+    event.target.value = ''
   }
+
+  const handleEditProductImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner un fichier image valide (JPEG, PNG, WebP ou GIF).')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("L'image ne doit pas dépasser 5 Mo.")
+      return
+    }
+    setEditProductImageFile(file)
+    setEditProductImagePreview((prev) => {
+      revokePreview(prev)
+      return URL.createObjectURL(file)
+    })
+    event.target.value = ''
+  }
+
+  const resetListFilters = () => {
+    setSearchId('')
+    setSearchName('')
+    setSearchCategory('')
+    setSortBy('name')
+    setSortOrder('asc')
+  }
+
+  const isProductList = activeSection === 'produits-liste'
+  const isRuptureView = activeSection === 'produits-rupture'
+  const isListTableView = isProductList || isRuptureView
+  const hasActiveFilters = Boolean(searchId.trim() || searchName.trim() || searchCategory)
+
+  const baseProducts = useMemo(() => {
+    if (isRuptureView) {
+      return products.filter(p => p.stock <= 5 || p.status === 'Rupture')
+    }
+    return products
+  }, [products, isRuptureView])
+
+  const filteredProducts = useMemo(() => {
+    if (!isListTableView) return []
+
+    const idQuery = searchId.trim().toLowerCase()
+    const nameQuery = searchName.trim().toLowerCase()
+
+    let result = baseProducts.filter((product) => {
+      if (isProductList && idQuery && !product.id.toLowerCase().includes(idQuery)) return false
+      if (isProductList && nameQuery && !product.name.toLowerCase().includes(nameQuery)) return false
+      if (isProductList && searchCategory && product.category !== searchCategory) return false
+      return true
+    })
+
+    if (isProductList) {
+      result = [...result].sort((a, b) => compareProducts(a, b, sortBy, sortOrder))
+    }
+
+    return result
+  }, [baseProducts, isListTableView, isProductList, searchId, searchName, searchCategory, sortBy, sortOrder])
   
   if (activeSection === 'produits-ajouter') {
     return (
@@ -67,7 +302,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
               <label className="block text-sm font-semibold text-slate-700 mb-2">Catégorie</label>
               <select value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue">
                 {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
             </div>
@@ -80,21 +315,21 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
               <input type="number" value={newProduct.stock || ''} onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value)})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: 50" />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Lien/chemin de l'image</label>
-              <input type="text" value={newProduct.imageUrl} onChange={e => setNewProduct({...newProduct, imageUrl: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: https://... ou /images/produit.jpg" />
-              <div className="mt-3 flex flex-wrap items-center gap-3">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Image du produit</label>
+              <div className="flex flex-wrap items-center gap-3">
                 <label className="cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
                   Choisir une image
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
                     onChange={handleNewProductImageUpload}
                     className="hidden"
                   />
                 </label>
-                {newProduct.imageUrl ? (
+                <span className="text-xs text-slate-500">JPEG, PNG, WebP ou GIF — max. 5 Mo</span>
+                {newProductImagePreview ? (
                   <img
-                    src={normalizeImagePath(newProduct.imageUrl)}
+                    src={newProductImagePreview}
                     alt="Aperçu produit"
                     className="h-14 w-14 rounded-lg object-cover border border-slate-200 bg-white"
                   />
@@ -107,20 +342,20 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
             <textarea rows={4} value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Description détaillée du produit..."></textarea>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <button type="button" onClick={() => setNewProduct({name: '', category: categories[0] || 'Entretien', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''})} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">Annuler</button>
-            <button type="button" onClick={() => {
-              if (handleAddProduct && newProduct.name) {
-                handleAddProduct({
-                  id: 'P' + Math.floor(Math.random() * 10000),
-                  name: newProduct.name,
-                  category: newProduct.category || categories[0],
+            <button type="button" onClick={resetNewProductForm} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">Annuler</button>
+            <button type="button" onClick={async () => {
+                if (handleAddProduct && newProduct.name?.trim()) {
+                await handleAddProduct({
+                  id: '',
+                  name: newProduct.name.trim(),
+                  category: newProduct.category || categories[0]?.name || 'Autre',
                   price: newProduct.price || 0,
                   stock: newProduct.stock || 0,
-                  status: (newProduct.stock || 0) > 0 ? 'Actif' : 'Rupture',
-                  imageUrl: normalizeImagePath(newProduct.imageUrl),
-                  description: newProduct.description || ''
+                  status: (newProduct.stock || 0) > 5 ? 'Actif' : 'Rupture',
+                  description: newProduct.description || '',
+                  pendingImageFile: newProductImageFile ?? undefined,
                 })
-                setNewProduct({name: '', category: categories[0] || 'Entretien', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''})
+                resetNewProductForm()
                 alert('Produit ajouté !')
               }
             }} className="rounded-xl bg-brand-blue px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-brand-light transition-colors">Enregistrer le produit</button>
@@ -132,8 +367,8 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
 
   if (activeSection === 'produits-categories') {
     const categoriesStats = categories.map(cat => ({
-      name: cat,
-      count: products.filter(p => p.category === cat).length
+      name: cat.name,
+      count: products.filter(p => p.category === cat.name).length
     }))
 
     return (
@@ -201,14 +436,12 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
     )
   }
 
-  let filteredProducts = products;
-  let title = "Liste des produits";
-  if (activeSection === 'produits-rupture') {
-    filteredProducts = products.filter(p => p.stock <= 5 || p.status === 'Rupture');
-    title = "Produits en rupture ou stock faible";
+  let title = 'Liste des produits'
+  if (isRuptureView) {
+    title = 'Produits en rupture ou stock faible'
   }
 
-  if (filteredProducts.length === 0) {
+  if (baseProducts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-brand-surface py-24 text-center animate-admin-panel-in">
         <IconPackage className="h-8 w-8 text-Brand-light mb-4 opacity-50" />
@@ -220,12 +453,71 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
     )
   }
 
+  if (isProductList && filteredProducts.length === 0) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm animate-admin-panel-in">
+        <header className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-brand-blue">{title}</h3>
+          <span className="text-xs font-medium text-slate-500">0 produit(s)</span>
+        </header>
+        <ProductListToolbar
+          searchId={searchId}
+          searchName={searchName}
+          searchCategory={searchCategory}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          categories={categories}
+          onSearchIdChange={setSearchId}
+          onSearchNameChange={setSearchName}
+          onSearchCategoryChange={setSearchCategory}
+          onSortByChange={setSortBy}
+          onSortOrderChange={setSortOrder}
+          onReset={resetListFilters}
+        />
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-brand-surface py-16 text-center">
+          <IconPackage className="h-8 w-8 text-brand-light mb-4 opacity-50" />
+          <h3 className="text-lg font-bold text-brand-blue">Aucun résultat</h3>
+          <p className="mt-2 max-w-sm text-sm text-slate-500">
+            Aucun produit ne correspond à vos critères de recherche.
+          </p>
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={resetListFilters}
+              className="mt-4 rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50"
+            >
+              Réinitialiser les filtres
+            </button>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm animate-admin-panel-in">
       <header className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-bold uppercase tracking-wider text-brand-blue">{title}</h3>
-        <span className="text-xs font-medium text-slate-500">{filteredProducts.length} produit(s)</span>
+        <span className="text-xs font-medium text-slate-500">
+          {filteredProducts.length} produit(s){hasActiveFilters && isProductList ? ` / ${baseProducts.length}` : ''}
+        </span>
       </header>
+      {isProductList ? (
+        <ProductListToolbar
+          searchId={searchId}
+          searchName={searchName}
+          searchCategory={searchCategory}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          categories={categories}
+          onSearchIdChange={setSearchId}
+          onSearchNameChange={setSearchName}
+          onSearchCategoryChange={setSearchCategory}
+          onSortByChange={setSortBy}
+          onSortOrderChange={setSortOrder}
+          onReset={resetListFilters}
+        />
+      ) : null}
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead>
@@ -263,7 +555,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                         className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none"
                       >
                         {categories.map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
                         ))}
                       </select>
                     </td>
@@ -297,20 +589,52 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     <td className="px-4 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button 
-                          onClick={() => {
-                            if (handleEditProduct) handleEditProduct(editForm);
-                            setEditingId(null);
+                          onClick={async () => {
+                            if (handleEditProduct && editForm) {
+                              await handleEditProduct({
+                                ...editForm,
+                                pendingImageFile: editProductImageFile ?? undefined,
+                              })
+                            }
+                            setEditingId(null)
+                            resetEditProductImage()
                           }}
                           className="rounded-md bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light transition-colors"
                         >
                           Sauver
                         </button>
                         <button 
-                          onClick={() => setEditingId(null)}
+                          onClick={() => {
+                            setEditingId(null)
+                            resetEditProductImage()
+                          }}
                           className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                         >
                           Annul.
                         </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-slate-200 bg-brand-blue/5">
+                    <td colSpan={7} className="px-4 py-4 pt-0">
+                      <label className="block text-xs font-semibold text-brand-blue mb-1 uppercase tracking-wider">Image</label>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="cursor-pointer rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                          Changer l&apos;image
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            onChange={handleEditProductImageUpload}
+                            className="hidden"
+                          />
+                        </label>
+                        {(editProductImagePreview || editForm.imageUrl) ? (
+                          <img
+                            src={editProductImagePreview || resolveImageUrl(editForm.imageUrl)}
+                            alt={editForm.name}
+                            className="h-10 w-10 rounded-lg object-cover border border-slate-200 bg-white"
+                          />
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -336,7 +660,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                   <td className="px-4 py-4 font-bold text-brand-blue">
                     <div className="flex items-center gap-3">
                       {product.imageUrl ? (
-                        <img src={normalizeImagePath(product.imageUrl)} alt={product.name} className="h-10 w-10 shrink-0 rounded-lg object-cover border border-slate-200 bg-white" />
+                        <img src={product.imageUrl} alt={product.name} className="h-10 w-10 shrink-0 rounded-lg object-cover border border-slate-200 bg-white" />
                       ) : (
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400 border border-slate-200">
                           <IconPackage className="h-5 w-5" />
@@ -352,18 +676,22 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                       {product.stock}
                     </span>
                   </td>
-                  <td className="px-4 py-4">
+                    <td className="px-4 py-4">
                     <span className={`rounded-full px-2.5 py-1 text-[11px] uppercase font-extrabold ${
-                      product.stock === 0 || product.status === 'Rupture' ? 'bg-red-100 text-red-700' : 
+                      product.stock <= 5 || product.status === 'Rupture' ? 'bg-red-100 text-red-700' : 
                       product.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'
                     }`}>
-                      {product.stock === 0 ? 'Rupture' : product.status}
+                      {product.stock <= 5 ? 'Rupture' : product.status}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <button 
-                        onClick={() => { setEditingId(product.id); setEditForm({...product}); }}
+                        onClick={() => {
+                          resetEditProductImage()
+                          setEditingId(product.id)
+                          setEditForm({ ...product })
+                        }}
                         className="text-slate-400 hover:text-brand-blue p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
                         title="Modifier"
                       >

@@ -1,0 +1,80 @@
+databaseChangeLog:
+  - changeSet:
+      id: 014
+      author: amena
+      description: Create commentaires table
+
+      changes:
+        - createTable:
+            tableName: commentaires
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: product_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: contenu
+                  type: TEXT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: is_approved
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: commentaires
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_commentaires_user
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            baseTableName: commentaires
+            baseColumnNames: product_id
+            referencedTableName: produits
+            referencedColumnNames: id
+            constraintName: fk_commentaires_product
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: commentaires
+            indexName: idx_commentaires_user
+            columns:
+              - column:
+                  name: user_id
+
+        - createIndex:
+            tableName: commentaires
+            indexName: idx_commentaires_product
+            columns:
+              - column:
+                  name: product_id
