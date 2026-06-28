@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { fetchCategories, toUiCategory } from '../services/categoryService'
-import { fetchProducts, toUiProduct } from '../services/productService'
+import { toUiProduct } from '../services/productService'
 import { Banner, StaticPage } from '../pages/admin/admincontenu/AdminContenu'
 
 export type Category = {
   id: string
   name: string
   slug?: string
+  productCount?: number
 }
 
 export type Product = {
@@ -63,8 +64,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const uiCategories = apiCategories.map(toUiCategory)
         setCategories(uiCategories)
 
-        const apiProducts = await fetchProducts()
-        setProducts(apiProducts.map((product) => toUiProduct(product, uiCategories)))
+        // Products are no longer loaded globally to support server-side pagination
+        // Admin components will fetch their own paginated data
+        setProducts([])
       } catch (error) {
         console.warn('Impossible de charger les données depuis l\'API:', error)
       }

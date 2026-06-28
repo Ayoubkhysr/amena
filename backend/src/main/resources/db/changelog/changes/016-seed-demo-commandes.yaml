@@ -11,11 +11,11 @@ databaseChangeLog:
       changes:
         - sql:
             sql: >
-              INSERT INTO users (email, password_hash, first_name, last_name, phone, is_active, is_admin)
+              INSERT INTO users (email, password_hash, first_name, last_name, phone, is_active, is_admin, created_at, updated_at)
               VALUES
-                ('contact@atlas.tn', 'seed', 'Société', 'Atlas', '+216 71 123 456', true, false),
-                ('achats@jasmin.tn', 'seed', 'Hôtel', 'Jasmin', '+216 73 987 654', true, false),
-                ('direction@nour.tn', 'seed', 'Clinique', 'Nour', '+216 70 555 444', true, false);
+                ('contact@atlas.tn', 'seed', 'Société', 'Atlas', '+216 71 123 456', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                ('achats@jasmin.tn', 'seed', 'Hôtel', 'Jasmin', '+216 73 987 654', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                ('direction@nour.tn', 'seed', 'Clinique', 'Nour', '+216 70 555 444', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
   - changeSet:
       id: 016-seed-addresses

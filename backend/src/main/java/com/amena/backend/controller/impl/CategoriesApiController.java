@@ -5,6 +5,7 @@ import com.amena.backend.dto.CategoryRequest;
 import com.amena.backend.dto.CategoryResponse;
 import com.amena.backend.entity.Categorie;
 import com.amena.backend.repository.CategorieRepository;
+import com.amena.backend.repository.ProduitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.Locale;
 public class CategoriesApiController implements CategoriesApi {
 
     private final CategorieRepository categorieRepository;
+    private final ProduitRepository produitRepository;
 
     @Override
     public ResponseEntity<List<CategoryResponse>> getCategories() {
@@ -134,6 +136,10 @@ public class CategoriesApiController implements CategoriesApi {
         response.setIsActive(categorie.getIsActive());
         response.setSortOrder(categorie.getSortOrder());
         response.setCreatedAt(categorie.getCreatedAt());
+        
+        long count = produitRepository.countByCategoryId(categorie.getId());
+        response.setProductCount((int) count);
+        
         return response;
     }
 }

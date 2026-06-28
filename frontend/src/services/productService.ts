@@ -112,8 +112,35 @@ async function parseError(res: Response): Promise<never> {
   throw new Error(message || `Erreur API (${res.status})`)
 }
 
-export async function fetchProducts(): Promise<ApiProduct[]> {
-  const res = await fetch(`${API_BASE}/api/products`)
+export type ProductPage = {
+  content: ApiProduct[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
+  first: boolean
+  last: boolean
+  empty: boolean
+}
+
+export async function fetchProductsPage(
+  page = 0,
+  size = 20,
+  search?: string,
+  categoryId?: number,
+  sortBy = 'createdAt',
+  sortOrder = 'desc'
+): Promise<ProductPage> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+    sortBy,
+    sortOrder,
+  })
+  if (search) params.append('search', search)
+  if (categoryId) params.append('categoryId', categoryId.toString())
+
+  const res = await fetch(`${API_BASE}/api/products?${params.toString()}`)
   if (!res.ok) await parseError(res)
   return res.json()
 }

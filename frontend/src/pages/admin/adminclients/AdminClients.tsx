@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { IconEye, IconUsers } from '../../../components/admin'
+import { useState, useMemo, useEffect } from 'react'
+import { IconEye, IconUsers, Pagination } from '../../../components/admin'
 
 export type Client = {
   id: string
@@ -22,16 +22,211 @@ type OrderType = {
 
 
 
-export function AdminClients({ activeSection, orders, clients, handleEditClient }: { activeSection: string, orders: OrderType[], clients: Client[], handleEditClient?: (c: Client) => void }) {
+type ClientSortKey = 'id' | 'name' | 'date' | 'status'
+type SortOrder = 'asc' | 'desc'
+
+const compareClients = (a: Client, b: Client, sortBy: ClientSortKey, order: SortOrder) => {
+  let cmp = 0
+  switch (sortBy) {
+    case 'id':
+      cmp = a.id.localeCompare(b.id, 'fr', { numeric: true, sensitivity: 'base' })
+      break
+    case 'name':
+      cmp = a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+      break
+    case 'date':
+      cmp = new Date(a.registrationDate).getTime() - new Date(b.registrationDate).getTime()
+      if (isNaN(cmp)) cmp = a.registrationDate.localeCompare(b.registrationDate)
+      break
+    case 'status':
+      cmp = a.status.localeCompare(b.status, 'fr', { sensitivity: 'base' })
+      break
+  }
+  return order === 'asc' ? cmp : -cmp
+}
+
+function ClientsListToolbar({
+  searchName,
+  searchEmail,
+  searchStatus,
+  sortBy,
+  sortOrder,
+  onSearchNameChange,
+  onSearchEmailChange,
+  onSearchStatusChange,
+  onSortByChange,
+  onSortOrderChange,
+  onReset,
+}: {
+  searchName: string
+  searchEmail: string
+  searchStatus: string
+  sortBy: ClientSortKey
+  sortOrder: SortOrder
+  onSearchNameChange: (val: string) => void
+  onSearchEmailChange: (val: string) => void
+  onSearchStatusChange: (val: string) => void
+  onSortByChange: (val: ClientSortKey) => void
+  onSortOrderChange: (val: SortOrder) => void
+  onReset: () => void
+}) {
+  const hasFilters = Boolean(searchName.trim() || searchEmail.trim() || searchStatus)
+  return (
+    <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Recherche et tri</p>
+        {hasFilters ? (
+          <button type="button" onClick={onReset} className="text-xs font-bold text-brand-blue hover:text-brand-light">Réinitialiser</button>
+        ) : null}
+      </div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Nom du client</label>
+          <input type="text" value={searchName} onChange={(e) => onSearchNameChange(e.target.value)} placeholder="Ex: Jean Dupont" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Email</label>
+          <input type="text" value={searchEmail} onChange={(e) => onSearchEmailChange(e.target.value)} placeholder="Ex: jean@email.com" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Statut</label>
+          <select value={searchStatus} onChange={(e) => onSearchStatusChange(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none">
+            <option value="">Tous les statuts</option>
+            <option value="Actif">Actif</option>
+            <option value="Inactif">Inactif</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Trier par</label>
+          <select value={sortBy} onChange={(e) => onSortByChange(e.target.value as ClientSortKey)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none">
+            <option value="date">Date d'inscription</option>
+            <option value="name">Nom</option>
+            <option value="id">ID</option>
+            <option value="status">Statut</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Ordre</label>
+          <select value={sortOrder} onChange={(e) => onSortOrderChange(e.target.value as SortOrder)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none">
+            <option value="desc">Décroissant</option>
+            <option value="asc">Croissant</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+import { fetchUsersPage, toUiClient } from '../../../services/userService'
+
+export function AdminClients({ activeSection, orders, handleEditClient }: { activeSection: string, orders: OrderType[], clients?: Client[], handleEditClient?: (c: Client) => void }) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Client | null>(null)
+
+  // States for clients list
+  const [searchName, setSearchName] = useState('')
+  const [searchEmail, setSearchEmail] = useState('')
+  const [searchStatus, setSearchStatus] = useState('')
+  const [sortBy, setSortBy] = useState<ClientSortKey>('date')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
+
+  const [serverClients, setServerClients] = useState<Client[]>([])
+  const [totalElements, setTotalElements] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [loading, setLoading] = useState(false)
+
+  const isClientsList = activeSection === 'clients-liste'
+
+  useEffect(() => {
+    if (!isClientsList) return
+    setLoading(true)
+
+    const apiSortBy = sortBy === 'date' ? 'createdAt' : sortBy === 'name' ? 'firstName' : 'id'
+    const searchQuery = searchName.trim() || searchEmail.trim() || undefined
+    const apiRole = searchStatus || undefined // we mapped 'Actif' / 'Inactif' in backend
+
+    fetchUsersPage(currentPage - 1, itemsPerPage, searchQuery, apiRole, apiSortBy, sortOrder)
+      .then(page => {
+        setServerClients(page.content.map(toUiClient))
+        setTotalElements(page.totalElements)
+        setTotalPages(page.totalPages)
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false))
+
+  }, [currentPage, searchName, searchEmail, searchStatus, sortBy, sortOrder, isClientsList])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchName, searchEmail, searchStatus, sortBy, sortOrder])
+
+
+  const resetListFilters = () => {
+    setSearchName('')
+    setSearchEmail('')
+    setSearchStatus('')
+    setSortBy('date')
+    setSortOrder('desc')
+  }
+
+  // States for purchase history
+  const [historySearch, setHistorySearch] = useState('')
+  const [historySort, setHistorySort] = useState<'totalSpent' | 'totalOrders'>('totalSpent')
+  const [historyOrder, setHistoryOrder] = useState<SortOrder>('desc')
+  const [historyPage, setHistoryPage] = useState(1)
+  const historyItemsPerPage = 6
+
+  useEffect(() => {
+    setHistoryPage(1)
+  }, [historySearch, historySort, historyOrder])
+
+  // For history, since the backend doesn't have an endpoint for this yet,
+  // we could just fetch page 0 of users or mock it. To keep the existing
+  // UI working, we'll just show the `serverClients` we fetched, or refetch
+  // all users (not ideal). We will reuse `serverClients` for now.
+  const filteredHistoryClients = useMemo(() => {
+    let result = serverClients;
+    const query = historySearch.trim().toLowerCase()
+    if (query) {
+      result = result.filter(c => c.name.toLowerCase().includes(query) || c.email.toLowerCase().includes(query))
+    }
+
+    return [...result].sort((a, b) => {
+      let cmp = 0;
+      if (historySort === 'totalSpent') cmp = a.totalSpent - b.totalSpent
+      else cmp = a.totalOrders - b.totalOrders
+      return historyOrder === 'asc' ? cmp : -cmp
+    })
+  }, [serverClients, historySearch, historySort, historyOrder]);
+
+  const paginatedHistoryClients = useMemo(() => {
+    const start = (historyPage - 1) * historyItemsPerPage
+    return filteredHistoryClients.slice(start, start + historyItemsPerPage)
+  }, [filteredHistoryClients, historyPage])
+
   if (activeSection === 'clients-liste') {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <header className="mb-4 flex items-center justify-between">
           <h3 className="text-sm font-bold uppercase tracking-wider text-brand-blue">Liste des clients</h3>
-          <span className="text-xs font-medium text-slate-500">{clients.length} inscrits</span>
+          <span className="text-xs font-medium text-slate-500">{totalElements} inscrit(s) {loading && '(Chargement...)'}</span>
         </header>
+        <ClientsListToolbar
+          searchName={searchName}
+          searchEmail={searchEmail}
+          searchStatus={searchStatus}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSearchNameChange={setSearchName}
+          onSearchEmailChange={setSearchEmail}
+          onSearchStatusChange={setSearchStatus}
+          onSortByChange={setSortBy}
+          onSortOrderChange={setSortOrder}
+          onReset={resetListFilters}
+        />
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead>
@@ -45,7 +240,9 @@ export function AdminClients({ activeSection, orders, clients, handleEditClient 
               </tr>
             </thead>
             <tbody>
-              {clients.map((client) => {
+              {loading ? (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chargement des données...</td></tr>
+              ) : serverClients.map((client) => {
                 const isEditing = editingId === client.id;
                 
                 if (isEditing && editForm) {
@@ -139,6 +336,17 @@ export function AdminClients({ activeSection, orders, clients, handleEditClient 
             </tbody>
           </table>
         </div>
+        {totalPages > 1 && (
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={totalElements}
+              itemsPerPage={itemsPerPage}
+            />
+          </div>
+        )}
       </div>
     )
   }
@@ -149,8 +357,32 @@ export function AdminClients({ activeSection, orders, clients, handleEditClient 
         <header className="mb-4">
           <h3 className="text-sm font-bold uppercase tracking-wider text-brand-blue">Historique d'achat par client</h3>
         </header>
+        
+        <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex-1 min-w-[200px]">
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Rechercher un client</label>
+              <input type="text" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} placeholder="Nom ou email..." className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none" />
+            </div>
+            <div className="w-full md:w-48">
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Trier par</label>
+              <select value={historySort} onChange={(e) => setHistorySort(e.target.value as 'totalSpent'|'totalOrders')} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none">
+                <option value="totalSpent">Total dépensé</option>
+                <option value="totalOrders">Nombre de commandes</option>
+              </select>
+            </div>
+            <div className="w-full md:w-48">
+              <label className="mb-1 block text-xs font-semibold text-slate-600">Ordre</label>
+              <select value={historyOrder} onChange={(e) => setHistoryOrder(e.target.value as SortOrder)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none">
+                <option value="desc">Décroissant</option>
+                <option value="asc">Croissant</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-5 xl:grid-cols-2">
-          {clients.map((client) => {
+          {paginatedHistoryClients.map((client) => {
             const clientOrders = orders.filter(o => o.client === client.name);
             return (
             <article key={client.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -197,6 +429,18 @@ export function AdminClients({ activeSection, orders, clients, handleEditClient 
             </article>
           )})}
         </div>
+        
+        {filteredHistoryClients.length > historyItemsPerPage && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={historyPage}
+              totalPages={Math.ceil(filteredHistoryClients.length / historyItemsPerPage)}
+              onPageChange={setHistoryPage}
+              totalItems={filteredHistoryClients.length}
+              itemsPerPage={historyItemsPerPage}
+            />
+          </div>
+        )}
       </div>
     )
   }

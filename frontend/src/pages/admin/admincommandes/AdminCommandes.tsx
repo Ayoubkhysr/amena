@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { IconClipboard, IconArchive, IconPackage } from '../../../components/admin'
+import React, { useState, useMemo, useEffect } from 'react'
+import { IconClipboard, IconArchive, IconPackage, Pagination } from '../../../components/admin'
 
 export type OrderStatus = 'En attente' | 'Préparée' | 'Livrée' | 'Retournée'
 
@@ -20,25 +20,189 @@ export type Order = {
 }
 
 export type AdminCommandesProps = {
-  orders: Order[]
   activeSection: string
-  handleOrderStatus: (id: number, newStatus: OrderStatus) => void | Promise<void>
 }
 
-export function AdminCommandes({ orders, activeSection, handleOrderStatus }: AdminCommandesProps) {
+type OrderSortKey = 'id' | 'date' | 'client' | 'total' | 'statut'
+type SortOrder = 'asc' | 'desc'
+
+const compareOrders = (a: Order, b: Order, sortBy: OrderSortKey, order: SortOrder) => {
+  let cmp = 0
+  switch (sortBy) {
+    case 'id':
+      cmp = a.id - b.id
+      break
+    case 'date':
+      cmp = new Date(a.date).getTime() - new Date(b.date).getTime()
+      if (isNaN(cmp)) cmp = a.date.localeCompare(b.date)
+      break
+    case 'client':
+      cmp = a.client.localeCompare(b.client, 'fr', { sensitivity: 'base' })
+      break
+    case 'total':
+      cmp = a.total - b.total
+      break
+    case 'statut':
+      cmp = a.statut.localeCompare(b.statut, 'fr', { sensitivity: 'base' })
+      break
+  }
+  return order === 'asc' ? cmp : -cmp
+}
+
+function CommandesListToolbar({
+  searchId,
+  searchClient,
+  searchStatus,
+  sortBy,
+  sortOrder,
+  onSearchIdChange,
+  onSearchClientChange,
+  onSearchStatusChange,
+  onSortByChange,
+  onSortOrderChange,
+  onReset,
+}: {
+  searchId: string
+  searchClient: string
+  searchStatus: string
+  sortBy: OrderSortKey
+  sortOrder: SortOrder
+  onSearchIdChange: (val: string) => void
+  onSearchClientChange: (val: string) => void
+  onSearchStatusChange: (val: string) => void
+  onSortByChange: (val: OrderSortKey) => void
+  onSortOrderChange: (val: SortOrder) => void
+  onReset: () => void
+}) {
+  const hasFilters = Boolean(searchId.trim() || searchClient.trim() || searchStatus)
+  return (
+    <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Recherche et tri</p>
+        {hasFilters ? (
+          <button type="button" onClick={onReset} className="text-xs font-bold text-brand-blue hover:text-brand-light">Réinitialiser</button>
+        ) : null}
+      </div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">ID Commande</label>
+          <input type="text" value={searchId} onChange={(e) => onSearchIdChange(e.target.value)} placeholder="Ex: 1024" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Client</label>
+          <input type="text" value={searchClient} onChange={(e) => onSearchClientChange(e.target.value)} placeholder="Nom du client" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Statut</label>
+          <select value={searchStatus} onChange={(e) => onSearchStatusChange(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none">
+            <option value="">Tous les statuts</option>
+            <option value="En attente">En attente</option>
+            <option value="Préparée">Préparée</option>
+            <option value="Livrée">Livrée</option>
+            <option value="Retournée">Retournée</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Trier par</label>
+          <select value={sortBy} onChange={(e) => onSortByChange(e.target.value as OrderSortKey)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none">
+            <option value="date">Date</option>
+            <option value="id">ID</option>
+            <option value="client">Client</option>
+            <option value="total">Total</option>
+            <option value="statut">Statut</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Ordre</label>
+          <select value={sortOrder} onChange={(e) => onSortOrderChange(e.target.value as SortOrder)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none">
+            <option value="desc">Décroissant</option>
+            <option value="asc">Croissant</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+import { fetchOrdersPage, updateOrderStatus as updateOrderApi, toUiOrder } from '../../../services/orderService'
+
+export function AdminCommandes({ activeSection }: AdminCommandesProps) {
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [searchId, setSearchId] = useState('')
+  const [searchClient, setSearchClient] = useState('')
+  const [searchStatus, setSearchStatus] = useState('')
+  const [sortBy, setSortBy] = useState<OrderSortKey>('date')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
+
+  const [serverOrders, setServerOrders] = useState<Order[]>([])
+  const [totalElements, setTotalElements] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [loading, setLoading] = useState(false)
+
+  const isCommandesView = activeSection.startsWith('commandes-')
+
+  useEffect(() => {
+    if (!isCommandesView) return
+    setLoading(true)
+
+    let apiStatus = searchStatus
+    if (!apiStatus && activeSection === 'commandes-attente') apiStatus = 'En attente'
+    if (!apiStatus && activeSection === 'commandes-expediees') apiStatus = 'Livrée'
+    if (!apiStatus && activeSection === 'commandes-retours') apiStatus = 'Retournée'
+
+    const apiSortBy = sortBy === 'date' ? 'createdAt' : sortBy === 'total' ? 'totalAmount' : 'id'
+
+    let searchQuery = searchId.trim() || searchClient.trim() || undefined
+
+    // Note: The API 'status' filter logic needs mapping to the API keys if needed,
+    // but our backend `OrdersApiController` expects exactly the English values?
+    // Wait, let's map UI French statuses to Backend English statuses.
+    const STATUS_MAP: Record<string, string> = {
+      'En attente': 'pending',
+      'Préparée': 'processing',
+      'Livrée': 'delivered',
+      'Retournée': 'refunded'
+    }
+    const backendStatus = apiStatus ? STATUS_MAP[apiStatus] : undefined
+
+    fetchOrdersPage(currentPage - 1, itemsPerPage, searchQuery, backendStatus, apiSortBy, sortOrder)
+      .then(page => {
+        setServerOrders(page.content.map(toUiOrder))
+        setTotalElements(page.totalElements)
+        setTotalPages(page.totalPages)
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false))
+
+  }, [currentPage, searchId, searchClient, searchStatus, sortBy, sortOrder, activeSection, isCommandesView])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchId, searchClient, searchStatus, sortBy, sortOrder, activeSection])
 
   const toggleExpand = (id: number) => {
     setExpandedOrderId(prev => prev === id ? null : id)
   }
 
-  let filteredOrders = orders;
-  if (activeSection === 'commandes-attente') {
-    filteredOrders = orders.filter(o => o.statut === 'En attente');
-  } else if (activeSection === 'commandes-expediees') {
-    filteredOrders = orders.filter(o => o.statut === 'Livrée');
-  } else if (activeSection === 'commandes-retours') {
-    filteredOrders = orders.filter(o => o.statut === 'Retournée');
+  const resetFilters = () => {
+    setSearchId('')
+    setSearchClient('')
+    setSearchStatus('')
+    setSortBy('date')
+    setSortOrder('desc')
+  }
+
+  const handleOrderStatus = async (id: number, newStatus: OrderStatus) => {
+    try {
+      await updateOrderApi(id, newStatus)
+      setServerOrders(prev => prev.map(o => o.id === id ? { ...o, statut: newStatus } : o))
+    } catch (e) {
+      console.error(e)
+      alert("Erreur lors de la mise à jour du statut")
+    }
   }
 
   const getTitle = () => {
@@ -51,7 +215,9 @@ export function AdminCommandes({ orders, activeSection, handleOrderStatus }: Adm
     }
   }
 
-  if (filteredOrders.length === 0) {
+  const hasActiveFilters = Boolean(searchId.trim() || searchClient.trim() || searchStatus)
+
+  if (!loading && totalElements === 0 && !hasActiveFilters) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-brand-surface py-24 text-center">
         <IconClipboard className="h-8 w-8 text-Brand-light mb-4 opacity-50" />
@@ -67,8 +233,21 @@ export function AdminCommandes({ orders, activeSection, handleOrderStatus }: Adm
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm animate-admin-panel-in">
       <header className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-bold uppercase tracking-wider text-brand-blue">{getTitle()}</h3>
-        <span className="text-xs font-medium text-slate-500">{filteredOrders.length} résultat(s)</span>
+        <span className="text-xs font-medium text-slate-500">{totalElements} résultat(s) {loading && '(Chargement...)'}</span>
       </header>
+      <CommandesListToolbar
+        searchId={searchId}
+        searchClient={searchClient}
+        searchStatus={searchStatus}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSearchIdChange={setSearchId}
+        onSearchClientChange={setSearchClient}
+        onSearchStatusChange={setSearchStatus}
+        onSortByChange={setSortBy}
+        onSortOrderChange={setSortOrder}
+        onReset={resetFilters}
+      />
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead>
@@ -82,7 +261,9 @@ export function AdminCommandes({ orders, activeSection, handleOrderStatus }: Adm
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map((order) => (
+            {loading ? (
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chargement des données...</td></tr>
+            ) : serverOrders.map((order) => (
               <React.Fragment key={order.id}>
                 <tr className="border-b border-slate-100 last:border-none transition duration-150 hover:bg-slate-50">
                   <td className="px-4 py-4 font-bold text-brand-blue">#{order.id}</td>
@@ -179,6 +360,17 @@ export function AdminCommandes({ orders, activeSection, handleOrderStatus }: Adm
           </tbody>
         </table>
       </div>
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalElements}
+            itemsPerPage={itemsPerPage}
+          />
+        </div>
+      )}
     </div>
   )
 }

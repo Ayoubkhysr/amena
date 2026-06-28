@@ -22,12 +22,34 @@ public class ProductsApiController implements ProductsApi {
     private final ProduitRepository produitRepository;
     private final ProductImageService productImageService;
 
-    @Override
-    public ResponseEntity<List<ProductResponse>> getProducts() {
-        List<ProductResponse> products = produitRepository.findAll().stream()
-                .map(this::toProductResponse)
-                .toList();
-        return ResponseEntity.ok(products);
+    public ResponseEntity<com.amena.backend.dto.ProductPage> getProducts(Integer page, Integer size, String search, Long categoryId, String sortBy, String sortOrder) {
+        org.springframework.data.domain.Sort.Direction direction = "asc".equalsIgnoreCase(sortOrder) ? org.springframework.data.domain.Sort.Direction.ASC : org.springframework.data.domain.Sort.Direction.DESC;
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by(direction, sortBy != null ? sortBy : "createdAt"));
+        
+        org.springframework.data.jpa.domain.Specification<Produit> spec = org.springframework.data.jpa.domain.Specification.where(null);
+        if (search != null && !search.trim().isEmpty()) {
+            spec = spec.and((root, query, cb) -> cb.or(
+                cb.like(cb.lower(root.get("name")), "%" + search.toLowerCase() + "%"),
+                cb.like(cb.lower(root.get("sku")), "%" + search.toLowerCase() + "%")
+            ));
+        }
+        if (categoryId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("categoryId"), categoryId));
+        }
+
+        org.springframework.data.domain.Page<Produit> productPageEntity = produitRepository.findAll(spec, pageable);
+        
+        com.amena.backend.dto.ProductPage responsePage = new com.amena.backend.dto.ProductPage();
+        responsePage.setContent(productPageEntity.getContent().stream().map(this::toProductResponse).toList());
+        responsePage.setNumber(productPageEntity.getNumber());
+        responsePage.setSize(productPageEntity.getSize());
+        responsePage.setTotalElements(productPageEntity.getTotalElements());
+        responsePage.setTotalPages(productPageEntity.getTotalPages());
+        responsePage.setFirst(productPageEntity.isFirst());
+        responsePage.setLast(productPageEntity.isLast());
+        responsePage.setEmpty(productPageEntity.isEmpty());
+
+        return ResponseEntity.ok(responsePage);
     }
 
     @Override
