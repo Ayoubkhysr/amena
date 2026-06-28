@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,9 +67,11 @@ public class Commande {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")

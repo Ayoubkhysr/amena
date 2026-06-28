@@ -20,6 +20,17 @@ export type ApiOrderItem = {
   totalPrice: number
 }
 
+export type OrderPage = {
+  content: ApiOrder[]
+  totalElements: number
+  totalPages: number
+  size: number
+  number: number
+  first: boolean
+  last: boolean
+  empty: boolean
+}
+
 const API_BASE = import.meta.env.VITE_API_URL ?? ''
 
 const STATUS_TO_UI: Record<string, OrderStatus> = {
@@ -69,10 +80,31 @@ async function parseError(res: Response): Promise<never> {
   throw new Error(message || `Erreur API (${res.status})`)
 }
 
-export async function fetchOrders(): Promise<ApiOrder[]> {
-  const res = await fetch(`${API_BASE}/api/orders`)
+export async function fetchOrdersPage(
+  page = 0,
+  size = 20,
+  search?: string,
+  status?: string,
+  sortBy = 'createdAt',
+  sortOrder = 'desc'
+): Promise<OrderPage> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+    sortBy,
+    sortOrder,
+  })
+  if (search) params.append('search', search)
+  if (status) params.append('status', status)
+
+  const res = await fetch(`${API_BASE}/api/orders?${params.toString()}`)
   if (!res.ok) await parseError(res)
   return res.json()
+}
+
+export async function fetchOrders(): Promise<ApiOrder[]> {
+  const page = await fetchOrdersPage(0, 1000, undefined, undefined, 'createdAt', 'desc')
+  return page.content
 }
 
 export async function updateOrderStatus(orderId: number, statut: OrderStatus): Promise<ApiOrder> {

@@ -2,6 +2,7 @@ package com.amena.backend.controller.impl;
 
 import com.amena.backend.api.OrdersApi;
 import com.amena.backend.dto.OrderItemResponse;
+import com.amena.backend.dto.OrderPage;
 import com.amena.backend.dto.OrderResponse;
 import com.amena.backend.dto.OrderStatusUpdateRequest;
 import com.amena.backend.entity.Adresse;
@@ -12,9 +13,15 @@ import com.amena.backend.repository.AdresseRepository;
 import com.amena.backend.repository.CommandeRepository;
 import com.amena.backend.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import jakarta.persistence.criteria.JoinType;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,19 +34,59 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class OrdersApiController implements OrdersApi {
 
     private static final Set<String> ALLOWED_STATUSES = Set.of(
-            "pending", "processing", "shipped", "delivered", "cancelled", "refunded"
-    );
+            "pending", "processing", "shipped", "delivered", "cancelled", "refunded");
 
     private final CommandeRepository commandeRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final AdresseRepository adresseRepository;
 
-    @Override
-    public ResponseEntity<List<OrderResponse>> getOrders() {
-        List<OrderResponse> orders = commandeRepository.findAllWithLignes().stream()
-                .map(this::toOrderResponse)
-                .toList();
-        return ResponseEntity.ok(orders);
+    public ResponseEntity<OrderPage> getOrders(Integer page, Integer size, String search, String status, String sortBy,
+            String sortOrder) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Specification<Commande> spec = Specification.where(null);
+
+        // Always fetch lines to avoid N+1 issues when serializing
+        spec = spec.and((root, query, cb) -> {
+            if (Long.class != query.getResultType()) {
+                root.fetch("lignes", JoinType.LEFT);
+            }
+            // Add distinct to avoid duplicate rows from join fetch
+            query.distinct(true);
+            return null;
+        });
+
+        if (status != null && !status.isEmpty()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+        }
+
+        if (search != null && !search.isEmpty()) {
+            spec = spec.and((root, query, cb) -> {
+                String searchLower = "%" + search.toLowerCase() + "%";
+                return cb.or(
+                        cb.like(cb.lower(root.get("orderNumber")), searchLower),
+                        // Basic search on orderNumber for now, as joining with User to search by
+                        // name/email
+                        // requires more complex specification. To keep it simple, we just search
+                        // orderNumber
+                        cb.like(cb.lower(root.get("id").as(String.class)), searchLower));
+            });
+        }
+
+        Page<Commande> commandePage = commandeRepository.findAll(spec, pageable);
+
+        OrderPage orderPage = new OrderPage();
+        orderPage.setContent(commandePage.getContent().stream().map(this::toOrderResponse).toList());
+        orderPage.setTotalElements(commandePage.getTotalElements());
+        orderPage.setTotalPages(commandePage.getTotalPages());
+        orderPage.setSize(commandePage.getSize());
+        orderPage.setNumber(commandePage.getNumber());
+        orderPage.setFirst(commandePage.isFirst());
+        orderPage.setLast(commandePage.isLast());
+        orderPage.setEmpty(commandePage.isEmpty());
+
+        return ResponseEntity.ok(orderPage);
     }
 
     @Override
@@ -75,7 +122,7 @@ public class OrdersApiController implements OrdersApi {
         response.setTotalAmount(toDouble(commande.getTotalAmount()));
         response.setShippingAmount(toDouble(commande.getShippingAmount()));
         response.setStatus(commande.getStatus());
-        response.setCreatedAt(commande.getCreatedAt());
+        response.setCreatedAt(commande.getCreatedAt() != null ? java.time.OffsetDateTime.of(commande.getCreatedAt(), java.time.ZoneOffset.UTC) : null);
         response.setAddress(resolveAddress(commande.getShippingAddressId()));
         response.setItems(commande.getLignes().stream().map(this::toOrderItemResponse).toList());
         return response;

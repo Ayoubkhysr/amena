@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -40,11 +41,11 @@ public class Utilisateur {
     private Boolean isActive;
 
     @Column(name = "is_admin")
-    private Boolean isAdmin;
+    private Boolean isAdmin = false;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")

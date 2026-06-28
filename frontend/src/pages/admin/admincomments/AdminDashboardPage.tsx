@@ -28,6 +28,7 @@ import { AdminContenu, Banner, StaticPage } from '../admincontenu/AdminContenu'
 import { AdminPromotions, PromoCode, Offre } from '../adminpromotions/AdminPromotions'
 import { AdminRapports } from '../adminrapports/AdminRapports'
 import { AdminParametres } from '../adminparametres/AdminParametres'
+
 import { useStore, Product } from '../../../context/StoreContext'
 import {
   createProduct,
@@ -72,6 +73,7 @@ type AdminSection =
   | 'contenu-bannieres' | 'contenu-pages'
   | 'rapports-ventes' | 'rapports-produits'
   | 'parametres-infos' | 'parametres-paiement' | 'parametres-livraison'
+
 
 const SECTION_META: Record<AdminSection, { title: string; subtitle: string }> = {
   'dashboard-vue-generale': { title: 'Vue générale', subtitle: 'CA, commandes du jour, stock faible, nouveaux clients.' },
@@ -122,6 +124,7 @@ function AdminDashboardPage() {
     contenu: false,
     rapports: false,
     parametres: false,
+    stores: false,
   })
 
   // Global Exemples de données
@@ -141,12 +144,14 @@ function AdminDashboardPage() {
 
   const [orders, setOrders] = useState<Order[]>([])
 
+
   useEffect(() => {
     fetchOrders()
       .then((apiOrders) => setOrders(apiOrders.map(toUiOrder)))
       .catch((error) => {
         console.warn('Impossible de charger les commandes depuis l\'API:', error)
       })
+
   }, [])
 
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([])
@@ -207,18 +212,6 @@ function AdminDashboardPage() {
 
   const handleReviewStatus = (id: number, newStatus: ReviewStatus) => {
     setReviews(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r))
-  }
-
-  const handleOrderStatus = async (id: number, newStatus: OrderStatus) => {
-    try {
-      const saved = await updateOrderStatus(id, newStatus)
-      const updated = toUiOrder(saved)
-      setOrders((prev) => prev.map((order) => (order.id === id ? updated : order)))
-    } catch (error) {
-      console.warn('Erreur lors de la mise à jour du statut:', error)
-      const message = error instanceof Error ? error.message : 'Erreur inconnue'
-      alert(`Impossible de mettre à jour la commande : ${message}`)
-    }
   }
 
   const handleEditBanner = (updatedBanner: Banner) => {
@@ -570,6 +563,7 @@ function AdminDashboardPage() {
               )}
             </div>
 
+
             <div>
               <NavGroupHeader label="Paramètres" Icon={IconSettings} open={navOpen.parametres} onToggle={() => setNavOpen((o) => ({ ...o, parametres: !o.parametres }))} />
               {navOpen.parametres && (
@@ -698,6 +692,8 @@ function AdminDashboardPage() {
                       </div>
                     </article>
 
+
+
                     <article className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                       <header className="mb-4">
                         <h3 className="text-sm font-bold uppercase tracking-wider text-brand-blue">Alertes stock</h3>
@@ -729,7 +725,7 @@ function AdminDashboardPage() {
                   handleEditCategory={handleEditCategory}
                 />
               ) : COMMANDES_KEYS.includes(activeSection) ? (
-                <AdminCommandes orders={orders} activeSection={activeSection} handleOrderStatus={handleOrderStatus} />
+                <AdminCommandes activeSection={activeSection} />
               ) : CLIENTS_KEYS.includes(activeSection) ? (
                 <AdminClients clients={clients} activeSection={activeSection} orders={orders} handleEditClient={handleEditClient} />
               ) : AVIS_KEYS.includes(activeSection) ? (

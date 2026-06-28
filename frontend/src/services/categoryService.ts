@@ -10,6 +10,7 @@ export type ApiCategory = {
   isActive?: boolean
   sortOrder?: number
   createdAt?: string
+  productCount?: number
 }
 
 export type ApiCategoryRequest = {
@@ -29,6 +30,7 @@ export function toUiCategory(api: ApiCategory): Category {
     id: String(api.id),
     name: api.name,
     slug: api.slug,
+    productCount: api.productCount ?? 0,
   }
 }
 

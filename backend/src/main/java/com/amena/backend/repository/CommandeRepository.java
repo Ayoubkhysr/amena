@@ -8,8 +8,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 @Repository
-public interface CommandeRepository extends JpaRepository<Commande, Long> {
+public interface CommandeRepository extends JpaRepository<Commande, Long>, JpaSpecificationExecutor<Commande> {
 
     @Query("SELECT DISTINCT c FROM Commande c LEFT JOIN FETCH c.lignes ORDER BY c.createdAt DESC")
     List<Commande> findAllWithLignes();

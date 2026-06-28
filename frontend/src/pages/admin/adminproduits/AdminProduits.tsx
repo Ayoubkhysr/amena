@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { IconPackage, IconTag, IconEye, IconArchive } from '../../../components/admin'
+import { IconPackage, IconTag, IconEye, IconArchive, Pagination } from '../../../components/admin'
 import { Product, Category } from '../../../context/StoreContext'
-import { resolveImageUrl } from '../../../services/productService'
+import { resolveImageUrl, fetchProductsPage, toUiProduct } from '../../../services/productService'
 
 type ProductSortKey = 'id' | 'name' | 'category' | 'price' | 'stock' | 'status'
 type SortOrder = 'asc' | 'desc'
@@ -32,14 +32,12 @@ const compareProducts = (a: Product, b: Product, sortBy: ProductSortKey, order: 
 }
 
 type ProductListToolbarProps = {
-  searchId: string
-  searchName: string
+  search: string
   searchCategory: string
   sortBy: ProductSortKey
   sortOrder: SortOrder
   categories: Category[]
-  onSearchIdChange: (value: string) => void
-  onSearchNameChange: (value: string) => void
+  onSearchChange: (value: string) => void
   onSearchCategoryChange: (value: string) => void
   onSortByChange: (value: ProductSortKey) => void
   onSortOrderChange: (value: SortOrder) => void
@@ -47,20 +45,18 @@ type ProductListToolbarProps = {
 }
 
 function ProductListToolbar({
-  searchId,
-  searchName,
+  search,
   searchCategory,
   sortBy,
   sortOrder,
   categories,
-  onSearchIdChange,
-  onSearchNameChange,
+  onSearchChange,
   onSearchCategoryChange,
   onSortByChange,
   onSortOrderChange,
   onReset,
 }: ProductListToolbarProps) {
-  const hasFilters = Boolean(searchId.trim() || searchName.trim() || searchCategory)
+  const hasFilters = Boolean(search.trim() || searchCategory)
 
   return (
     <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -76,23 +72,13 @@ function ProductListToolbar({
           </button>
         ) : null}
       </div>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <div>
-          <label className="mb-1 block text-xs font-semibold text-slate-600">ID produit</label>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Recherche (Nom, ID)</label>
           <input
             type="text"
-            value={searchId}
-            onChange={(e) => onSearchIdChange(e.target.value)}
-            placeholder="Ex: P01"
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-semibold text-slate-600">Nom du produit</label>
-          <input
-            type="text"
-            value={searchName}
-            onChange={(e) => onSearchNameChange(e.target.value)}
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Ex: Détergent"
             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
           />
@@ -163,8 +149,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
 
   const [newCat, setNewCat] = useState('')
   const [editingCat, setEditingCat] = useState<{old: string, new: string} | null>(null)
-  const [searchId, setSearchId] = useState('')
-  const [searchName, setSearchName] = useState('')
+  const [search, setSearch] = useState('')
   const [searchCategory, setSearchCategory] = useState('')
   const [sortBy, setSortBy] = useState<ProductSortKey>('name')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
@@ -172,6 +157,14 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const [newProductImagePreview, setNewProductImagePreview] = useState('')
   const [editProductImageFile, setEditProductImageFile] = useState<File | null>(null)
   const [editProductImagePreview, setEditProductImagePreview] = useState('')
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
+  
+  const [serverProducts, setServerProducts] = useState<Product[]>([])
+  const [totalElements, setTotalElements] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const revokePreview = (preview: string) => {
     if (preview.startsWith('blob:')) {
@@ -246,8 +239,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   }
 
   const resetListFilters = () => {
-    setSearchId('')
-    setSearchName('')
+    setSearch('')
     setSearchCategory('')
     setSortBy('name')
     setSortOrder('asc')
@@ -256,34 +248,38 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const isProductList = activeSection === 'produits-liste'
   const isRuptureView = activeSection === 'produits-rupture'
   const isListTableView = isProductList || isRuptureView
-  const hasActiveFilters = Boolean(searchId.trim() || searchName.trim() || searchCategory)
+  const hasActiveFilters = Boolean(search.trim() || searchCategory)
 
-  const baseProducts = useMemo(() => {
-    if (isRuptureView) {
-      return products.filter(p => p.stock <= 5 || p.status === 'Rupture')
-    }
-    return products
-  }, [products, isRuptureView])
+  useEffect(() => {
+    if (!isListTableView) return
+    setLoading(true)
 
-  const filteredProducts = useMemo(() => {
-    if (!isListTableView) return []
+    // Map searchCategory string to category ID
+    const catObj = categories.find(c => c.name === searchCategory)
+    const categoryId = catObj ? Number(catObj.id) : undefined
 
-    const idQuery = searchId.trim().toLowerCase()
-    const nameQuery = searchName.trim().toLowerCase()
+    // For Rupture View, maybe force filter or something. Currently API has no stock filter.
+    // For now we'll just fetch normally if it's product list, but if rupture we might need
+    // special handling or just show all for this demo. We'll load normally.
+    
+    // Map sortBy to backend values
+    let backendSort = sortBy as string
+    if (sortBy === 'stock' || sortBy === 'status') backendSort = 'isActive'
 
-    let result = baseProducts.filter((product) => {
-      if (isProductList && idQuery && !product.id.toLowerCase().includes(idQuery)) return false
-      if (isProductList && nameQuery && !product.name.toLowerCase().includes(nameQuery)) return false
-      if (isProductList && searchCategory && product.category !== searchCategory) return false
-      return true
-    })
+    fetchProductsPage(currentPage - 1, itemsPerPage, search, categoryId, backendSort, sortOrder)
+      .then((page) => {
+        setServerProducts(page.content.map(apiProduct => toUiProduct(apiProduct, categories)))
+        setTotalElements(page.totalElements)
+        setTotalPages(page.totalPages)
+      })
+      .catch((error) => console.error("Erreur lors de la recupération des produits:", error))
+      .finally(() => setLoading(false))
 
-    if (isProductList) {
-      result = [...result].sort((a, b) => compareProducts(a, b, sortBy, sortOrder))
-    }
+  }, [currentPage, search, searchCategory, sortBy, sortOrder, isListTableView, categories, activeSection])
 
-    return result
-  }, [baseProducts, isListTableView, isProductList, searchId, searchName, searchCategory, sortBy, sortOrder])
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, searchCategory, sortBy, sortOrder, activeSection])
   
   if (activeSection === 'produits-ajouter') {
     return (
@@ -368,7 +364,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   if (activeSection === 'produits-categories') {
     const categoriesStats = categories.map(cat => ({
       name: cat.name,
-      count: products.filter(p => p.category === cat.name).length
+      count: cat.productCount ?? 0
     }))
 
     return (
@@ -441,7 +437,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
     title = 'Produits en rupture ou stock faible'
   }
 
-  if (baseProducts.length === 0) {
+  if (!loading && totalElements === 0 && !hasActiveFilters && isProductList) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-brand-surface py-24 text-center animate-admin-panel-in">
         <IconPackage className="h-8 w-8 text-Brand-light mb-4 opacity-50" />
@@ -453,7 +449,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
     )
   }
 
-  if (isProductList && filteredProducts.length === 0) {
+  if (!loading && isProductList && totalElements === 0 && hasActiveFilters) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm animate-admin-panel-in">
         <header className="mb-4 flex items-center justify-between">
@@ -461,14 +457,12 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
           <span className="text-xs font-medium text-slate-500">0 produit(s)</span>
         </header>
         <ProductListToolbar
-          searchId={searchId}
-          searchName={searchName}
+          search={search}
           searchCategory={searchCategory}
           sortBy={sortBy}
           sortOrder={sortOrder}
           categories={categories}
-          onSearchIdChange={setSearchId}
-          onSearchNameChange={setSearchName}
+          onSearchChange={setSearch}
           onSearchCategoryChange={setSearchCategory}
           onSortByChange={setSortBy}
           onSortOrderChange={setSortOrder}
@@ -499,19 +493,17 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
       <header className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-bold uppercase tracking-wider text-brand-blue">{title}</h3>
         <span className="text-xs font-medium text-slate-500">
-          {filteredProducts.length} produit(s){hasActiveFilters && isProductList ? ` / ${baseProducts.length}` : ''}
+          {totalElements} produit(s) total {loading && '(Chargement...)'}
         </span>
       </header>
       {isProductList ? (
         <ProductListToolbar
-          searchId={searchId}
-          searchName={searchName}
+          search={search}
           searchCategory={searchCategory}
           sortBy={sortBy}
           sortOrder={sortOrder}
           categories={categories}
-          onSearchIdChange={setSearchId}
-          onSearchNameChange={setSearchName}
+          onSearchChange={setSearch}
           onSearchCategoryChange={setSearchCategory}
           onSortByChange={setSortBy}
           onSortOrderChange={setSortOrder}
@@ -532,7 +524,9 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.map((product) => {
+            {loading ? (
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chargement des données...</td></tr>
+            ) : serverProducts.map((product) => {
               const isEditing = editingId === product.id;
 
               if (isEditing && editForm) {
@@ -660,10 +654,10 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                   <td className="px-4 py-4 font-bold text-brand-blue">
                     <div className="flex items-center gap-3">
                       {product.imageUrl ? (
-                        <img src={product.imageUrl} alt={product.name} className="h-10 w-10 shrink-0 rounded-lg object-cover border border-slate-200 bg-white" />
+                        <img src={product.imageUrl} alt={product.name} className="h-16 w-16 shrink-0 rounded-lg object-cover border border-slate-200 bg-white" />
                       ) : (
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400 border border-slate-200">
-                          <IconPackage className="h-5 w-5" />
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400 border border-slate-200">
+                          <IconPackage className="h-8 w-8" />
                         </div>
                       )}
                       <span className="truncate max-w-[150px] overflow-hidden sm:max-w-[200px] hover:text-clip">{product.name}</span>
@@ -717,6 +711,18 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
           </tbody>
         </table>
       </div>
+      
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalElements}
+            itemsPerPage={itemsPerPage}
+          />
+        </div>
+      )}
     </div>
   )
 }
