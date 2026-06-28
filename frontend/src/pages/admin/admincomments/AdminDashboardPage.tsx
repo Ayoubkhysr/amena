@@ -1,0 +1,781 @@
+import { useEffect, useMemo, useState, type ElementType } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  IconArchive,
+  IconChartBar,
+  IconChevronDown,
+  IconClipboard,
+  IconDashboard,
+  IconEye,
+  IconEyeOff,
+  IconImage,
+  IconMenu,
+  IconMessage,
+  IconPackage,
+  IconSettings,
+  IconStar,
+  IconTag,
+  IconTrending,
+  IconUsers,
+} from '../../../components/admin'
+
+import { AdminCommandes, Order, OrderStatus } from '../admincommandes/AdminCommandes'
+
+import { AdminComments, Review, ReviewStatus } from './AdminComments'
+import { AdminClients, Client } from '../adminclients/AdminClients'
+import { AdminProduits } from '../adminproduits/AdminProduits'
+import { AdminContenu, Banner, StaticPage } from '../admincontenu/AdminContenu'
+import { AdminPromotions, PromoCode, Offre } from '../adminpromotions/AdminPromotions'
+import { AdminRapports } from '../adminrapports/AdminRapports'
+import { AdminParametres } from '../adminparametres/AdminParametres'
+import { useStore, Product } from '../../../context/StoreContext'
+import {
+  createProduct,
+  deleteProduct as deleteProductApi,
+  resolveImageUrl,
+  toApiRequest,
+  toUiProduct,
+  updateProduct,
+} from '../../../services/productService'
+import { uploadProductImage } from '../../../services/productImageService'
+import {
+  createCategory,
+  deleteCategory as deleteCategoryApi,
+  findCategoryByName,
+  updateCategory,
+} from '../../../services/categoryService'
+import { fetchOrders, toUiOrder, updateOrderStatus } from '../../../services/orderService'
+import {
+  fetchCoupons,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+  toUiPromoCode,
+  toApiCouponRequest,
+} from '../../../services/couponService'
+import {
+  fetchOffres,
+  createOffre as createOffreApi,
+  updateOffre as updateOffreApi,
+  deleteOffre as deleteOffreApi,
+  toUiOffre,
+  toApiOffreRequest,
+} from '../../../services/offreService'
+
+type AdminSection =
+  | 'dashboard-vue-generale'
+  | 'produits-liste' | 'produits-ajouter' | 'produits-categories' | 'produits-rupture'
+  | 'commandes-toutes' | 'commandes-attente' | 'commandes-expediees' | 'commandes-retours'
+  | 'clients-liste' | 'clients-historique'
+  | 'avis-tous' | 'avis-attente' | 'avis-approuves' | 'avis-rejetes'
+  | 'promos-codes' | 'promos-offres'
+  | 'contenu-bannieres' | 'contenu-pages'
+  | 'rapports-ventes' | 'rapports-produits'
+  | 'parametres-infos' | 'parametres-paiement' | 'parametres-livraison'
+
+const SECTION_META: Record<AdminSection, { title: string; subtitle: string }> = {
+  'dashboard-vue-generale': { title: 'Vue générale', subtitle: 'CA, commandes du jour, stock faible, nouveaux clients.' },
+  'produits-liste': { title: 'Liste des produits', subtitle: 'Gérer tous les produits du catalogue.' },
+  'produits-ajouter': { title: 'Ajouter un produit', subtitle: 'Créer une nouvelle fiche produit.' },
+  'produits-categories': { title: 'Catégories', subtitle: 'Gérer les catégories de produits.' },
+  'produits-rupture': { title: 'Stock & alertes', subtitle: 'Produits en rupture ou stock faible.' },
+  'commandes-toutes': { title: 'Toutes les commandes', subtitle: 'Historique complet des commandes.' },
+  'commandes-attente': { title: 'En attente', subtitle: 'Commandes à préparer.' },
+  'commandes-expediees': { title: 'Expédiées', subtitle: 'Suivi des expéditions.' },
+  'commandes-retours': { title: 'Retours & remboursements', subtitle: 'Gérer les retours clients.' },
+  'clients-liste': { title: 'Liste des clients', subtitle: 'Annuaire de tous les clients inscrits.' },
+  'clients-historique': { title: "Historique d'achat", subtitle: 'Analyser les achats par client.' },
+  'avis-tous': { title: 'Tous les avis', subtitle: 'Avis et commentaires globaux.' },
+  'avis-attente': { title: 'En attente de modération', subtitle: 'Modérer les nouveaux avis.' },
+  'avis-approuves': { title: 'Approuvés', subtitle: 'Avis publiés.' },
+  'avis-rejetes': { title: 'Rejetés', subtitle: 'Avis non publiés.' },
+  'promos-codes': { title: 'Codes promo', subtitle: 'Créer et gérer les coupons de réduction.' },
+  'promos-offres': { title: 'Offres & réductions', subtitle: 'Remises générales.' },
+  'contenu-bannieres': { title: 'Bannières / Slider', subtitle: 'Visuels de la page d\'accueil.' },
+  'contenu-pages': { title: 'Pages statiques', subtitle: 'À propos, CGV, Mentions légales...' },
+  'rapports-ventes': { title: 'Ventes par période', subtitle: 'Statistiques financières.' },
+  'rapports-produits': { title: 'Produits les plus vendus', subtitle: 'Top des ventes.' },
+  'parametres-infos': { title: 'Infos de la boutique', subtitle: 'Nom, adresses, contacts.' },
+  'parametres-paiement': { title: 'Modes de paiement', subtitle: 'Configuration des paiements.' },
+  'parametres-livraison': { title: 'Livraison & zones', subtitle: 'Tarifs et méthodes de livraison.' },
+}
+
+const PRODUITS_KEYS: AdminSection[] = ['produits-liste', 'produits-ajouter', 'produits-categories', 'produits-rupture']
+const COMMANDES_KEYS: AdminSection[] = ['commandes-toutes', 'commandes-attente', 'commandes-expediees', 'commandes-retours']
+const CLIENTS_KEYS: AdminSection[] = ['clients-liste', 'clients-historique']
+const AVIS_KEYS: AdminSection[] = ['avis-tous', 'avis-attente', 'avis-approuves', 'avis-rejetes']
+const PROMOS_KEYS: AdminSection[] = ['promos-codes', 'promos-offres']
+const CONTENU_KEYS: AdminSection[] = ['contenu-bannieres', 'contenu-pages']
+const RAPPORTS_KEYS: AdminSection[] = ['rapports-ventes', 'rapports-produits']
+const PARAM_KEYS: AdminSection[] = ['parametres-infos', 'parametres-paiement', 'parametres-livraison']
+
+function AdminDashboardPage() {
+  const [activeSection, setActiveSection] = useState<AdminSection>('dashboard-vue-generale')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const [navOpen, setNavOpen] = useState({
+    produits: false,
+    commandes: false,
+    clients: false,
+    avis: false,
+    promotions: false,
+    contenu: false,
+    rapports: false,
+    parametres: false,
+  })
+
+  // Global Exemples de données
+  const { 
+    products, setProducts, 
+    categories, setCategories, 
+    banners, setBanners, 
+    staticPages, setStaticPages 
+  } = useStore()
+
+  const [clients, setClients] = useState<Client[]>([
+    { id: 'C100', name: 'Société Atlas', email: 'contact@atlas.tn', phone: '+216 71 123 456', registrationDate: '2025-11-15', totalOrders: 14, totalSpent: 5600, status: 'Actif' },
+    { id: 'C101', name: 'Hôtel Jasmin', email: 'achats@jasmin.tn', phone: '+216 73 987 654', registrationDate: '2026-01-20', totalOrders: 5, totalSpent: 2150, status: 'Actif' },
+    { id: 'C102', name: 'Clinique Nour', email: 'direction@nour.tn', phone: '+216 70 555 444', registrationDate: '2026-03-05', totalOrders: 2, totalSpent: 1100, status: 'Actif' },
+    { id: 'C103', name: 'Ecole Primaire El Amal', email: 'ecole.amal@edunet.tn', phone: '+216 72 111 222', registrationDate: '2024-09-01', totalOrders: 28, totalSpent: 12400, status: 'Inactif' },
+  ])
+
+  const [orders, setOrders] = useState<Order[]>([])
+
+  useEffect(() => {
+    fetchOrders()
+      .then((apiOrders) => setOrders(apiOrders.map(toUiOrder)))
+      .catch((error) => {
+        console.warn('Impossible de charger les commandes depuis l\'API:', error)
+      })
+  }, [])
+
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([])
+  const [offres, setOffres] = useState<Offre[]>([])
+
+  useEffect(() => {
+    fetchCoupons()
+      .then((apiCoupons) => setPromoCodes(apiCoupons.map(toUiPromoCode)))
+      .catch((error) => {
+        console.warn('Impossible de charger les coupons depuis l\'API:', error)
+      })
+  }, [])
+
+  useEffect(() => {
+    fetchOffres()
+      .then((apiOffres) => setOffres(apiOffres.map(toUiOffre)))
+      .catch((error) => {
+        console.warn('Impossible de charger les offres depuis l\'API:', error)
+      })
+  }, [])
+
+  const [reviews, setReviews] = useState<Review[]>([
+    { id: 1, author: 'Alice Dupont', product: 'Détergent Sol Pro 5L', rating: 5, comment: 'Excellent produit, nettoie très bien.', date: '2026-04-10', status: 'En attente' },
+    { id: 2, author: 'Jean Martin', product: 'Liquide Vaisselle Ultra', rating: 4, comment: 'Bon rapport qualité/prix.', date: '2026-04-11', status: 'Approuvé' },
+    { id: 3, author: 'Sophie Laurent', product: 'Désinfectant Surfaces', rating: 2, comment: 'Odeur un peu trop forte.', date: '2026-04-12', status: 'Rejeté' },
+    { id: 4, author: 'Marc Tremblay', product: 'Pack Entretien Complet', rating: 5, comment: 'Parfait pour le bureau, je recommande fortement ce pack.', date: '2026-04-12', status: 'En attente' }
+  ])
+
+  const salesStats = useMemo(() => {
+    const totalCommandes = orders.length
+    const chiffreAffaires = orders.reduce((sum, order) => sum + order.total, 0)
+    const panierMoyen = totalCommandes ? Math.round(chiffreAffaires / totalCommandes) : 0
+    return { totalCommandes, chiffreAffaires, panierMoyen }
+  }, [orders])
+
+  const selectNav = (key: AdminSection) => {
+    setActiveSection(key)
+    setSidebarOpen(false)
+    setNavOpen((o) => ({
+      ...o,
+      produits: PRODUITS_KEYS.includes(key) ? true : o.produits,
+      commandes: COMMANDES_KEYS.includes(key) ? true : o.commandes,
+      clients: CLIENTS_KEYS.includes(key) ? true : o.clients,
+      avis: AVIS_KEYS.includes(key) ? true : o.avis,
+      promotions: PROMOS_KEYS.includes(key) ? true : o.promotions,
+      contenu: CONTENU_KEYS.includes(key) ? true : o.contenu,
+      rapports: RAPPORTS_KEYS.includes(key) ? true : o.rapports,
+      parametres: PARAM_KEYS.includes(key) ? true : o.parametres,
+    }))
+  }
+
+  const meta = SECTION_META[activeSection]
+  const pendingOrders = orders.filter((order) => order.statut === 'En attente').length
+  const pendingReviews = reviews.filter((review) => review.status === 'En attente').length
+  const newClients = clients.length
+  const lowStockProducts = products.filter(p => p.stock <= 5 || p.status === 'Rupture')
+  const rupturedProductsCount = products.filter(p => p.stock <= 5 || p.status === 'Rupture').length
+
+  const handleReviewStatus = (id: number, newStatus: ReviewStatus) => {
+    setReviews(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r))
+  }
+
+  const handleOrderStatus = async (id: number, newStatus: OrderStatus) => {
+    try {
+      const saved = await updateOrderStatus(id, newStatus)
+      const updated = toUiOrder(saved)
+      setOrders((prev) => prev.map((order) => (order.id === id ? updated : order)))
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour du statut:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible de mettre à jour la commande : ${message}`)
+    }
+  }
+
+  const handleEditBanner = (updatedBanner: Banner) => {
+    setBanners(prev => prev.map(b => b.id === updatedBanner.id ? updatedBanner : b))
+  }
+
+  const handleAddBanner = (newBanner: Banner) => {
+    setBanners(prev => [...prev, newBanner])
+  }
+
+  const handleEditPage = (updatedPage: StaticPage) => {
+    setStaticPages(prev => prev.map(p => p.id === updatedPage.id ? updatedPage : p))
+  }
+
+  const handleAddPage = (newPage: StaticPage) => {
+    setStaticPages(prev => [...prev, newPage])
+  }
+
+  const handleEditProduct = async (updatedProduct: Product) => {
+    try {
+      const saved = await updateProduct(
+        Number(updatedProduct.id),
+        toApiRequest(updatedProduct, categories, {
+          sku: updatedProduct.sku,
+          slug: updatedProduct.slug,
+        })
+      )
+      let ui = toUiProduct(saved, categories)
+      if (updatedProduct.pendingImageFile) {
+        const image = await uploadProductImage(Number(saved.id), updatedProduct.pendingImageFile)
+        ui = { ...ui, imageUrl: resolveImageUrl(image.imageUrl) }
+      }
+      const merged = {
+        ...ui,
+        stock: updatedProduct.stock,
+        status: updatedProduct.status,
+      }
+      setProducts((prev) => prev.map((p) => (p.id === updatedProduct.id ? merged : p)))
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour du produit:', error)
+      alert('Impossible de mettre à jour le produit. Vérifiez que le backend est démarré.')
+    }
+  }
+
+  const handleAddProduct = async (newProduct: Product) => {
+    try {
+      const saved = await createProduct(toApiRequest(newProduct, categories))
+      let ui = toUiProduct(saved, categories)
+      if (newProduct.pendingImageFile) {
+        const image = await uploadProductImage(Number(saved.id), newProduct.pendingImageFile)
+        ui = { ...ui, imageUrl: resolveImageUrl(image.imageUrl) }
+      }
+      const merged = {
+        ...ui,
+        stock: newProduct.stock,
+        status: newProduct.status,
+      }
+      setProducts((prev) => [...prev, merged])
+    } catch (error) {
+      console.warn('Erreur lors de la création du produit:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible d'ajouter le produit : ${message}`)
+    }
+  }
+
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      await deleteProductApi(Number(productId))
+      setProducts((prev) => prev.filter((p) => p.id !== productId))
+    } catch (error) {
+      console.warn('Erreur lors de la suppression du produit:', error)
+      alert('Impossible de supprimer le produit. Vérifiez que le backend est démarré.')
+    }
+  }
+
+  // Promo handlers
+  const handleAddPromoCode = async (p: PromoCode) => {
+    try {
+      const saved = await createCoupon(toApiCouponRequest(p))
+      setPromoCodes(prev => [...prev, toUiPromoCode(saved)])
+    } catch (error) {
+      console.warn('Erreur lors de la création du code promo:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible d'ajouter le code promo : ${message}`)
+    }
+  }
+  const handleEditPromoCode = async (p: PromoCode) => {
+    try {
+      const saved = await updateCoupon(Number(p.id), toApiCouponRequest(p))
+      setPromoCodes(prev => prev.map(c => c.id === p.id ? toUiPromoCode(saved) : c))
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour du code promo:', error)
+      alert('Impossible de modifier le code promo.')
+    }
+  }
+  const handleDeletePromoCode = async (id: string) => {
+    try {
+      await deleteCoupon(Number(id))
+      setPromoCodes(prev => prev.filter(c => c.id !== id))
+    } catch (error) {
+      console.warn('Erreur lors de la suppression du code promo:', error)
+      alert('Impossible de supprimer le code promo.')
+    }
+  }
+
+  const handleAddOffre = async (o: Offre) => {
+    try {
+      const saved = await createOffreApi(toApiOffreRequest(o, categories))
+      setOffres(prev => [...prev, toUiOffre(saved)])
+    } catch (error) {
+      console.warn('Erreur lors de la création de l\'offre:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible d'ajouter l'offre : ${message}`)
+    }
+  }
+  const handleEditOffre = async (o: Offre) => {
+    try {
+      const saved = await updateOffreApi(Number(o.id), toApiOffreRequest(o, categories))
+      setOffres(prev => prev.map(x => x.id === o.id ? toUiOffre(saved) : x))
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour de l\'offre:', error)
+      alert('Impossible de modifier l\'offre.')
+    }
+  }
+  const handleDeleteOffre = async (id: string) => {
+    try {
+      await deleteOffreApi(Number(id))
+      setOffres(prev => prev.filter(x => x.id !== id))
+    } catch (error) {
+      console.warn('Erreur lors de la suppression de l\'offre:', error)
+      alert('Impossible de supprimer l\'offre.')
+    }
+  }
+
+  const handleAddCategory = async (cat: string) => {
+    const name = cat.trim()
+    if (!name || categories.some((item) => item.name === name)) return
+
+    try {
+      const saved = await createCategory({ name })
+      setCategories((prev) => [...prev, { id: String(saved.id), name: saved.name, slug: saved.slug }])
+    } catch (error) {
+      console.warn('Erreur lors de la création de la catégorie:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible d'ajouter la catégorie : ${message}`)
+    }
+  }
+
+  const handleDeleteCategory = async (cat: string) => {
+    const category = findCategoryByName(categories, cat)
+    if (!category) return
+
+    try {
+      await deleteCategoryApi(Number(category.id))
+      setCategories((prev) => prev.filter((item) => item.id !== category.id))
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.category === cat ? { ...product, category: 'Autre' } : product
+        )
+      )
+    } catch (error) {
+      console.warn('Erreur lors de la suppression de la catégorie:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible de supprimer la catégorie : ${message}`)
+    }
+  }
+
+  const handleEditCategory = async (oldCat: string, newCat: string) => {
+    const category = findCategoryByName(categories, oldCat)
+    const name = newCat.trim()
+    if (!category || !name) return
+
+    try {
+      const saved = await updateCategory(Number(category.id), { name, slug: category.slug })
+      setCategories((prev) =>
+        prev.map((item) =>
+          item.id === category.id
+            ? { id: String(saved.id), name: saved.name, slug: saved.slug }
+            : item
+        )
+      )
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.category === oldCat ? { ...product, category: saved.name } : product
+        )
+      )
+    } catch (error) {
+      console.warn('Erreur lors de la mise à jour de la catégorie:', error)
+      const message = error instanceof Error ? error.message : 'Erreur inconnue'
+      alert(`Impossible de modifier la catégorie : ${message}`)
+    }
+  }
+
+  const handleEditClient = (updatedClient: Client) => {
+    setClients(prev => prev.map(c => c.id === updatedClient.id ? updatedClient : c))
+  }
+
+  const NavLeaf = ({ sectionKey, label, Icon, badge }: { sectionKey: AdminSection; label: string; Icon: ElementType; badge?: string }) => {
+    const isActive = activeSection === sectionKey
+    return (
+      <button
+        type="button"
+        onClick={() => selectNav(sectionKey)}
+        className={`group relative flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-all duration-200 ease-out ${isActive
+          ? 'bg-brand-blue text-white shadow-md'
+          : 'text-brand-blue hover:bg-slate-100'
+          }`}
+      >
+        <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-brand-light'}`} />
+        <span className="min-w-0 flex-1 text-[13px] font-medium leading-snug">{label}</span>
+        {badge && (
+          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${isActive ? 'bg-white text-brand-red' : 'bg-brand-red text-white'}`}>
+            {badge}
+          </span>
+        )}
+      </button>
+    )
+  }
+
+  const NavGroupHeader = ({ label, Icon, open, onToggle }: { label: string; Icon: ElementType; open: boolean; onToggle: () => void }) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="flex w-full items-center justify-between gap-2 rounded-xl px-2 py-2 text-left text-brand-blue transition-colors duration-200 hover:bg-slate-50"
+    >
+      <span className="flex items-center gap-2">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0079dd]/10 text-brand-light">
+          <Icon className="h-5 w-5" />
+        </span>
+        <span className="text-sm font-bold tracking-tight">{label}</span>
+      </span>
+      <IconChevronDown className={`h-4 w-4 shrink-0 text-brand-light transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+    </button>
+  )
+
+  return (
+    <div className="min-h-screen bg-white font-sans text-slate-900">
+      <button
+        type="button"
+        aria-label="Fermer le menu"
+        className={`fixed inset-0 z-40 bg-brand-blue/30 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${sidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      <div className="grid min-h-screen md:grid-cols-[310px_1fr]">
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 flex w-[310px] flex-col border-r border-slate-200 bg-white shadow-xl shadow-brand-blue/5 transition-transform duration-300 ease-out md:static md:z-auto md:translate-x-0 md:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+        >
+          <div className="border-b border-slate-100 px-6 py-6">
+            <div className="rounded-2xl border border-slate-200 bg-brand-surface px-4 py-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/logo-el-amine.png"
+                  alt="Logo Etablissement El Amine"
+                  className="h-14 w-16 rounded-md object-contain bg-white p-1 shadow-sm"
+                  onError={(e) => {
+                    ; (e.currentTarget as HTMLImageElement).style.display = 'none'
+                  }}
+                />
+                <div>
+                  <h1 className="text-lg font-extrabold tracking-tight text-brand-blue">Etablissement Al Amine</h1>
+                  <p className="mt-0.5 text-xs font-medium text-brand-light">Panneau d&apos;administration</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <nav className="flex-1 space-y-3 overflow-y-auto px-4 py-6 custom-scrollbar">
+
+            <div className="rounded-xl border border-slate-200 bg-white p-1">
+              <NavLeaf sectionKey="dashboard-vue-generale" label="Dashboard" Icon={IconDashboard} />
+            </div>
+
+            <div>
+              <NavGroupHeader label="Produits" Icon={IconPackage} open={navOpen.produits} onToggle={() => setNavOpen((o) => ({ ...o, produits: !o.produits }))} />
+              {navOpen.produits && (
+                <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
+                  <NavLeaf sectionKey="produits-liste" label="Liste des produits" Icon={IconArchive} />
+                  <NavLeaf sectionKey="produits-ajouter" label="Ajouter un produit" Icon={IconPackage} />
+                  <NavLeaf sectionKey="produits-categories" label="Catégories" Icon={IconTag} />
+                  <NavLeaf sectionKey="produits-rupture" label="Stock & alertes de rupture" Icon={IconTrending} badge={rupturedProductsCount > 0 ? rupturedProductsCount.toString() : undefined} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <NavGroupHeader label="Commandes" Icon={IconClipboard} open={navOpen.commandes} onToggle={() => setNavOpen((o) => ({ ...o, commandes: !o.commandes }))} />
+              {navOpen.commandes && (
+                <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
+                  <NavLeaf sectionKey="commandes-toutes" label="Toutes les commandes" Icon={IconClipboard} />
+                  <NavLeaf sectionKey="commandes-attente" label="En attente" Icon={IconArchive} badge="12" />
+                  <NavLeaf sectionKey="commandes-expediees" label="Expédiées" Icon={IconTrending} />
+                  <NavLeaf sectionKey="commandes-retours" label="Retours & remboursements" Icon={IconSettings} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <NavGroupHeader label="Clients" Icon={IconUsers} open={navOpen.clients} onToggle={() => setNavOpen((o) => ({ ...o, clients: !o.clients }))} />
+              {navOpen.clients && (
+                <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
+                  <NavLeaf sectionKey="clients-liste" label="Liste des clients" Icon={IconUsers} />
+                  <NavLeaf sectionKey="clients-historique" label="Historique d'achat" Icon={IconTrending} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <NavGroupHeader label="Avis & Commentaires" Icon={IconMessage} open={navOpen.avis} onToggle={() => setNavOpen((o) => ({ ...o, avis: !o.avis }))} />
+              {navOpen.avis && (
+                <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
+                  <NavLeaf sectionKey="avis-tous" label="Tous les avis" Icon={IconMessage} />
+                  <NavLeaf sectionKey="avis-attente" label="En attente de modération" Icon={IconEyeOff} badge={pendingReviews > 0 ? pendingReviews.toString() : undefined} />
+                  <NavLeaf sectionKey="avis-approuves" label="Approuvés" Icon={IconStar} />
+                  <NavLeaf sectionKey="avis-rejetes" label="Rejetés" Icon={IconArchive} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <NavGroupHeader label="Promotions" Icon={IconTag} open={navOpen.promotions} onToggle={() => setNavOpen((o) => ({ ...o, promotions: !o.promotions }))} />
+              {navOpen.promotions && (
+                <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
+                  <NavLeaf sectionKey="promos-codes" label="Codes promo" Icon={IconTag} />
+                  <NavLeaf sectionKey="promos-offres" label="Offres & réductions" Icon={IconTrending} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <NavGroupHeader label="Contenu" Icon={IconImage} open={navOpen.contenu} onToggle={() => setNavOpen((o) => ({ ...o, contenu: !o.contenu }))} />
+              {navOpen.contenu && (
+                <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
+                  <NavLeaf sectionKey="contenu-bannieres" label="Bannières / Slider" Icon={IconImage} />
+                  <NavLeaf sectionKey="contenu-pages" label="Pages statiques" Icon={IconSettings} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <NavGroupHeader label="Rapports" Icon={IconChartBar} open={navOpen.rapports} onToggle={() => setNavOpen((o) => ({ ...o, rapports: !o.rapports }))} />
+              {navOpen.rapports && (
+                <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
+                  <NavLeaf sectionKey="rapports-ventes" label="Ventes par période" Icon={IconChartBar} />
+                  <NavLeaf sectionKey="rapports-produits" label="Produits les plus vendus" Icon={IconStar} />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <NavGroupHeader label="Paramètres" Icon={IconSettings} open={navOpen.parametres} onToggle={() => setNavOpen((o) => ({ ...o, parametres: !o.parametres }))} />
+              {navOpen.parametres && (
+                <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
+                  <NavLeaf sectionKey="parametres-infos" label="Infos de la boutique" Icon={IconSettings} />
+                  <NavLeaf sectionKey="parametres-paiement" label="Modes de paiement" Icon={IconTag} />
+                  <NavLeaf sectionKey="parametres-livraison" label="Livraison & zones" Icon={IconArchive} />
+                </div>
+              )}
+            </div>
+          </nav>
+        </aside>
+
+        <main className="min-w-0 flex flex-col bg-white">
+          <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4 shadow-sm md:hidden">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-brand-blue transition-all duration-200 hover:border-brand-light hover:bg-brand-light/5"
+            >
+              <IconMenu className="h-5 w-5" />
+            </button>
+            <span className="truncate text-sm font-bold text-brand-blue uppercase tracking-wider">{meta.title}</span>
+            <Link
+              to="/"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand-light text-white shadow-md shadow-brand-light/20 transition-all duration-200 hover:bg-brand-blue"
+            >
+              <IconEye className="h-5 w-5" />
+            </Link>
+          </div>
+
+          <div className="flex-1 p-6 md:p-10">
+            <header className="mb-8 rounded-2xl border border-slate-200 bg-brand-surface px-6 py-5">
+              <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <div>
+                  <h2 className="text-3xl font-extrabold tracking-tight text-brand-blue">{meta.title}</h2>
+                  <p className="mt-2 text-sm font-medium text-slate-600">{meta.subtitle}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="rounded-full border border-brand-light/20 bg-white px-3 py-1 text-xs font-semibold text-brand-light">
+                    Mise a jour: aujourd&apos;hui
+                  </span>
+                  <Link
+                    to="/"
+                    className="hidden sm:inline-flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-brand-light"
+                  >
+                    <IconEye className="h-4 w-4" />
+                    Voir le site
+                  </Link>
+                </div>
+              </div>
+            </header>
+
+            <div className="animate-admin-panel-in space-y-8">
+              {activeSection === 'dashboard-vue-generale' ? (
+                <>
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <div className="mb-2 flex items-center gap-2 text-brand-light">
+                        <IconTrending className="h-5 w-5" />
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Chiffre d&apos;affaires</h3>
+                      </div>
+                      <p className="text-3xl font-extrabold text-brand-blue">{salesStats.chiffreAffaires} TND</p>
+                      <p className="mt-2 text-xs font-medium text-slate-500">Performance globale des ventes</p>
+                    </article>
+
+                    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <div className="mb-2 flex items-center gap-2 text-brand-red">
+                        <IconClipboard className="h-5 w-5" />
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Commandes du jour</h3>
+                      </div>
+                      <p className="text-3xl font-extrabold text-brand-blue">{salesStats.totalCommandes}</p>
+                      <p className="mt-2 text-xs font-medium text-slate-500">{pendingOrders} commande(s) en attente</p>
+                    </article>
+
+                    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <div className="mb-2 flex items-center gap-2 text-amber-500">
+                        <IconArchive className="h-5 w-5" />
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Stock faible</h3>
+                      </div>
+                      <p className="text-3xl font-extrabold text-brand-blue">{lowStockProducts.length}</p>
+                      <p className="mt-2 text-xs font-medium text-slate-500">Produits proches de la rupture</p>
+                    </article>
+
+                    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <div className="mb-2 flex items-center gap-2 text-brand-light">
+                        <IconUsers className="h-5 w-5" />
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Nouveaux clients</h3>
+                      </div>
+                      <p className="text-3xl font-extrabold text-brand-blue">{newClients}</p>
+                      <p className="mt-2 text-xs font-medium text-slate-500">Inscriptions sur 30 jours</p>
+                    </article>
+                  </div>
+
+                  <section className="grid gap-5 xl:grid-cols-5">
+                    <article className="xl:col-span-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <header className="mb-4 flex items-center justify-between">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-brand-blue">Activite recente</h3>
+                        <span className="text-xs font-medium text-slate-500">Dernieres commandes</span>
+                      </header>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-left text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                              <th className="px-2 py-2">Commande</th>
+                              <th className="px-2 py-2">Client</th>
+                              <th className="px-2 py-2">Total</th>
+                              <th className="px-2 py-2">Statut</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {orders.map((order) => (
+                              <tr key={order.id} className="border-b border-slate-100 last:border-none">
+                                <td className="px-2 py-3 font-semibold text-brand-blue">#{order.id}</td>
+                                <td className="px-2 py-3 text-slate-700">{order.client}</td>
+                                <td className="px-2 py-3 text-slate-700">{order.total} TND</td>
+                                <td className="px-2 py-3">
+                                  <span className="rounded-full border border-brand-light/20 bg-brand-light/10 px-2 py-1 text-xs font-semibold text-brand-light">
+                                    {order.statut}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </article>
+
+                    <article className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <header className="mb-4">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-brand-blue">Alertes stock</h3>
+                        <p className="mt-1 text-xs text-slate-500">Action recommandee pour reapprovisionnement</p>
+                      </header>
+                      <div className="space-y-3">
+                        {lowStockProducts.map((product) => (
+                          <div key={product.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+                            <p className="text-sm font-semibold text-slate-700">{product.name}</p>
+                            <span className="rounded-full bg-brand-red px-2 py-1 text-xs font-bold text-white">
+                              {product.stock} restants
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+                  </section>
+                </>
+              ) : PRODUITS_KEYS.includes(activeSection) ? (
+                <AdminProduits 
+                  products={products} 
+                  activeSection={activeSection} 
+                  categories={categories}
+                  handleEditProduct={handleEditProduct} 
+                  handleAddProduct={handleAddProduct}
+                  handleDeleteProduct={handleDeleteProduct}
+                  handleAddCategory={handleAddCategory}
+                  handleDeleteCategory={handleDeleteCategory}
+                  handleEditCategory={handleEditCategory}
+                />
+              ) : COMMANDES_KEYS.includes(activeSection) ? (
+                <AdminCommandes orders={orders} activeSection={activeSection} handleOrderStatus={handleOrderStatus} />
+              ) : CLIENTS_KEYS.includes(activeSection) ? (
+                <AdminClients clients={clients} activeSection={activeSection} orders={orders} handleEditClient={handleEditClient} />
+              ) : AVIS_KEYS.includes(activeSection) ? (
+                <AdminComments
+                  reviews={reviews}
+                  activeSection={activeSection}
+                  handleReviewStatus={handleReviewStatus}
+                />
+              ) : CONTENU_KEYS.includes(activeSection) ? (
+                <AdminContenu
+                  activeSection={activeSection}
+                  banners={banners}
+                  staticPages={staticPages}
+                  handleEditBanner={handleEditBanner}
+                  handleEditPage={handleEditPage}
+                  handleAddBanner={handleAddBanner}
+                  handleAddPage={handleAddPage}
+                />
+              ) : PROMOS_KEYS.includes(activeSection) ? (
+                <AdminPromotions
+                  activeSection={activeSection}
+                  categories={categories}
+                  promoCodes={promoCodes}
+                  offres={offres}
+                  handleAddPromoCode={handleAddPromoCode}
+                  handleEditPromoCode={handleEditPromoCode}
+                  handleDeletePromoCode={handleDeletePromoCode}
+                  handleAddOffre={handleAddOffre}
+                  handleEditOffre={handleEditOffre}
+                  handleDeleteOffre={handleDeleteOffre}
+                />
+              ) : RAPPORTS_KEYS.includes(activeSection) ? (
+                <AdminRapports
+                  activeSection={activeSection}
+                  orders={orders}
+                  products={products}
+                />
+              ) : PARAM_KEYS.includes(activeSection) ? (
+                <AdminParametres activeSection={activeSection} />
+              ) : null}
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+export default AdminDashboardPage

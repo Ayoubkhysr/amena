@@ -8,7 +8,7 @@ info:
     email: support@amena.com
 
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:8081
     description: Development server
 
 tags:
@@ -16,6 +16,16 @@ tags:
     description: Health check endpoints
   - name: Users
     description: User management operations
+  - name: Products
+    description: Product management operations
+  - name: Categories
+    description: Product category management operations
+  - name: Orders
+    description: Order management operations
+  - name: Coupons
+    description: Coupon / promo code management operations
+  - name: Offres
+    description: Category-based discount offer management operations
 
 paths:
   /api/health:
@@ -180,6 +190,484 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/products:
+    get:
+      tags:
+        - Products
+      summary: List all products
+      operationId: getProducts
+      responses:
+        "200":
+          description: List of all products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductResponse"
+    post:
+      tags:
+        - Products
+      summary: Create a new product
+      operationId: createProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductRequest"
+      responses:
+        "201":
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+
+  /api/products/{productId}:
+    get:
+      tags:
+        - Products
+      summary: Get product by ID
+      operationId: getProductById
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "404":
+          description: Product not found
+    put:
+      tags:
+        - Products
+      summary: Update product
+      operationId: updateProduct
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductRequest"
+      responses:
+        "200":
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "404":
+          description: Product not found
+    delete:
+      tags:
+        - Products
+      summary: Delete product
+      operationId: deleteProduct
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: Product deleted successfully
+        "404":
+          description: Product not found
+
+  /api/categories:
+    get:
+      tags:
+        - Categories
+      summary: List all categories
+      operationId: getCategories
+      responses:
+        "200":
+          description: List of all categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryResponse"
+    post:
+      tags:
+        - Categories
+      summary: Create a new category
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+      responses:
+        "201":
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+
+  /api/categories/{categoryId}:
+    get:
+      tags:
+        - Categories
+      summary: Get category by ID
+      operationId: getCategoryById
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Category found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+        "404":
+          description: Category not found
+    put:
+      tags:
+        - Categories
+      summary: Update category
+      operationId: updateCategory
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+      responses:
+        "200":
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+        "404":
+          description: Category not found
+    delete:
+      tags:
+        - Categories
+      summary: Delete category
+      operationId: deleteCategory
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: Category deleted successfully
+        "404":
+          description: Category not found
+
+  /api/orders:
+    get:
+      tags:
+        - Orders
+      summary: List all orders
+      operationId: getOrders
+      responses:
+        "200":
+          description: List of all orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderResponse"
+
+  /api/orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Get order by ID
+      operationId: getOrderById
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Order found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "404":
+          description: Order not found
+
+  /api/orders/{orderId}/status:
+    put:
+      tags:
+        - Orders
+      summary: Update order status
+      operationId: updateOrderStatus
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderStatusUpdateRequest"
+      responses:
+        "200":
+          description: Order status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "404":
+          description: Order not found
+
+  /api/coupons:
+    get:
+      tags:
+        - Coupons
+      summary: List all coupons
+      operationId: getCoupons
+      responses:
+        "200":
+          description: List of all coupons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CouponResponse"
+    post:
+      tags:
+        - Coupons
+      summary: Create a new coupon
+      operationId: createCoupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CouponRequest"
+      responses:
+        "201":
+          description: Coupon created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CouponResponse"
+        "409":
+          description: Coupon code already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/coupons/{couponId}:
+    get:
+      tags:
+        - Coupons
+      summary: Get coupon by ID
+      operationId: getCouponById
+      parameters:
+        - name: couponId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Coupon found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CouponResponse"
+        "404":
+          description: Coupon not found
+    put:
+      tags:
+        - Coupons
+      summary: Update coupon
+      operationId: updateCoupon
+      parameters:
+        - name: couponId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CouponRequest"
+      responses:
+        "200":
+          description: Coupon updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CouponResponse"
+        "404":
+          description: Coupon not found
+    delete:
+      tags:
+        - Coupons
+      summary: Delete coupon
+      operationId: deleteCoupon
+      parameters:
+        - name: couponId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: Coupon deleted successfully
+        "404":
+          description: Coupon not found
+
+  /api/offres:
+    get:
+      tags:
+        - Offres
+      summary: List all offres
+      operationId: getOffres
+      responses:
+        "200":
+          description: List of all offres
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OffreResponse"
+    post:
+      tags:
+        - Offres
+      summary: Create a new offre
+      operationId: createOffre
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OffreRequest"
+      responses:
+        "201":
+          description: Offre created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OffreResponse"
+
+  /api/offres/{offreId}:
+    get:
+      tags:
+        - Offres
+      summary: Get offre by ID
+      operationId: getOffreById
+      parameters:
+        - name: offreId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Offre found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OffreResponse"
+        "404":
+          description: Offre not found
+    put:
+      tags:
+        - Offres
+      summary: Update offre
+      operationId: updateOffre
+      parameters:
+        - name: offreId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OffreRequest"
+      responses:
+        "200":
+          description: Offre updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OffreResponse"
+        "404":
+          description: Offre not found
+    delete:
+      tags:
+        - Offres
+      summary: Delete offre
+      operationId: deleteOffre
+      parameters:
+        - name: offreId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: Offre deleted successfully
+        "404":
+          description: Offre not found
+
 components:
   schemas:
     HealthResponse:
@@ -227,6 +715,220 @@ components:
           type: string
           format: date-time
           description: Last update timestamp
+
+    ProductResponse:
+      type: object
+      required:
+        - id
+        - sku
+        - name
+        - slug
+        - price
+      properties:
+        id:
+          type: integer
+          format: int64
+        sku:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        compareAtPrice:
+          type: number
+          format: double
+        costPrice:
+          type: number
+          format: double
+        categoryId:
+          type: integer
+          format: int64
+        brand:
+          type: string
+        weight:
+          type: number
+          format: double
+        isActive:
+          type: boolean
+        isFeatured:
+          type: boolean
+        metaTitle:
+          type: string
+        metaDescription:
+          type: string
+        imageUrl:
+          type: string
+          description: Public URL of the primary product image
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CategoryResponse:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+        imageUrl:
+          type: string
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    OrderItemResponse:
+      type: object
+      required:
+        - productName
+        - quantity
+        - unitPrice
+        - totalPrice
+      properties:
+        productName:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+          format: double
+        totalPrice:
+          type: number
+          format: double
+
+    OrderResponse:
+      type: object
+      required:
+        - id
+        - orderNumber
+        - clientName
+        - totalAmount
+        - status
+        - createdAt
+        - items
+      properties:
+        id:
+          type: integer
+          format: int64
+        orderNumber:
+          type: string
+        clientName:
+          type: string
+        userId:
+          type: integer
+          format: int64
+        totalAmount:
+          type: number
+          format: double
+        shippingAmount:
+          type: number
+          format: double
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        address:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemResponse"
+
+    OrderStatusUpdateRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: pending, processing, shipped, delivered, cancelled, refunded
+
+    CategoryRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+        imageUrl:
+          type: string
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    ProductRequest:
+      type: object
+      required:
+        - sku
+        - name
+        - slug
+        - price
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        compareAtPrice:
+          type: number
+          format: double
+        costPrice:
+          type: number
+          format: double
+        categoryId:
+          type: integer
+          format: int64
+        brand:
+          type: string
+        weight:
+          type: number
+          format: double
+        isActive:
+          type: boolean
+        isFeatured:
+          type: boolean
+        metaTitle:
+          type: string
+        metaDescription:
+          type: string
 
     CreateUserRequest:
       type: object
@@ -329,3 +1031,138 @@ components:
         path:
           type: string
           description: Request path that caused the error
+
+    CouponResponse:
+      type: object
+      required:
+        - id
+        - code
+        - discountType
+        - discountValue
+        - isActive
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+        description:
+          type: string
+        discountType:
+          type: string
+          description: "percentage or fixed_amount"
+        discountValue:
+          type: number
+          format: double
+        minimumOrderAmount:
+          type: number
+          format: double
+        maximumDiscount:
+          type: number
+          format: double
+        usageLimit:
+          type: integer
+        usedCount:
+          type: integer
+        startsAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CouponRequest:
+      type: object
+      required:
+        - code
+        - discountType
+        - discountValue
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        discountType:
+          type: string
+          description: "percentage or fixed_amount"
+        discountValue:
+          type: number
+          format: double
+        minimumOrderAmount:
+          type: number
+          format: double
+        maximumDiscount:
+          type: number
+          format: double
+        usageLimit:
+          type: integer
+        startsAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+
+    OffreResponse:
+      type: object
+      required:
+        - id
+        - label
+        - discountPercentage
+        - isActive
+      properties:
+        id:
+          type: integer
+          format: int64
+        label:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        categoryName:
+          type: string
+          description: Resolved category name for display
+        discountPercentage:
+          type: number
+          format: double
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    OffreRequest:
+      type: object
+      required:
+        - label
+        - discountPercentage
+      properties:
+        label:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        discountPercentage:
+          type: number
+          format: double
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean

@@ -2,33 +2,46 @@ package com.amena.backend.exception;
 
 import com.amena.backend.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-/**
- * Global exception handler that converts exceptions to proper API error responses.
- * This ensures consistent error formatting across all endpoints.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DuplicateEmailException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateEmailException(
-            DuplicateEmailException ex,
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(
+            ResponseStatusException ex,
             HttpServletRequest request) {
 
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(OffsetDateTime.now(ZoneOffset.UTC));
-        errorResponse.setStatus(HttpStatus.CONFLICT.value());
-        errorResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
-        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setStatus(ex.getStatusCode().value());
+        errorResponse.setError(ex.getStatusCode().toString());
+        errorResponse.setMessage(ex.getReason());
         errorResponse.setPath(request.getRequestURI());
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex,
+            HttpServletRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(OffsetDateTime.now(ZoneOffset.UTC));
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        errorResponse.setMessage("Données invalides (référence manquante ou doublon).");
+        errorResponse.setPath(request.getRequestURI());
+
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 }

@@ -1,0 +1,125 @@
+package com.amena.backend.controller.impl;
+
+import com.amena.backend.api.OrdersApi;
+import com.amena.backend.dto.OrderItemResponse;
+import com.amena.backend.dto.OrderResponse;
+import com.amena.backend.dto.OrderStatusUpdateRequest;
+import com.amena.backend.entity.Adresse;
+import com.amena.backend.entity.Commande;
+import com.amena.backend.entity.LigneCommande;
+import com.amena.backend.entity.Utilisateur;
+import com.amena.backend.repository.AdresseRepository;
+import com.amena.backend.repository.CommandeRepository;
+import com.amena.backend.repository.UtilisateurRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
+@RestController
+@RequiredArgsConstructor
+public class OrdersApiController implements OrdersApi {
+
+    private static final Set<String> ALLOWED_STATUSES = Set.of(
+            "pending", "processing", "shipped", "delivered", "cancelled", "refunded"
+    );
+
+    private final CommandeRepository commandeRepository;
+    private final UtilisateurRepository utilisateurRepository;
+    private final AdresseRepository adresseRepository;
+
+    @Override
+    public ResponseEntity<List<OrderResponse>> getOrders() {
+        List<OrderResponse> orders = commandeRepository.findAllWithLignes().stream()
+                .map(this::toOrderResponse)
+                .toList();
+        return ResponseEntity.ok(orders);
+    }
+
+    @Override
+    public ResponseEntity<OrderResponse> getOrderById(Long orderId) {
+        return commandeRepository.findByIdWithLignes(orderId)
+                .map(commande -> ResponseEntity.ok(toOrderResponse(commande)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public ResponseEntity<OrderResponse> updateOrderStatus(Long orderId, OrderStatusUpdateRequest request) {
+        String status = request.getStatus();
+        if (status == null || !ALLOWED_STATUSES.contains(status)) {
+            throw new ResponseStatusException(BAD_REQUEST, "Invalid status: " + status);
+        }
+
+        Commande commande = commandeRepository.findByIdWithLignes(orderId).orElse(null);
+        if (commande == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        commande.setStatus(status);
+        Commande updated = commandeRepository.save(commande);
+        return ResponseEntity.ok(toOrderResponse(updated));
+    }
+
+    private OrderResponse toOrderResponse(Commande commande) {
+        OrderResponse response = new OrderResponse();
+        response.setId(commande.getId());
+        response.setOrderNumber(commande.getOrderNumber());
+        response.setUserId(commande.getUserId());
+        response.setClientName(resolveClientName(commande.getUserId()));
+        response.setTotalAmount(toDouble(commande.getTotalAmount()));
+        response.setShippingAmount(toDouble(commande.getShippingAmount()));
+        response.setStatus(commande.getStatus());
+        response.setCreatedAt(commande.getCreatedAt());
+        response.setAddress(resolveAddress(commande.getShippingAddressId()));
+        response.setItems(commande.getLignes().stream().map(this::toOrderItemResponse).toList());
+        return response;
+    }
+
+    private OrderItemResponse toOrderItemResponse(LigneCommande ligne) {
+        OrderItemResponse item = new OrderItemResponse();
+        item.setProductName(ligne.getProductName());
+        item.setQuantity(ligne.getQuantity());
+        item.setUnitPrice(toDouble(ligne.getUnitPrice()));
+        item.setTotalPrice(toDouble(ligne.getTotalPrice()));
+        return item;
+    }
+
+    private String resolveClientName(Long userId) {
+        if (userId == null) {
+            return "Client invité";
+        }
+        return utilisateurRepository.findById(userId)
+                .map(this::formatClientName)
+                .orElse("Client #" + userId);
+    }
+
+    private String formatClientName(Utilisateur utilisateur) {
+        String firstName = utilisateur.getFirstName() != null ? utilisateur.getFirstName() : "";
+        String lastName = utilisateur.getLastName() != null ? utilisateur.getLastName() : "";
+        String fullName = (firstName + " " + lastName).trim();
+        return fullName.isBlank() ? utilisateur.getEmail() : fullName;
+    }
+
+    private String resolveAddress(Long addressId) {
+        if (addressId == null) {
+            return "—";
+        }
+        return adresseRepository.findById(addressId)
+                .map(this::formatAddress)
+                .orElse("—");
+    }
+
+    private String formatAddress(Adresse adresse) {
+        return String.format("%s, %s %s", adresse.getStreetAddress(), adresse.getCity(), adresse.getPostalCode());
+    }
+
+    private Double toDouble(BigDecimal value) {
+        return value != null ? value.doubleValue() : null;
+    }
+}

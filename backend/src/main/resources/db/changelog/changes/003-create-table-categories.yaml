@@ -1,0 +1,79 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003
+      author: amena
+      description: Create categories table
+
+      changes:
+        - createTable:
+            tableName: categories
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: slug
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: description
+                  type: TEXT
+
+              - column:
+                  name: parent_id
+                  type: BIGINT
+
+              - column:
+                  name: image_url
+                  type: VARCHAR(500)
+
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+
+              - column:
+                  name: sort_order
+                  type: INT
+                  defaultValueNumeric: 0
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: categories
+            baseColumnNames: parent_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_categories_parent
+            onDelete: SET NULL
+
+        - createIndex:
+            tableName: categories
+            indexName: idx_categories_parent
+            columns:
+              - column:
+                  name: parent_id
+
+        - createIndex:
+            tableName: categories
+            indexName: idx_categories_slug
+            columns:
+              - column:
+                  name: slug

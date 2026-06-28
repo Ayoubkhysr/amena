@@ -1,0 +1,98 @@
+databaseChangeLog:
+  - changeSet:
+      id: 012
+      author: amena
+      description: Create reviews table
+
+      changes:
+        - createTable:
+            tableName: reviews
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: product_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: rating
+                  type: SMALLINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+
+              - column:
+                  name: comment
+                  type: TEXT
+
+              - column:
+                  name: is_verified_purchase
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+
+              - column:
+                  name: is_approved
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: reviews
+            baseColumnNames: product_id
+            referencedTableName: produits
+            referencedColumnNames: id
+            constraintName: fk_reviews_product
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            baseTableName: reviews
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_reviews_user
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: reviews
+            indexName: idx_reviews_product
+            columns:
+              - column:
+                  name: product_id
+
+        - createIndex:
+            tableName: reviews
+            indexName: idx_reviews_user
+            columns:
+              - column:
+                  name: user_id
+
+        - sql:
+            sql: >
+              ALTER TABLE reviews
+              ADD CONSTRAINT chk_reviews_rating
+              CHECK (rating >= 1 AND rating <= 5);
+
+      rollback:
+        - sql:
+            sql: ALTER TABLE reviews DROP CONSTRAINT chk_reviews_rating;

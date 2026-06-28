@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006
+      author: amena
+      description: Create users table
+
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: first_name
+                  type: VARCHAR(100)
+
+              - column:
+                  name: last_name
+                  type: VARCHAR(100)
+
+              - column:
+                  name: phone
+                  type: VARCHAR(20)
+
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+
+              - column:
+                  name: is_admin
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - createIndex:
+            tableName: users
+            indexName: idx_users_email
+            columns:
+              - column:
+                  name: email

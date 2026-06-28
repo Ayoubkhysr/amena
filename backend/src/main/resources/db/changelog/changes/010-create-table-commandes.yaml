@@ -1,0 +1,130 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010
+      author: amena
+      description: Expand orders table for e-commerce
+
+      changes:
+        - dropColumn:
+            tableName: orders
+            columnName: description
+
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: user_id
+                  type: BIGINT
+
+              - column:
+                  name: order_number
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: pending
+
+              - column:
+                  name: subtotal
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: tax_amount
+                  type: DECIMAL(10,2)
+                  defaultValueNumeric: 0
+
+              - column:
+                  name: shipping_amount
+                  type: DECIMAL(10,2)
+                  defaultValueNumeric: 0
+
+              - column:
+                  name: discount_amount
+                  type: DECIMAL(10,2)
+                  defaultValueNumeric: 0
+
+              - column:
+                  name: total_amount
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: currency
+                  type: VARCHAR(3)
+                  defaultValue: USD
+
+              - column:
+                  name: shipping_address_id
+                  type: BIGINT
+
+              - column:
+                  name: billing_address_id
+                  type: BIGINT
+
+              - column:
+                  name: notes
+                  type: TEXT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: orders
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_orders_user
+            onDelete: SET NULL
+
+        - addForeignKeyConstraint:
+            baseTableName: orders
+            baseColumnNames: shipping_address_id
+            referencedTableName: addresses
+            referencedColumnNames: id
+            constraintName: fk_orders_shipping_address
+
+        - addForeignKeyConstraint:
+            baseTableName: orders
+            baseColumnNames: billing_address_id
+            referencedTableName: addresses
+            referencedColumnNames: id
+            constraintName: fk_orders_billing_address
+
+        - addUniqueConstraint:
+            tableName: orders
+            columnNames: order_number
+            constraintName: uq_orders_order_number
+
+        - createIndex:
+            tableName: orders
+            indexName: idx_orders_user
+            columns:
+              - column:
+                  name: user_id
+
+        - createIndex:
+            tableName: orders
+            indexName: idx_orders_status
+            columns:
+              - column:
+                  name: status
+
+        - createIndex:
+            tableName: orders
+            indexName: idx_orders_number
+            columns:
+              - column:
+                  name: order_number

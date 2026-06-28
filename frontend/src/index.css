@@ -1,1 +1,55 @@
 @import "tailwindcss";
+
+@theme {
+  --color-brand-blue: #003bbf;
+  --color-brand-light: #0079dd;
+  --color-brand-red: #e20614;
+  --color-brand-surface: #f4f8ff;
+}
+
+:root {
+  color: #0f172a;
+  background-color: #ffffff;
+}
+
+/* Admin dashboard: subtle motion (no extra JS animation library). */
+@keyframes admin-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes admin-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-admin-panel-in {
+  animation: admin-panel-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-admin-fade-in {
+  animation: admin-fade-in 0.35s ease-out forwards;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background-color: rgba(0, 121, 221, 0.25);
+}

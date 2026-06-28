@@ -1,0 +1,83 @@
+databaseChangeLog:
+  - changeSet:
+      id: 016-seed-users
+      author: amena
+      description: Seed demo users for orders
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM users
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO users (email, password_hash, first_name, last_name, phone, is_active, is_admin)
+              VALUES
+                ('contact@atlas.tn', 'seed', 'Société', 'Atlas', '+216 71 123 456', true, false),
+                ('achats@jasmin.tn', 'seed', 'Hôtel', 'Jasmin', '+216 73 987 654', true, false),
+                ('direction@nour.tn', 'seed', 'Clinique', 'Nour', '+216 70 555 444', true, false);
+
+  - changeSet:
+      id: 016-seed-addresses
+      author: amena
+      description: Seed demo addresses
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM addresses
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO addresses (user_id, street_address, city, postal_code, country, is_default)
+              SELECT u.id, a.street_address, a.city, a.postal_code, a.country, true
+              FROM (VALUES
+                ('contact@atlas.tn', '15 Avenue Habib Bourguiba', 'Tunis', '1002', 'Tunisie'),
+                ('achats@jasmin.tn', 'Zone Touristique El Kantaoui', 'Sousse', '4089', 'Tunisie'),
+                ('direction@nour.tn', 'Route de la Plage', 'La Marsa', '2070', 'Tunisie')
+              ) AS a(email, street_address, city, postal_code, country)
+              JOIN users u ON u.email = a.email;
+
+  - changeSet:
+      id: 016-seed-orders
+      author: amena
+      description: Seed demo orders
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM orders
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO orders (user_id, order_number, status, subtotal, tax_amount, shipping_amount, discount_amount, total_amount, currency, shipping_address_id)
+              SELECT u.id, d.order_number, d.status, d.subtotal, 0, d.shipping_amount, 0, d.total_amount, 'TND', a.id
+              FROM (VALUES
+                ('contact@atlas.tn', 'ORD-1001', 'pending', 400.00, 10.00, 410.00),
+                ('achats@jasmin.tn', 'ORD-1002', 'processing', 960.00, 10.00, 970.00),
+                ('direction@nour.tn', 'ORD-1003', 'delivered', 486.00, 10.00, 496.00)
+              ) AS d(email, order_number, status, subtotal, shipping_amount, total_amount)
+              JOIN users u ON u.email = d.email
+              JOIN addresses a ON a.user_id = u.id;
+
+  - changeSet:
+      id: 016-seed-order-items
+      author: amena
+      description: Seed demo order items when products exist
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM order_items
+        - sqlCheck:
+            expectedResult: 1
+            sql: SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END FROM produits
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO order_items (order_id, product_id, product_name, sku, quantity, unit_price, total_price)
+              SELECT o.id, p.id, p.name, p.sku, v.qty, p.price, p.price * v.qty
+              FROM orders o
+              CROSS JOIN (SELECT id, name, sku, price FROM produits ORDER BY id LIMIT 1) p
+              JOIN (VALUES ('ORD-1001', 10), ('ORD-1002', 50), ('ORD-1003', 40)) AS v(order_number, qty)
+                ON v.order_number = o.order_number;
