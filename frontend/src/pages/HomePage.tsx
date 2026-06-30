@@ -1,36 +1,19 @@
-import { Button } from "../components";
-//import NavBar from "./NavBar";
-import { useNavigate } from "react-router-dom";
+import HeroSection from '../components/home/HeroSection';
+import FeaturesSection from '../components/home/FeaturesSection';
+import BestSellersSection from '../components/home/BestSellersSection';
+import PromoBanner from '../components/home/PromoBanner';
+import ProductRangesSection from '../components/home/ProductRangesSection';
+import TestimonialsSection from '../components/home/TestimonialsSection';
 
 function HomePage() {
-  const navigate  = useNavigate();
-  
-  const handleAddUser = () => {
-    navigate('/add-user');
-  };
-
-  const handleAdminDashboard = () => {
-    navigate('/admin');
-  };
-  
-
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">
-          Welcome to Al Amine
-        </h1>
-
-        <div className="flex gap-4 justify-center">
-        
-          <Button variant="outline" onClick={handleAddUser}>
-            Ajouter un utilisateur
-          </Button>
-          <Button onClick={handleAdminDashboard}>
-            Ouvrir le dashboard admin
-          </Button>
-        </div>
-      </div>
+    <div className="w-full flex flex-col font-sans bg-gray-50">
+      <HeroSection />
+      <FeaturesSection />
+      <BestSellersSection />
+      <PromoBanner />
+      <ProductRangesSection />
+      <TestimonialsSection />
     </div>
   );
 }
