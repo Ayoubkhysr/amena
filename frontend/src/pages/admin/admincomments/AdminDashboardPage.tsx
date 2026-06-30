@@ -116,7 +116,7 @@ function AdminDashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [navOpen, setNavOpen] = useState({
-    produits: false,
+    produits: true,
     commandes: false,
     clients: false,
     avis: false,
@@ -346,17 +346,28 @@ function AdminDashboardPage() {
     }
   }
 
-  const handleAddCategory = async (cat: string) => {
+  const handleAddCategory = async (cat: string, parentId?: string | null) => {
     const name = cat.trim()
     if (!name || categories.some((item) => item.name === name)) return
 
     try {
-      const saved = await createCategory({ name })
-      setCategories((prev) => [...prev, { id: String(saved.id), name: saved.name, slug: saved.slug }])
+      const saved = await createCategory({
+        name,
+        parentId: parentId ? Number(parentId) : undefined,
+      })
+      const uiCategory = {
+        id: String(saved.id),
+        name: saved.name,
+        slug: saved.slug,
+        parentId: saved.parentId !== undefined && saved.parentId !== null ? String(saved.parentId) : undefined,
+      }
+      setCategories((prev) => [...prev, uiCategory])
+      return uiCategory
     } catch (error) {
       console.warn('Erreur lors de la création de la catégorie:', error)
       const message = error instanceof Error ? error.message : 'Erreur inconnue'
       alert(`Impossible d'ajouter la catégorie : ${message}`)
+      return undefined
     }
   }
 
@@ -379,17 +390,26 @@ function AdminDashboardPage() {
     }
   }
 
-  const handleEditCategory = async (oldCat: string, newCat: string) => {
+  const handleEditCategory = async (oldCat: string, newCat: string, parentId?: string | null) => {
     const category = findCategoryByName(categories, oldCat)
     const name = newCat.trim()
     if (!category || !name) return
 
     try {
-      const saved = await updateCategory(Number(category.id), { name, slug: category.slug })
+      const saved = await updateCategory(Number(category.id), {
+        name,
+        slug: category.slug,
+        parentId: parentId ? Number(parentId) : undefined,
+      })
       setCategories((prev) =>
         prev.map((item) =>
           item.id === category.id
-            ? { id: String(saved.id), name: saved.name, slug: saved.slug }
+            ? {
+                id: String(saved.id),
+                name: saved.name,
+                slug: saved.slug,
+                parentId: saved.parentId !== undefined && saved.parentId !== null ? String(saved.parentId) : undefined,
+              }
             : item
         )
       )

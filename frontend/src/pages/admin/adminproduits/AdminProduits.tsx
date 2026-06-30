@@ -134,9 +134,9 @@ export type AdminProduitsProps = {
   handleEditProduct?: (p: Product) => void | Promise<void>
   handleAddProduct?: (p: Product) => void | Promise<void>
   handleDeleteProduct?: (productId: string) => void | Promise<void>
-  handleAddCategory?: (cat: string) => void
-  handleDeleteCategory?: (cat: string) => void
-  handleEditCategory?: (oldCat: string, newCat: string) => void
+  handleAddCategory?: (cat: string, parentId?: string | null) => Category | void | Promise<Category | void>
+  handleDeleteCategory?: (cat: string) => void | Promise<void>
+  handleEditCategory?: (oldCat: string, newCat: string, parentId?: string | null) => void | Promise<void>
 }
 
 export function AdminProduits({ products, activeSection, categories, handleEditProduct, handleAddProduct, handleDeleteProduct, handleAddCategory, handleDeleteCategory, handleEditCategory }: AdminProduitsProps) {
@@ -147,8 +147,9 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
     name: '', category: categories[0]?.name || 'Autre', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''
   })
 
-  const [newCat, setNewCat] = useState('')
-  const [editingCat, setEditingCat] = useState<{old: string, new: string} | null>(null)
+  const [newCatName, setNewCatName] = useState('')
+  const [newSubCatName, setNewSubCatName] = useState('')
+  const [editingCat, setEditingCat] = useState<{old: string, new: string, parentId?: string} | null>(null)
   const [search, setSearch] = useState('')
   const [searchCategory, setSearchCategory] = useState('')
   const [sortBy, setSortBy] = useState<ProductSortKey>('name')
@@ -363,70 +364,218 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
 
   if (activeSection === 'produits-categories') {
     const categoriesStats = categories.map(cat => ({
+      id: cat.id,
       name: cat.name,
-      count: cat.productCount ?? 0
+      count: cat.productCount ?? 0,
+      parentId: cat.parentId,
     }))
+    const parentCategories = categoriesStats.filter((cat) => !cat.parentId)
+    const childCategories = categoriesStats.filter((cat) => Boolean(cat.parentId))
 
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm animate-admin-panel-in">
-        <header className="mb-6 flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-bold text-brand-blue">Gestion des catégories</h3>
-              <p className="text-sm text-slate-500">Ajoutez, modifiez ou supprimez les catégories de produits.</p>
-            </div>
-            <div className="flex gap-2">
-                <input 
-                    type="text" 
-                    value={newCat} 
-                    onChange={e => setNewCat(e.target.value)}
-                    placeholder="Nouvelle catégorie..." 
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none"
+        <header className="mb-6 space-y-4">
+          <div>
+            <h3 className="text-lg font-bold text-brand-blue">Gestion des catégories</h3>
+            <p className="text-sm text-slate-500">Ajoutez, modifiez ou supprimez les catégories et sous-catégories de produits.</p>
+          </div>
+
+          <div className="w-full max-w-2xl rounded-xl border border-slate-200 bg-brand-surface p-4 shadow-sm">
+            <div className="grid gap-3 md:grid-cols-2 md:items-end">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-600">Nom de la catégorie</label>
+                <input
+                  type="text"
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  placeholder="Ex: Lessive"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none"
                 />
-                <button 
-                    onClick={() => {
-                        if (newCat.trim() && handleAddCategory) {
-                            handleAddCategory(newCat.trim());
-                            setNewCat('');
-                        }
-                    }}
-                    className="bg-brand-blue text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-brand-light"
-                >Ajouter</button>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-600">Nom de la sous-catégorie (optionnel)</label>
+                <input
+                  type="text"
+                  value={newSubCatName}
+                  onChange={(e) => setNewSubCatName(e.target.value)}
+                  placeholder="Ex: Détergent liquide"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none"
+                />
+              </div>
             </div>
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={async () => {
+                  const parentName = newCatName.trim()
+                  const subName = newSubCatName.trim()
+                  if (!parentName && !subName) return
+
+                  if (!subName) {
+                    if (handleAddCategory) {
+                      await handleAddCategory(parentName)
+                    }
+                  } else {
+                    let parentCategory = categories.find((item) => item.name === parentName)
+                    if (!parentCategory && handleAddCategory) {
+                      const created = await handleAddCategory(parentName)
+                      parentCategory = created ? (categories.find((item) => item.id === String(created.id)) ?? created) : undefined
+                    }
+                    if (parentCategory && handleAddCategory) {
+                      await handleAddCategory(subName, parentCategory.id)
+                    }
+                  }
+
+                  setNewCatName('')
+                  setNewSubCatName('')
+                }}
+                className="rounded-lg bg-brand-blue px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-brand-light"
+              >
+                Ajouter
+              </button>
+            </div>
+          </div>
         </header>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {categoriesStats.map(({name, count}) => {
-            const isEditing = editingCat?.old === name;
-            return (
-            <div key={name} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm flex flex-col items-center flex-col relative group">
-              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                 <button onClick={() => setEditingCat({old: name, new: name})} className="text-slate-400 hover:text-brand-blue"><IconEye className="w-4 h-4" /></button>
-                 <button onClick={() => {
-                   if (count > 0 && !window.confirm(`Vous avez ${count} produit(s) dans la catégorie "${name}". Si vous supprimez, ils iront dans "Autre". Procéder ?`)) return;
-                   if (handleDeleteCategory) handleDeleteCategory(name);
-                 }} className="text-slate-400 hover:text-red-500"><IconArchive className="w-4 h-4" /></button>
-              </div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-brand-blue border border-slate-200 mb-4 shadow-sm">
-                <IconTag className="h-6 w-6" />
-              </div>
-              {isEditing ? (
-                  <div className="flex items-center gap-2 mt-1">
-                      <input 
-                        type="text" 
-                        value={editingCat.new} 
-                        onChange={e => setEditingCat({...editingCat, new: e.target.value})}
-                        className="rounded border border-slate-300 px-2 py-1 text-sm font-bold text-center w-full max-w-[120px]"
-                      />
-                      <button onClick={() => {
-                          if (handleEditCategory && editingCat.new.trim()) handleEditCategory(editingCat.old, editingCat.new.trim());
-                          setEditingCat(null);
-                      }} className="bg-brand-blue text-white rounded px-2 py-1 text-xs font-bold">OK</button>
-                  </div>
-              ) : (
-                  <h4 className="text-base font-bold text-slate-800">{name}</h4>
-              )}
-              <span className="mt-2 rounded-full bg-white border border-slate-200 px-3 py-1 text-[11px] font-bold text-slate-500 uppercase tracking-wider">{count} produit(s)</span>
+
+        <div className="space-y-4">
+          {parentCategories.length === 0 && childCategories.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+              Aucune catégorie pour le moment. Ajoutez une catégorie principale ci-dessus.
             </div>
-          )})}
+          ) : null}
+
+          {parentCategories.map((parent) => {
+            const children = childCategories.filter((child) => child.parentId === parent.id)
+            const isEditing = editingCat?.old === parent.name
+            const parentName = categories.find((cat) => cat.id === parent.id)?.name
+
+            return (
+              <div key={parent.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="relative group">
+                  <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                    <button onClick={() => setEditingCat({ old: parent.name, new: parent.name, parentId: parent.parentId ?? '' })} className="text-slate-400 hover:text-brand-blue"><IconEye className="w-4 h-4" /></button>
+                    <button onClick={() => {
+                      if ((parent.count ?? 0) > 0 && !window.confirm(`Vous avez ${parent.count} produit(s) dans la catégorie "${parent.name}". Si vous supprimez, ils iront dans "Autre". Procéder ?`)) return
+                      if (handleDeleteCategory) handleDeleteCategory(parent.name)
+                    }} className="text-slate-400 hover:text-red-500"><IconArchive className="w-4 h-4" /></button>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-brand-blue border border-slate-200 shadow-sm">
+                      <IconTag className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      {isEditing ? (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={editingCat.new}
+                            onChange={(e) => setEditingCat({ ...editingCat, new: e.target.value })}
+                            className="rounded border border-slate-300 px-2 py-1 text-sm font-bold w-full"
+                          />
+                          <button onClick={() => {
+                            if (handleEditCategory && editingCat.new.trim()) handleEditCategory(editingCat.old, editingCat.new.trim(), editingCat.parentId || undefined)
+                            setEditingCat(null)
+                          }} className="bg-brand-blue text-white rounded px-2 py-1 text-xs font-bold">OK</button>
+                        </div>
+                      ) : (
+                        <>
+                          <h4 className="text-base font-bold text-slate-800">{parent.name}</h4>
+                          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-brand-light">Catégorie principale</p>
+                        </>
+                      )}
+                      <span className="mt-3 inline-flex rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-[11px] font-bold text-slate-500 uppercase tracking-wider">{parent.count} produit(s)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Sous-catégories</p>
+
+                  {children.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {children.map((child) => {
+                        const childEditing = editingCat?.old === child.name
+                        const childParentName = categories.find((cat) => cat.id === child.parentId)?.name
+                        return (
+                          <div key={child.id} className="flex w-fit max-w-full items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">
+                            <div className="min-w-0">
+                              {childEditing ? (
+                                <div className="space-y-2">
+                                  <input
+                                    type="text"
+                                    value={editingCat.new}
+                                    onChange={(e) => setEditingCat({ ...editingCat, new: e.target.value })}
+                                    className="rounded border border-slate-300 px-2 py-1 text-sm font-bold w-full"
+                                  />
+                                  <button onClick={() => {
+                                    if (handleEditCategory && editingCat.new.trim()) handleEditCategory(editingCat.old, editingCat.new.trim(), editingCat.parentId || undefined)
+                                    setEditingCat(null)
+                                  }} className="bg-brand-blue text-white rounded px-2 py-1 text-xs font-bold">OK</button>
+                                </div>
+                              ) : (
+                                <>
+                                  <p className="text-sm font-semibold text-slate-700">{child.name}</p>
+                                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-brand-light">Sous-catégorie de {childParentName ?? parentName ?? '...'}</p>
+                                </>
+                              )}
+                            </div>
+                            <div className="flex shrink-0 gap-2">
+                              <button onClick={() => setEditingCat({ old: child.name, new: child.name, parentId: child.parentId ?? '' })} className="text-slate-400 hover:text-brand-blue"><IconEye className="w-3 h-3" /></button>
+                              <button onClick={() => {
+                                if ((child.count ?? 0) > 0 && !window.confirm(`Vous avez ${child.count} produit(s) dans la catégorie "${child.name}". Si vous supprimez, ils iront dans "Autre". Procéder ?`)) return
+                                if (handleDeleteCategory) handleDeleteCategory(child.name)
+                              }} className="text-slate-400 hover:text-red-500"><IconArchive className="w-3 h-3" /></button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">Aucune sous-catégorie pour le moment.</p>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+
+          {childCategories.filter((child) => !parentCategories.some((parent) => parent.id === child.parentId)).map((child) => {
+            const isEditing = editingCat?.old === child.name
+            const childParentName = categories.find((cat) => cat.id === child.parentId)?.name
+            return (
+              <div key={child.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editingCat.new}
+                      onChange={(e) => setEditingCat({ ...editingCat, new: e.target.value })}
+                      className="rounded border border-slate-300 px-2 py-1 text-sm font-bold w-full"
+                    />
+                    <button onClick={() => {
+                      if (handleEditCategory && editingCat.new.trim()) handleEditCategory(editingCat.old, editingCat.new.trim(), editingCat.parentId || undefined)
+                      setEditingCat(null)
+                    }} className="bg-brand-blue text-white rounded px-2 py-1 text-xs font-bold">OK</button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-800">{child.name}</h4>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-light">Sous-catégorie de {childParentName ?? '...'}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setEditingCat({ old: child.name, new: child.name, parentId: child.parentId ?? '' })} className="text-slate-400 hover:text-brand-blue"><IconEye className="w-3 h-3" /></button>
+                        <button onClick={() => {
+                          if ((child.count ?? 0) > 0 && !window.confirm(`Vous avez ${child.count} produit(s) dans la catégorie "${child.name}". Si vous supprimez, ils iront dans "Autre". Procéder ?`)) return
+                          if (handleDeleteCategory) handleDeleteCategory(child.name)
+                        }} className="text-slate-400 hover:text-red-500"><IconArchive className="w-3 h-3" /></button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     )

@@ -31,6 +31,7 @@ export function toUiCategory(api: ApiCategory): Category {
     name: api.name,
     slug: api.slug,
     productCount: api.productCount ?? 0,
+    parentId: api.parentId ? String(api.parentId) : undefined,
   }
 }
 

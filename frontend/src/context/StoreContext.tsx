@@ -8,6 +8,7 @@ export type Category = {
   name: string
   slug?: string
   productCount?: number
+  parentId?: string
 }
 
 export type Product = {
