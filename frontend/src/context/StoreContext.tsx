@@ -17,6 +17,7 @@ export type Product = {
   slug?: string
   name: string
   category: string
+  subcategory?: string
   price: number
   stock: number
   status: 'Actif' | 'Inactif' | 'Rupture'

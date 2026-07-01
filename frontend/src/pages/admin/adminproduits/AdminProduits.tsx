@@ -708,6 +708,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
               <th className="px-4 py-3 rounded-tl-lg">ID</th>
               <th className="px-4 py-3">Produit</th>
               <th className="px-4 py-3">Catégorie</th>
+              <th className="px-4 py-3">Sous-catég</th>
               <th className="px-4 py-3">Prix</th>
               <th className="px-4 py-3">Stock</th>
               <th className="px-4 py-3">Statut</th>
@@ -716,7 +717,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chargement des données...</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500">Chargement des données...</td></tr>
             ) : serverProducts.map((product) => {
               const isEditing = editingId === product.id;
 
@@ -726,28 +727,40 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     <tr className="bg-brand-blue/5">
                     <td className="px-4 py-4 font-semibold text-slate-500">{product.id}</td>
                     <td className="px-4 py-4">
-                      <input 
-                        type="text" 
-                        value={editForm.name} 
+                      <input
+                        type="text"
+                        value={editForm.name}
                         onChange={(e) => setEditForm({...editForm, name: e.target.value})}
                         className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none"
                       />
                     </td>
                     <td className="px-4 py-4">
-                      <select 
+                      <select
                         value={editForm.category}
                         onChange={(e) => setEditForm({...editForm, category: e.target.value})}
                         className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none"
                       >
-                        {categories.map(cat => (
+                        {categories.filter(cat => !cat.parentId).map(cat => (
                           <option key={cat.id} value={cat.name}>{cat.name}</option>
                         ))}
                       </select>
                     </td>
                     <td className="px-4 py-4">
-                      <input 
-                        type="number" step="0.01" 
-                        value={editForm.price} 
+                      <select
+                        value={editForm.subcategory || ''}
+                        onChange={(e) => setEditForm({...editForm, subcategory: e.target.value || undefined})}
+                        className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none"
+                      >
+                        <option value="">Aucune</option>
+                        {categories.filter(cat => Boolean(cat.parentId)).map(cat => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-4">
+                      <input
+                        type="number" step="0.01"
+                        value={editForm.price}
                         onChange={(e) => setEditForm({...editForm, price: parseFloat(e.target.value)})}
                         className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none"
                       />
@@ -801,7 +814,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     </td>
                   </tr>
                   <tr className="border-b border-slate-200 bg-brand-blue/5">
-                    <td colSpan={7} className="px-4 py-4 pt-0">
+                    <td colSpan={8} className="px-4 py-4 pt-0">
                       <label className="block text-xs font-semibold text-brand-blue mb-1 uppercase tracking-wider">Image</label>
                       <div className="flex flex-wrap items-center gap-3">
                         <label className="cursor-pointer rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50">
@@ -824,7 +837,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     </td>
                   </tr>
                   <tr className="border-b border-slate-200 bg-brand-blue/5">
-                    <td colSpan={7} className="px-4 py-4 pt-0">
+                    <td colSpan={8} className="px-4 py-4 pt-0">
                       <label className="block text-xs font-semibold text-brand-blue mb-1 uppercase tracking-wider">Description</label>
                       <textarea 
                         rows={3} 
@@ -855,6 +868,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     </div>
                   </td>
                   <td className="px-4 py-4 text-slate-600">{product.category}</td>
+                  <td className="px-4 py-4 text-slate-600">{product.subcategory || '-'}</td>
                   <td className="px-4 py-4 font-medium text-slate-700">{product.price.toFixed(2)} TND</td>
                   <td className="px-4 py-4">
                     <span className={`font-bold ${product.stock <= 5 ? 'text-red-500' : 'text-slate-700'}`}>
