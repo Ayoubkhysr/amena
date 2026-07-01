@@ -59,6 +59,10 @@ databaseChangeLog:
                   type: BIGINT
 
               - column:
+                  name: subcategory
+                  type: VARCHAR(100)
+
+              - column:
                   name: brand
                   type: VARCHAR(100)
 

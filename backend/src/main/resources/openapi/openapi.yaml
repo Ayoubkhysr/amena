@@ -891,6 +891,8 @@ components:
         categoryId:
           type: integer
           format: int64
+        subcategory:
+          type: string
         brand:
           type: string
         weight:
@@ -933,6 +935,8 @@ components:
         parentId:
           type: integer
           format: int64
+        subcategory:
+          type: string
         imageUrl:
           type: string
         isActive:
@@ -1026,6 +1030,8 @@ components:
         parentId:
           type: integer
           format: int64
+        subcategory:
+          type: string
         imageUrl:
           type: string
         isActive:
@@ -1061,6 +1067,8 @@ components:
         categoryId:
           type: integer
           format: int64
+        subcategory:
+          type: string
         brand:
           type: string
         weight:

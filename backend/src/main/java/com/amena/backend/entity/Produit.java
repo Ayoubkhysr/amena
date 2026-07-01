@@ -48,6 +48,9 @@ public class Produit {
     private Long categoryId;
 
     @Column(length = 100)
+    private String subcategory;
+
+    @Column(length = 100)
     private String brand;
 
     @Column(precision = 8, scale = 2)

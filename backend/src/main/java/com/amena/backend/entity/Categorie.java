@@ -33,6 +33,9 @@ public class Categorie {
     @Column(name = "parent_id")
     private Long parentId;
 
+    @Column(length = 100)
+    private String subcategory;
+
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 

@@ -308,8 +308,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Sous-catégorie</label>
               {(() => {
-                const selectedParent = categories.find(cat => cat.name === newProduct.category && !cat.parentId)
-                const subCategories = selectedParent ? categories.filter(cat => cat.parentId === selectedParent.id) : []
+                const subCategories = categories.filter(cat => Boolean(cat.parentId))
                 return (
                   <select
                     value={newProductSubCategory}
@@ -318,9 +317,14 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue disabled:bg-slate-50 disabled:text-slate-400"
                   >
                     <option value="">Aucune</option>
-                    {subCategories.map(sub => (
-                      <option key={sub.id} value={sub.name}>{sub.name}</option>
-                    ))}
+                    {subCategories.map(sub => {
+                      const parentName = categories.find(cat => cat.id === sub.parentId)?.name
+                      return (
+                        <option key={sub.id} value={sub.name}>
+                          {parentName ? `${sub.name} (${parentName})` : sub.name}
+                        </option>
+                      )
+                    })}
                   </select>
                 )
               })()}
@@ -457,7 +461,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     let parentCategory = categories.find((item) => item.name === parentName)
                     if (!parentCategory && handleAddCategory) {
                       const created = await handleAddCategory(parentName)
-                      parentCategory = created ? (categories.find((item) => item.id === String(created.id)) ?? created) : undefined
+                      parentCategory = created
                     }
                     if (parentCategory && handleAddCategory) {
                       await handleAddCategory(subName, parentCategory.id)

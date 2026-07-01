@@ -38,6 +38,10 @@ databaseChangeLog:
                   type: BIGINT
 
               - column:
+                  name: subcategory
+                  type: VARCHAR(100)
+
+              - column:
                   name: image_url
                   type: VARCHAR(500)
 
