@@ -41,6 +41,8 @@ services:
     container_name: amena-frontend
     ports:
       - "3000:80"
+    volumes:
+      - ../../frontend/public/images:/usr/share/nginx/html/images
     depends_on:
       - backend
 

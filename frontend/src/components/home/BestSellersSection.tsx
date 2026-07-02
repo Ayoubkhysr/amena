@@ -5,7 +5,7 @@ const BestSellersSection = () => {
       name: "TAMPAN",
       description: "Gel nettoyant multi-surfaces",
       price: "10,900 DT",
-      image: "https://placehold.co/150x200/ADD8E6/FFF?text=Tampan",
+      image: "/images/Tampan.png",
       rating: 5,
     },
     {
@@ -13,7 +13,7 @@ const BestSellersSection = () => {
       name: "Super Dégraissant",
       description: "Multi-graisse",
       price: "15,500 DT",
-      image: "https://placehold.co/150x200/FFA500/FFF?text=Degraissant",
+      image: "/images/Super%20D%C3%A9graissant.png",
       rating: 5,
     },
     {
@@ -21,7 +21,7 @@ const BestSellersSection = () => {
       name: "Top gel %",
       description: "Nettoyant vaisselle",
       price: "14,500 DT",
-      image: "https://placehold.co/150x200/FFD700/FFF?text=Top+Gel",
+      image: "/images/Rectangle%2034.png",
       rating: 5,
     },
     {
@@ -29,7 +29,7 @@ const BestSellersSection = () => {
       name: "El Wanja",
       description: "Nettoyant bois et sols",
       price: "8,900 DT",
-      image: "https://placehold.co/150x200/DAA520/FFF?text=El+Wanja",
+      image: "/images/Rectangle%2035.png",
       rating: 5,
     },
   ];

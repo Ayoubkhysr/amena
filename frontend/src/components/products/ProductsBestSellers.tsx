@@ -5,7 +5,7 @@ const ProductsBestSellers = () => {
       name: "Ezzahra",
       description: "Gel machine Automatique",
       price: "16,500dt",
-      image: "https://placehold.co/150x200/ADD8E6/FFF?text=Ezzahra",
+      image: "/images/Tampan.png",
       rating: 5,
     },
     {
@@ -13,7 +13,7 @@ const ProductsBestSellers = () => {
       name: "Super Dégraissant",
       description: "Anti-graisse",
       price: "10,000dt",
-      image: "https://placehold.co/150x200/FFA500/FFF?text=Degraissant",
+      image: "/images/Super%20D%C3%A9graissant.png",
       rating: 5,
     },
     {
@@ -21,7 +21,7 @@ const ProductsBestSellers = () => {
       name: "Top gel 3L",
       description: "Liquide vaisselle",
       price: "13,500dt",
-      image: "https://placehold.co/150x200/FFD700/FFF?text=Top+Gel",
+      image: "/images/Rectangle%2034.png",
       rating: 5,
     },
     {
@@ -29,7 +29,7 @@ const ProductsBestSellers = () => {
       name: "El Bahja",
       description: "Parfum concentrée",
       price: "9,500dt",
-      image: "https://placehold.co/150x200/DAA520/FFF?text=El+Bahja",
+      image: "/images/Rectangle%2035.png",
       rating: 5,
     },
   ];

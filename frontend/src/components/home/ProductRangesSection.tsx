@@ -1,11 +1,11 @@
 const ProductRangesSection = () => {
   const categories = [
-    { id: 1, name: "SOL ET SURFACE", image: "https://placehold.co/100x150/00BFFF/FFF?text=Sol" },
-    { id: 2, name: "LESSIVE LINGE", image: "https://placehold.co/100x150/FF69B4/FFF?text=Lessive" },
-    { id: 3, name: "NETTOYANT", image: "https://placehold.co/100x150/FFF/000?text=Nettoyant" },
-    { id: 4, name: "VAISSELLE", image: "https://placehold.co/100x150/FFD700/FFF?text=Vaisselle" },
-    { id: 5, name: "DÉSODORISANTS", image: "https://placehold.co/100x150/4169E1/FFF?text=Desodorisant" },
-    { id: 6, name: "ENTRETIEN NETTOYAGE", image: "https://placehold.co/150x100/A9A9A9/FFF?text=Entretien" },
+    { id: 1, name: "SOL ET SURFACE", image: "/images/Sol%20Et%20Surface.png" },
+    { id: 2, name: "LESSIVE LINGE", image: "/images/lessive.png" },
+    { id: 3, name: "NETTOYANT", image: "/images/Gamme%20%20NETTOYANT.png" },
+    { id: 4, name: "VAISSELLE", image: "/images/Gamme%20%20VAISSELLE.png" },
+    { id: 5, name: "DÉSODORISANTS", image: "/images/Desodorisants.png" },
+    { id: 6, name: "ENTRETIEN NETTOYAGE", image: "/images/Gamme%20%20ENTRETIEN%20NETTOYAGE.png" },
   ];
 
   return (
@@ -22,17 +22,21 @@ const ProductRangesSection = () => {
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => (
-            <div 
-              key={category.id} 
-              className="bg-[#00bfff] rounded-xl overflow-hidden shadow-md flex items-center h-32 hover:bg-[#00a8e6] transition-colors cursor-pointer group"
+            <div
+              key={category.id}
+              className="bg-[#00bfff] rounded-xl shadow-md flex items-center h-32 hover:bg-[#00a8e6] transition-colors cursor-pointer group relative"
             >
               {/* Image Container */}
-              <div className="w-1/2 h-full flex justify-center items-center bg-white/20 p-2 relative">
-                 <img src={category.image} alt={category.name} className="max-h-full object-contain z-10 drop-shadow-md group-hover:scale-110 transition-transform" />
+              <div className="w-1/2 h-full flex justify-center items-center relative">
+                 <img
+                   src={category.image}
+                   alt={category.name}
+                   className="absolute h-40 w-auto object-contain z-10 drop-shadow-md group-hover:scale-110 transition-transform"
+                 />
               </div>
-              
+
               {/* Text Container */}
-              <div className="w-1/2 p-4 text-white">
+              <div className="w-1/2 p-4 text-white relative z-10">
                 <p className="text-xs font-light mb-1 uppercase opacity-80">Gamme</p>
                 <h3 className="font-bold text-lg leading-tight uppercase">{category.name}</h3>
               </div>

@@ -2,12 +2,12 @@ import { Link } from 'react-router-dom';
 
 const ProductsRanges = () => {
   const categories = [
-    { id: 1, name: "SOL ET SURFACE", slug: "sol-et-surface", image: "https://placehold.co/100x150/00BFFF/FFF?text=Sol" },
-    { id: 2, name: "LESSIVE LINGE", slug: "lessive", image: "https://placehold.co/100x150/FF69B4/FFF?text=Lessive" },
-    { id: 3, name: "NETTOYANT", slug: "nettoyant", image: "https://placehold.co/100x150/FFF/000?text=Nettoyant" },
-    { id: 4, name: "VAISELLE", slug: "vaisselle", image: "https://placehold.co/100x150/FFD700/FFF?text=Vaisselle" },
-    { id: 5, name: "DESODORISANTS", slug: "desodorisants", image: "https://placehold.co/100x150/4169E1/FFF?text=Desodorisant" },
-    { id: 6, name: "OUTILS DE NETTOYAGE", slug: "outils", image: "https://placehold.co/150x100/A9A9A9/FFF?text=Outils" },
+    { id: 1, name: "SOL ET SURFACE", slug: "sol-et-surface", image: "/images/Sol%20Et%20Surface.png" },
+    { id: 2, name: "LESSIVE LINGE", slug: "lessive", image: "/images/lessive.png" },
+    { id: 3, name: "NETTOYANT", slug: "nettoyant", image: "/images/Gamme%20%20NETTOYANT.png" },
+    { id: 4, name: "VAISELLE", slug: "vaisselle", image: "/images/Gamme%20%20VAISSELLE.png" },
+    { id: 5, name: "DESODORISANTS", slug: "desodorisants", image: "/images/Desodorisants.png" },
+    { id: 6, name: "OUTILS DE NETTOYAGE", slug: "outils", image: "/images/Gamme%20%20ENTRETIEN%20NETTOYAGE.png" },
   ];
 
   return (
@@ -24,18 +24,22 @@ const ProductsRanges = () => {
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => (
-            <Link 
+            <Link
               key={category.id}
               to={`/produits/${category.slug}`}
-              className="bg-[#c2eaff] rounded-xl overflow-hidden shadow-sm flex items-center h-32 hover:bg-[#a1e0ff] transition-colors cursor-pointer group block"
+              className="bg-[#c2eaff] rounded-xl shadow-sm flex items-center h-32 hover:bg-[#a1e0ff] transition-colors cursor-pointer group block relative"
             >
               {/* Image Container */}
-              <div className="w-1/2 h-full flex justify-center items-center bg-white/30 p-2 relative">
-                 <img src={category.image} alt={category.name} className="max-h-full object-contain z-10 drop-shadow-md group-hover:scale-110 transition-transform" />
+              <div className="w-1/2 h-full flex justify-center items-center relative">
+                 <img
+                   src={category.image}
+                   alt={category.name}
+                   className="absolute h-40 w-auto object-contain z-10 drop-shadow-md group-hover:scale-110 transition-transform"
+                 />
               </div>
-              
+
               {/* Text Container */}
-              <div className="w-1/2 p-4 text-[#0055c4]">
+              <div className="w-1/2 p-4 text-[#0055c4] relative z-10">
                 <p className="text-xs font-light mb-1 uppercase opacity-80">Gamme</p>
                 <h3 className="font-bold text-lg leading-tight uppercase">{category.name}</h3>
               </div>
