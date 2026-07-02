@@ -893,6 +893,11 @@ components:
           format: int64
         subcategory:
           type: string
+        subcategoryIds:
+          type: array
+          items:
+            type: integer
+            format: int64
         brand:
           type: string
         weight:
@@ -1069,6 +1074,11 @@ components:
           format: int64
         subcategory:
           type: string
+        subcategoryIds:
+          type: array
+          items:
+            type: integer
+            format: int64
         brand:
           type: string
         weight:

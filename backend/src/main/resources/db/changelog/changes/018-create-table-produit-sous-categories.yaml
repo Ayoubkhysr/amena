@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 018
+      author: amena
+      description: Create produit_sous_categories join table for product-subcategory many-to-many relation
+
+      changes:
+        - createTable:
+            tableName: produit_sous_categories
+            columns:
+              - column:
+                  name: produit_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: sous_categorie_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addPrimaryKey:
+            tableName: produit_sous_categories
+            columnNames: produit_id, sous_categorie_id
+            constraintName: pk_produit_sous_categories
+
+        - addForeignKeyConstraint:
+            baseTableName: produit_sous_categories
+            baseColumnNames: produit_id
+            referencedTableName: produits
+            referencedColumnNames: id
+            constraintName: fk_psc_produit
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            baseTableName: produit_sous_categories
+            baseColumnNames: sous_categorie_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_psc_sous_categorie
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: produit_sous_categories
+            indexName: idx_psc_produit
+            columns:
+              - column:
+                  name: produit_id
+
+        - createIndex:
+            tableName: produit_sous_categories
+            indexName: idx_psc_sous_categorie
+            columns:
+              - column:
+                  name: sous_categorie_id

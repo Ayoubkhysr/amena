@@ -33,8 +33,8 @@ public class CategoriesApiController implements CategoriesApi {
 
     @Override
     public ResponseEntity<CategoryResponse> createCategory(CategoryRequest categoryRequest) {
-        String slug = resolveSlug(categoryRequest.getName(), categoryRequest.getSlug(), null);
-        validateUniqueNameAndSlug(categoryRequest.getName(), slug, null);
+        validateUniqueNameForParent(categoryRequest.getName(), categoryRequest.getParentId(), null);
+        String slug = resolveUniqueSlug(categoryRequest.getName(), categoryRequest.getSlug(), null, null);
 
         Categorie saved = categorieRepository.save(toCategorie(categoryRequest, slug));
         return ResponseEntity.status(HttpStatus.CREATED).body(toCategoryResponse(saved));
@@ -54,8 +54,8 @@ public class CategoriesApiController implements CategoriesApi {
             return ResponseEntity.notFound().build();
         }
 
-        String slug = resolveSlug(categoryRequest.getName(), categoryRequest.getSlug(), categorie.getSlug());
-        validateUniqueNameAndSlug(categoryRequest.getName(), slug, categoryId);
+        validateUniqueNameForParent(categoryRequest.getName(), categoryRequest.getParentId(), categoryId);
+        String slug = resolveUniqueSlug(categoryRequest.getName(), categoryRequest.getSlug(), categorie.getSlug(), categoryId);
         applyRequest(categorie, categoryRequest, slug);
 
         Categorie updated = categorieRepository.save(categorie);
@@ -71,27 +71,37 @@ public class CategoriesApiController implements CategoriesApi {
         return ResponseEntity.noContent().build();
     }
 
-    private void validateUniqueNameAndSlug(String name, String slug, Long excludeId) {
-        categorieRepository.findByName(name).ifPresent(existing -> {
+    private void validateUniqueNameForParent(String name, Long parentId, Long excludeId) {
+        categorieRepository.findByNameAndParentId(name, parentId).ifPresent(existing -> {
             if (excludeId == null || !existing.getId().equals(excludeId)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Category name already exists: " + name);
-            }
-        });
-        categorieRepository.findBySlug(slug).ifPresent(existing -> {
-            if (excludeId == null || !existing.getId().equals(excludeId)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Category slug already exists: " + slug);
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Category name already exists under this parent: " + name);
             }
         });
     }
 
-    private String resolveSlug(String name, String requestedSlug, String existingSlug) {
+    private String resolveUniqueSlug(String name, String requestedSlug, String existingSlug, Long excludeId) {
+        String base;
         if (requestedSlug != null && !requestedSlug.isBlank()) {
-            return slugify(requestedSlug);
+            base = slugify(requestedSlug);
+        } else if (existingSlug != null && !existingSlug.isBlank()) {
+            base = existingSlug;
+        } else {
+            base = slugify(name);
         }
-        if (existingSlug != null && !existingSlug.isBlank()) {
-            return existingSlug;
+
+        String candidate = base;
+        int suffix = 2;
+        while (isSlugTaken(candidate, excludeId)) {
+            candidate = base + "-" + suffix;
+            suffix++;
         }
-        return slugify(name);
+        return candidate;
+    }
+
+    private boolean isSlugTaken(String slug, Long excludeId) {
+        return categorieRepository.findBySlug(slug)
+                .filter(existing -> excludeId == null || !existing.getId().equals(excludeId))
+                .isPresent();
     }
 
     private String slugify(String text) {

@@ -348,7 +348,8 @@ function AdminDashboardPage() {
 
   const handleAddCategory = async (cat: string, parentId?: string | null) => {
     const name = cat.trim()
-    if (!name || categories.some((item) => item.name === name)) return
+    const normalizedParentId = parentId || undefined
+    if (!name || categories.some((item) => item.name === name && item.parentId === normalizedParentId)) return
 
     try {
       const saved = await createCategory({

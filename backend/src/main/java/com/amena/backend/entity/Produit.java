@@ -10,6 +10,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "produits")
@@ -49,6 +51,15 @@ public class Produit {
 
     @Column(length = 100)
     private String subcategory;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "produit_sous_categories",
+            joinColumns = @JoinColumn(name = "produit_id"),
+            inverseJoinColumns = @JoinColumn(name = "sous_categorie_id")
+    )
+    @Builder.Default
+    private Set<Categorie> subCategories = new HashSet<>();
 
     @Column(length = 100)
     private String brand;

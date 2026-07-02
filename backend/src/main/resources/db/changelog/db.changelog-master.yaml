@@ -31,3 +31,5 @@ databaseChangeLog:
       file: db/changelog/changes/016-seed-demo-commandes.yaml
   - include:
       file: db/changelog/changes/017-create-table-offres.yaml
+  - include:
+      file: db/changelog/changes/018-create-table-produit-sous-categories.yaml

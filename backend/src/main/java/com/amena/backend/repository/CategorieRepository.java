@@ -14,5 +14,7 @@ public interface CategorieRepository extends JpaRepository<Categorie, Long> {
 
     Optional<Categorie> findByName(String name);
 
+    Optional<Categorie> findByNameAndParentId(String name, Long parentId);
+
     List<Categorie> findByIsActiveTrueOrderBySortOrderAscNameAsc();
 }

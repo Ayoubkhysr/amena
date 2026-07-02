@@ -10,6 +10,7 @@ export type ApiProduct = {
   compareAtPrice?: number
   costPrice?: number
   categoryId?: number
+  subcategoryIds?: number[]
   brand?: string
   weight?: number
   isActive?: boolean
@@ -28,6 +29,7 @@ export type ApiProductRequest = {
   compareAtPrice?: number
   costPrice?: number
   categoryId?: number
+  subcategoryIds?: number[]
   brand?: string
   weight?: number
   isActive?: boolean
@@ -75,18 +77,27 @@ export function toUiProduct(api: ApiProduct, categories: Category[]): Product {
   const categoryObj = categories.find((item) => Number(item.id) === api.categoryId)
   const categoryName = categoryObj?.name ?? 'Autre'
 
-  // If the category has a parent, it's a subcategory
+  // Legacy data: if the category itself has a parent, categoryId used to point directly at the subcategory
   let mainCategory = categoryName
-  let subcategory: string | undefined = undefined
+  let legacySubcategory: string | undefined = undefined
 
   if (categoryObj?.parentId) {
-    // This is a subcategory, find the parent
     const parentCategory = categories.find((item) => item.id === categoryObj.parentId)
     if (parentCategory) {
       mainCategory = parentCategory.name
-      subcategory = categoryName
+      legacySubcategory = categoryName
     }
   }
+
+  const subcategoryNames = (api.subcategoryIds ?? [])
+    .map((id) => categories.find((item) => Number(item.id) === id)?.name)
+    .filter((name): name is string => Boolean(name))
+
+  const subcategories = subcategoryNames.length > 0
+    ? subcategoryNames
+    : legacySubcategory
+      ? [legacySubcategory]
+      : undefined
 
   return {
     id: String(api.id),
@@ -94,7 +105,7 @@ export function toUiProduct(api: ApiProduct, categories: Category[]): Product {
     slug: api.slug,
     name: api.name,
     category: mainCategory,
-    subcategory,
+    subcategories,
     price: api.price,
     stock: isActive ? 50 : 0,
     status: isActive ? 'Actif' : 'Inactif',
@@ -112,8 +123,13 @@ export function toApiRequest(
   const slug = existing?.slug || slugify(name) || `produit-${Date.now()}`
   const sku = existing?.sku || slug.toUpperCase().replace(/-/g, '_').slice(0, 50) || `SKU-${Date.now()}`
 
-  // Use subcategory if provided, otherwise use main category
-  const categoryName = product.subcategory?.trim() || product.category
+  const categoryId = product.category ? categoryNameToId(product.category, categories) : undefined
+  // Subcategory names are only unique within their parent category, so resolve them
+  // scoped to the product's own category to avoid picking an unrelated same-named one.
+  const subcategoryIds = (product.subcategories ?? [])
+    .map((subName) => categories.find((item) => item.name === subName && Number(item.parentId) === categoryId)?.id)
+    .map((id) => (id !== undefined ? Number(id) : undefined))
+    .filter((id): id is number => id !== undefined)
 
   return {
     sku,
@@ -121,7 +137,8 @@ export function toApiRequest(
     slug,
     description: product.description?.trim() || undefined,
     price: product.price ?? 0,
-    categoryId: categoryName ? categoryNameToId(categoryName, categories) : undefined,
+    categoryId,
+    subcategoryIds,
     isActive: product.status !== 'Inactif',
     isFeatured: false,
   }

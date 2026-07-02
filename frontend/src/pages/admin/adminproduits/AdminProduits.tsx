@@ -146,10 +146,14 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
     name: '', category: categories.find(c => !c.parentId)?.name || categories[0]?.name || 'Autre', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''
   })
-  const [newProductSubCategory, setNewProductSubCategory] = useState('')
+  const [newProductSubCategories, setNewProductSubCategories] = useState<string[]>([])
+  const [showNewSubcatInput, setShowNewSubcatInput] = useState(false)
+  const [newSubcatInputValue, setNewSubcatInputValue] = useState('')
 
   const [newCatName, setNewCatName] = useState('')
   const [newSubCatName, setNewSubCatName] = useState('')
+  const [inlineNewSubcatParentId, setInlineNewSubcatParentId] = useState<string | null>(null)
+  const [inlineNewSubcatName, setInlineNewSubcatName] = useState('')
   const [editingCat, setEditingCat] = useState<{old: string, new: string, parentId?: string} | null>(null)
   const [search, setSearch] = useState('')
   const [searchCategory, setSearchCategory] = useState('')
@@ -194,7 +198,9 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
       imageUrl: '',
       description: '',
     })
-    setNewProductSubCategory('')
+    setNewProductSubCategories([])
+    setShowNewSubcatInput(false)
+    setNewSubcatInputValue('')
   }
 
   const resetEditProductImage = () => {
@@ -299,33 +305,91 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Catégorie</label>
-              <select value={newProduct.category} onChange={e => { setNewProduct({...newProduct, category: e.target.value}); setNewProductSubCategory('') }} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue">
+              <select value={newProduct.category} onChange={e => { setNewProduct({...newProduct, category: e.target.value}); setNewProductSubCategories([]) }} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue">
                 {categories.filter(cat => !cat.parentId).map(cat => (
                   <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Sous-catégorie</label>
-              {(() => {
-                const subCategories = categories.filter(cat => Boolean(cat.parentId))
-                return (
-                  <select
-                    value={newProductSubCategory}
-                    onChange={e => setNewProductSubCategory(e.target.value)}
-                    disabled={subCategories.length === 0}
-                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue disabled:bg-slate-50 disabled:text-slate-400"
+              <div className="mb-2 flex items-center justify-between">
+                <label className="block text-sm font-semibold text-slate-700">Sous-catégorie(s)</label>
+                <button
+                  type="button"
+                  onClick={() => { setShowNewSubcatInput(true); setNewSubcatInputValue('') }}
+                  className="text-xs font-bold text-brand-blue hover:text-brand-light"
+                >
+                  + Ajouter
+                </button>
+              </div>
+              {showNewSubcatInput ? (
+                <div className="mb-2 flex gap-2">
+                  <input
+                    type="text"
+                    list="new-product-subcat-suggestions"
+                    value={newSubcatInputValue}
+                    onChange={e => setNewSubcatInputValue(e.target.value)}
+                    placeholder="Choisissez dans la liste ou écrivez un nouveau nom"
+                    className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-brand-blue focus:outline-none"
+                  />
+                  <datalist id="new-product-subcat-suggestions">
+                    {categories.filter(cat => Boolean(cat.parentId)).map(cat => (
+                      <option key={cat.id} value={cat.name} />
+                    ))}
+                  </datalist>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const name = newSubcatInputValue.trim()
+                      const selectedCategory = categories.find(cat => cat.name === newProduct.category)
+                      if (!name || !selectedCategory) return
+                      const existingSibling = categories.find(cat => cat.name === name && cat.parentId === selectedCategory.id)
+                      if (existingSibling) {
+                        setNewProductSubCategories(prev => prev.includes(name) ? prev : [...prev, name])
+                      } else if (handleAddCategory) {
+                        await handleAddCategory(name, selectedCategory.id)
+                        setNewProductSubCategories(prev => [...prev, name])
+                      }
+                      setShowNewSubcatInput(false)
+                      setNewSubcatInputValue('')
+                    }}
+                    className="rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light"
                   >
-                    <option value="">Aucune</option>
-                    {subCategories.map(sub => {
-                      const parentName = categories.find(cat => cat.id === sub.parentId)?.name
-                      return (
-                        <option key={sub.id} value={sub.name}>
-                          {parentName ? `${sub.name} (${parentName})` : sub.name}
-                        </option>
-                      )
-                    })}
-                  </select>
+                    Valider
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewSubcatInput(false)}
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              ) : null}
+              {(() => {
+                const selectedCategory = categories.find(cat => cat.name === newProduct.category)
+                const subCategories = categories.filter(cat => Boolean(selectedCategory) && cat.parentId === selectedCategory?.id)
+                if (subCategories.length === 0) {
+                  return <p className="text-sm text-slate-400 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5">Aucune sous-catégorie disponible</p>
+                }
+                return (
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-xl border border-slate-300 px-4 py-2.5">
+                    {subCategories.map(sub => (
+                      <label key={sub.id} className="flex items-center gap-2 text-sm text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={newProductSubCategories.includes(sub.name)}
+                          onChange={e => {
+                            setNewProductSubCategories(prev =>
+                              e.target.checked ? [...prev, sub.name] : prev.filter(name => name !== sub.name)
+                            )
+                          }}
+                          className="rounded border-slate-300 text-brand-blue focus:ring-brand-blue"
+                        />
+                        {sub.name}
+                      </label>
+                    ))}
+                  </div>
                 )
               })()}
             </div>
@@ -371,7 +435,8 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                 await handleAddProduct({
                   id: '',
                   name: newProduct.name.trim(),
-                  category: newProductSubCategory || newProduct.category || categories[0]?.name || 'Autre',
+                  category: newProduct.category || categories[0]?.name || 'Autre',
+                  subcategories: newProductSubCategories.length > 0 ? newProductSubCategories : undefined,
                   price: newProduct.price || 0,
                   stock: newProduct.stock || 0,
                   status: (newProduct.stock || 0) > 5 ? 'Actif' : 'Rupture',
@@ -531,7 +596,57 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                 </div>
 
                 <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Sous-catégories</p>
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Sous-catégories</p>
+                    <button
+                      type="button"
+                      onClick={() => { setInlineNewSubcatParentId(parent.id); setInlineNewSubcatName('') }}
+                      className="text-xs font-bold text-brand-blue hover:text-brand-light"
+                    >
+                      + Ajouter
+                    </button>
+                  </div>
+
+                  {inlineNewSubcatParentId === parent.id ? (
+                    <div className="mb-3 flex gap-2">
+                      <input
+                        type="text"
+                        list={`inline-subcat-suggestions-${parent.id}`}
+                        value={inlineNewSubcatName}
+                        onChange={(e) => setInlineNewSubcatName(e.target.value)}
+                        placeholder="Choisissez dans la liste ou écrivez un nouveau nom"
+                        className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm focus:border-brand-blue focus:outline-none"
+                      />
+                      <datalist id={`inline-subcat-suggestions-${parent.id}`}>
+                        {childCategories.map((cat) => (
+                          <option key={cat.id} value={cat.name} />
+                        ))}
+                      </datalist>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const name = inlineNewSubcatName.trim()
+                          if (!name) return
+                          const existingSibling = categories.find(cat => cat.name === name && cat.parentId === parent.id)
+                          if (!existingSibling && handleAddCategory) {
+                            await handleAddCategory(name, parent.id)
+                          }
+                          setInlineNewSubcatParentId(null)
+                          setInlineNewSubcatName('')
+                        }}
+                        className="rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light"
+                      >
+                        Valider
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInlineNewSubcatParentId(null)}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  ) : null}
 
                   {children.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
@@ -737,7 +852,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     <td className="px-4 py-4">
                       <select
                         value={editForm.category}
-                        onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                        onChange={(e) => setEditForm({...editForm, category: e.target.value, subcategories: undefined})}
                         className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none"
                       >
                         {categories.filter(cat => !cat.parentId).map(cat => (
@@ -746,16 +861,28 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                       </select>
                     </td>
                     <td className="px-4 py-4">
-                      <select
-                        value={editForm.subcategory || ''}
-                        onChange={(e) => setEditForm({...editForm, subcategory: e.target.value || undefined})}
-                        className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none"
-                      >
-                        <option value="">Aucune</option>
-                        {categories.filter(cat => Boolean(cat.parentId)).map(cat => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
-                      </select>
+                      {(() => {
+                        const selectedCategory = categories.find(cat => cat.name === editForm.category)
+                        const subCategories = categories.filter(cat => Boolean(selectedCategory) && cat.parentId === selectedCategory?.id)
+                        return (
+                          <select
+                            multiple
+                            value={editForm.subcategories || []}
+                            onChange={(e) => {
+                              const selected = Array.from(e.target.selectedOptions).map(opt => opt.value)
+                              setEditForm({...editForm, subcategories: selected.length > 0 ? selected : undefined})
+                            }}
+                            disabled={subCategories.length === 0}
+                            size={Math.min(4, Math.max(2, subCategories.length))}
+                            title="Ctrl/Cmd + clic pour sélectionner plusieurs sous-catégories, ou aucune"
+                            className="w-full rounded-md border border-slate-300 px-2 py-1 text-sm focus:border-brand-blue focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                          >
+                            {subCategories.map(sub => (
+                              <option key={sub.id} value={sub.name}>{sub.name}</option>
+                            ))}
+                          </select>
+                        )
+                      })()}
                     </td>
                     <td className="px-4 py-4">
                       <input
@@ -868,7 +995,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     </div>
                   </td>
                   <td className="px-4 py-4 text-slate-600">{product.category}</td>
-                  <td className="px-4 py-4 text-slate-600">{product.subcategory || '-'}</td>
+                  <td className="px-4 py-4 text-slate-600">{product.subcategories?.length ? product.subcategories.join(', ') : '-'}</td>
                   <td className="px-4 py-4 font-medium text-slate-700">{product.price.toFixed(2)} TND</td>
                   <td className="px-4 py-4">
                     <span className={`font-bold ${product.stock <= 5 ? 'text-red-500' : 'text-slate-700'}`}>

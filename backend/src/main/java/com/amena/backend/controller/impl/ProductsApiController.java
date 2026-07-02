@@ -3,7 +3,9 @@ package com.amena.backend.controller.impl;
 import com.amena.backend.api.ProductsApi;
 import com.amena.backend.dto.ProductRequest;
 import com.amena.backend.dto.ProductResponse;
+import com.amena.backend.entity.Categorie;
 import com.amena.backend.entity.Produit;
+import com.amena.backend.repository.CategorieRepository;
 import com.amena.backend.repository.ProduitRepository;
 import com.amena.backend.service.ProductImageService;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
 public class ProductsApiController implements ProductsApi {
 
     private final ProduitRepository produitRepository;
+    private final CategorieRepository categorieRepository;
     private final ProductImageService productImageService;
 
     public ResponseEntity<com.amena.backend.dto.ProductPage> getProducts(Integer page, Integer size, String search, Long categoryId, String sortBy, String sortOrder) {
@@ -118,6 +123,10 @@ public class ProductsApiController implements ProductsApi {
         produit.setCompareAtPrice(toBigDecimal(request.getCompareAtPrice()));
         produit.setCostPrice(toBigDecimal(request.getCostPrice()));
         produit.setCategoryId(request.getCategoryId());
+        Set<Categorie> subCategories = request.getSubcategoryIds() == null || request.getSubcategoryIds().isEmpty()
+                ? new HashSet<>()
+                : new HashSet<>(categorieRepository.findAllById(request.getSubcategoryIds()));
+        produit.setSubCategories(subCategories);
         produit.setBrand(request.getBrand());
         produit.setWeight(toBigDecimal(request.getWeight()));
         if (request.getIsActive() != null) {
@@ -142,6 +151,7 @@ public class ProductsApiController implements ProductsApi {
         response.setCompareAtPrice(toDouble(produit.getCompareAtPrice()));
         response.setCostPrice(toDouble(produit.getCostPrice()));
         response.setCategoryId(produit.getCategoryId());
+        response.setSubcategoryIds(produit.getSubCategories().stream().map(Categorie::getId).toList());
         response.setBrand(produit.getBrand());
         response.setWeight(toDouble(produit.getWeight()));
         response.setIsActive(produit.getIsActive());
