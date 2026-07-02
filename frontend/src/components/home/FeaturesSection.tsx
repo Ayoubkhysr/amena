@@ -19,12 +19,12 @@ const FeaturesSection = () => {
           
           {/* Bubble 2 (Medium - Top Left) */}
           <div className="absolute top-12 left-1/3 w-32 h-32 rounded-full border-4 border-blue-200 bg-white shadow-lg overflow-hidden flex items-center justify-center z-10">
-             <img src="https://placehold.co/100x150/FFC0CB/FFF?text=Produit+1" alt="Product" className="h-24 w-auto" />
+             <img src="/images/Pro1.png" alt="Product" className="h-24 w-auto" />
           </div>
 
           {/* Bubble 3 (Large - Center Right) */}
           <div className="absolute top-20 left-1/2 w-48 h-48 rounded-full border-4 border-blue-200 bg-white shadow-xl overflow-hidden flex items-center justify-center z-20">
-             <img src="https://placehold.co/150x200/FF69B4/FFF?text=Produit+2" alt="Product" className="h-40 w-auto" />
+             <img src="/images/pro3.png" alt="Product" className="h-40 w-auto" />
           </div>
 
           {/* Arabic Title Graphic Placeholder */}

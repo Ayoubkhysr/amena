@@ -5,9 +5,9 @@ const AboutValuesSection = () => {
         
         {/* Left Image Placeholder */}
         <div className="w-full md:w-1/2 flex justify-center md:justify-start">
-          <img 
-            src="https://placehold.co/500x300/404040/FFF?text=Storefront+Image" 
-            alt="El Amine Storefront" 
+          <img
+            src="/images/Rectangle%20382.png"
+            alt="El Amine Storefront"
             className="rounded-2xl shadow-lg w-full object-cover"
           />
         </div>

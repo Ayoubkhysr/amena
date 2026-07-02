@@ -20,11 +20,11 @@ const AboutHeroBanner = () => {
           </div>
 
           {/* Right Image */}
-          <div className="w-1/2 flex justify-center items-center p-8">
-            <img 
-              src="https://placehold.co/400x300/00d0ff/FFF?text=Spray+Bottle" 
-              alt="Spray Bottle" 
-              className="max-h-full object-contain drop-shadow-xl z-20" 
+          <div className="w-1/2 flex justify-end items-center">
+            <img
+              src="/images/Rectangle%20244.png"
+              alt="Spray Bottle"
+              className="h-full w-full object-cover object-left drop-shadow-xl z-20"
             />
           </div>
           
