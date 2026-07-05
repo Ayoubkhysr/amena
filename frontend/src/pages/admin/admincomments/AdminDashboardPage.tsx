@@ -112,7 +112,14 @@ const RAPPORTS_KEYS: AdminSection[] = ['rapports-ventes', 'rapports-produits']
 const PARAM_KEYS: AdminSection[] = ['parametres-infos', 'parametres-paiement', 'parametres-livraison']
 
 function AdminDashboardPage() {
-  const [activeSection, setActiveSection] = useState<AdminSection>('dashboard-vue-generale')
+  const [activeSection, setActiveSection] = useState<AdminSection>(() => {
+    const saved = localStorage.getItem('adminActiveSection') as AdminSection | null;
+    return saved || 'dashboard-vue-generale';
+  })
+
+  useEffect(() => {
+    localStorage.setItem('adminActiveSection', activeSection)
+  }, [activeSection])
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [navOpen, setNavOpen] = useState({
@@ -356,14 +363,13 @@ function AdminDashboardPage() {
         name,
         parentId: parentId ? Number(parentId) : undefined,
       })
-      const uiCategory = {
-        id: String(saved.id),
-        name: saved.name,
-        slug: saved.slug,
-        parentId: saved.parentId !== undefined && saved.parentId !== null ? String(saved.parentId) : undefined,
-      }
-      setCategories((prev) => [...prev, uiCategory])
-      return uiCategory
+      // Refetch all categories to ensure state is perfectly synced
+      const { fetchCategories, toUiCategory } = await import('../../../services/categoryService');
+      const apiCategories = await fetchCategories();
+      const newCategories = apiCategories.map(toUiCategory);
+      setCategories(newCategories);
+      
+      return newCategories.find(c => c.id === String(saved.id));
     } catch (error) {
       console.warn('Erreur lors de la création de la catégorie:', error)
       const message = error instanceof Error ? error.message : 'Erreur inconnue'
@@ -378,7 +384,10 @@ function AdminDashboardPage() {
 
     try {
       await deleteCategoryApi(Number(category.id))
-      setCategories((prev) => prev.filter((item) => item.id !== category.id))
+      const { fetchCategories, toUiCategory } = await import('../../../services/categoryService');
+      const apiCategories = await fetchCategories();
+      setCategories(apiCategories.map(toUiCategory));
+      
       setProducts((prev) =>
         prev.map((product) =>
           product.category === cat ? { ...product, category: 'Autre' } : product
@@ -397,26 +406,19 @@ function AdminDashboardPage() {
     if (!category || !name) return
 
     try {
-      const saved = await updateCategory(Number(category.id), {
+      await updateCategory(Number(category.id), {
         name,
         slug: category.slug,
         parentId: parentId ? Number(parentId) : undefined,
       })
-      setCategories((prev) =>
-        prev.map((item) =>
-          item.id === category.id
-            ? {
-                id: String(saved.id),
-                name: saved.name,
-                slug: saved.slug,
-                parentId: saved.parentId !== undefined && saved.parentId !== null ? String(saved.parentId) : undefined,
-              }
-            : item
-        )
-      )
+      
+      const { fetchCategories, toUiCategory } = await import('../../../services/categoryService');
+      const apiCategories = await fetchCategories();
+      setCategories(apiCategories.map(toUiCategory));
+      
       setProducts((prev) =>
         prev.map((product) =>
-          product.category === oldCat ? { ...product, category: saved.name } : product
+          product.category === oldCat ? { ...product, category: name } : product
         )
       )
     } catch (error) {

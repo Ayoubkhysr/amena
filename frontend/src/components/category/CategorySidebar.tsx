@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 export interface FilterSection {
   title: string;
   options: string[];
@@ -5,24 +7,83 @@ export interface FilterSection {
 
 interface CategorySidebarProps {
   filters: FilterSection[];
+  onFilterChange?: (selectedFilters: Record<string, string[]>) => void;
+  onPriceChange?: (min: number | undefined, max: number | undefined) => void;
 }
 
-const CategorySidebar = ({ filters }: CategorySidebarProps) => {
+const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySidebarProps) => {
+  const [selected, setSelected] = useState<Record<string, string[]>>({});
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [maxPrice, setMaxPrice] = useState<string>('');
+
+  // Reset selected when filters change (i.e. category changes)
+  useEffect(() => {
+    setSelected({});
+    setMinPrice('');
+    setMaxPrice('');
+    if (onPriceChange) {
+      onPriceChange(undefined, undefined);
+    }
+  }, [filters]);
+
+  const handleCheckboxChange = (filterTitle: string, option: string, isChecked: boolean) => {
+    const newSelected = { ...selected };
+    if (!newSelected[filterTitle]) {
+      newSelected[filterTitle] = [];
+    }
+
+    if (isChecked) {
+      newSelected[filterTitle].push(option);
+    } else {
+      newSelected[filterTitle] = newSelected[filterTitle].filter(item => item !== option);
+    }
+
+    setSelected(newSelected);
+    if (onFilterChange) {
+      onFilterChange(newSelected);
+    }
+  };
+
+  const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setMinPrice(val);
+    if (onPriceChange) {
+      const min = val === '' ? undefined : parseFloat(val);
+      const max = maxPrice === '' ? undefined : parseFloat(maxPrice);
+      onPriceChange(min, max);
+    }
+  };
+
+  const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setMaxPrice(val);
+    if (onPriceChange) {
+      const min = minPrice === '' ? undefined : parseFloat(minPrice);
+      const max = val === '' ? undefined : parseFloat(val);
+      onPriceChange(min, max);
+    }
+  };
+
   return (
     <div className="w-full md:w-64 flex-shrink-0">
       <div className="bg-white border border-blue-200 rounded-2xl p-6 shadow-sm">
         <h3 className="font-bold text-gray-800 text-sm mb-6 uppercase tracking-wide">
           Filtres principaux
         </h3>
-
-        {/* Dynamic Filters */}
-        {filters.map((filter, index) => (
-          <div key={index} className="mb-6">
+        
+        {/* Categories / Options */}
+        {filters.map((filter, idx) => (
+          <div key={idx}>
             <h4 className="text-xs font-semibold text-gray-700 mb-3">{filter.title}</h4>
             <div className="space-y-2">
               {filter.options.map((option, i) => (
                 <label key={i} className="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer">
-                  <input type="checkbox" className="rounded border-gray-300 text-blue-500 focus:ring-blue-500" />
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                    checked={selected[filter.title]?.includes(option) || false}
+                    onChange={(e) => handleCheckboxChange(filter.title, option, e.target.checked)}
+                  />
                   <span>{option}</span>
                 </label>
               ))}
@@ -32,17 +93,21 @@ const CategorySidebar = ({ filters }: CategorySidebarProps) => {
 
         {/* Prix */}
         <div>
-          <h4 className="text-xs font-semibold text-gray-700 mb-3">Price</h4>
+          <h4 className="text-xs font-semibold text-gray-700 mb-3">Prix</h4>
           <div className="flex items-center space-x-2">
             <input 
-              type="text" 
+              type="number" 
               placeholder="Min" 
+              value={minPrice}
+              onChange={handleMinPriceChange}
               className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
             />
             <span className="text-gray-400">-</span>
             <input 
-              type="text" 
+              type="number" 
               placeholder="Max" 
+              value={maxPrice}
+              onChange={handleMaxPriceChange}
               className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
             />
           </div>

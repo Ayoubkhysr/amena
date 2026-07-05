@@ -126,6 +126,7 @@ public class ProductsApiController implements ProductsApi {
         Set<Categorie> subCategories = request.getSubcategoryIds() == null || request.getSubcategoryIds().isEmpty()
                 ? new HashSet<>()
                 : new HashSet<>(categorieRepository.findAllById(request.getSubcategoryIds()));
+        System.out.println("Updating product " + produit.getSku() + " with subcategories: " + request.getSubcategoryIds() + " -> found: " + subCategories.size());
         produit.setSubCategories(subCategories);
         produit.setBrand(request.getBrand());
         produit.setWeight(toBigDecimal(request.getWeight()));
@@ -170,5 +171,12 @@ public class ProductsApiController implements ProductsApi {
 
     private Double toDouble(BigDecimal value) {
         return value != null ? value.doubleValue() : null;
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping("/api/test-subcats/{id}")
+    public ResponseEntity<List<Long>> getSubCats(@org.springframework.web.bind.annotation.PathVariable Long id) {
+        Produit produit = produitRepository.findById(id).orElse(null);
+        if (produit == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(produit.getSubCategories().stream().map(Categorie::getId).toList());
     }
 }

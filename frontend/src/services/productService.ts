@@ -63,7 +63,7 @@ function slugify(text: string): string {
 }
 
 function categoryNameToId(name: string, categories: Category[]): number | undefined {
-  const category = categories.find((item) => item.name === name)
+  const category = categories.find((item) => item.name.trim() === name.trim())
   return category ? Number(category.id) : undefined
 }
 
@@ -124,11 +124,15 @@ export function toApiRequest(
   const sku = existing?.sku || slug.toUpperCase().replace(/-/g, '_').slice(0, 50) || `SKU-${Date.now()}`
 
   const categoryId = product.category ? categoryNameToId(product.category, categories) : undefined
-  // Subcategory names are only unique within their parent category, so resolve them
-  // scoped to the product's own category to avoid picking an unrelated same-named one.
+  
   const subcategoryIds = (product.subcategories ?? [])
-    .map((subName) => categories.find((item) => item.name === subName && Number(item.parentId) === categoryId)?.id)
-    .map((id) => (id !== undefined ? Number(id) : undefined))
+    .map((subName) => {
+      let found = categories.find((item) => item.name.trim() === subName.trim() && Number(item.parentId) === categoryId)
+      if (!found) {
+        found = categories.find((item) => item.name.trim() === subName.trim())
+      }
+      return found ? Number(found.id) : undefined
+    })
     .filter((id): id is number => id !== undefined)
 
   return {

@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const ProductRangesSection = () => {
   const categories = [
     { id: 1, name: "SOL ET SURFACE", image: "/images/Sol%20Et%20Surface.png" },
@@ -21,27 +23,31 @@ const ProductRangesSection = () => {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category) => (
-            <div
-              key={category.id}
-              className="bg-[#00bfff] rounded-xl shadow-md flex items-center h-32 hover:bg-[#00a8e6] transition-colors cursor-pointer group relative"
-            >
-              {/* Image Container */}
-              <div className="w-1/2 h-full flex justify-center items-center relative">
-                 <img
-                   src={category.image}
-                   alt={category.name}
-                   className="absolute h-40 w-auto object-contain z-10 drop-shadow-md group-hover:scale-110 transition-transform"
-                 />
-              </div>
+          {categories.map((category) => {
+            const slug = category.name.toLowerCase().replace(/ /g, '-').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return (
+              <Link
+                key={category.id}
+                to={`/produits/${slug}`}
+                className="bg-[#00bfff] rounded-xl shadow-md flex items-center h-32 hover:bg-[#00a8e6] transition-colors cursor-pointer group relative block"
+              >
+                {/* Image Container */}
+                <div className="w-1/2 h-full flex justify-center items-center relative">
+                   <img
+                     src={category.image}
+                     alt={category.name}
+                     className="absolute h-40 w-auto object-contain z-10 drop-shadow-md group-hover:scale-110 transition-transform"
+                   />
+                </div>
 
-              {/* Text Container */}
-              <div className="w-1/2 p-4 text-white relative z-10">
-                <p className="text-xs font-light mb-1 uppercase opacity-80">Gamme</p>
-                <h3 className="font-bold text-lg leading-tight uppercase">{category.name}</h3>
-              </div>
-            </div>
-          ))}
+                {/* Text Container */}
+                <div className="w-1/2 p-4 text-white relative z-10">
+                  <p className="text-xs font-light mb-1 uppercase opacity-80">Gamme</p>
+                  <h3 className="font-bold text-lg leading-tight uppercase">{category.name}</h3>
+                </div>
+              </Link>
+            )
+          })}
         </div>
       </div>
     </section>

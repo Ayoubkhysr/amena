@@ -171,6 +171,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const [totalElements, setTotalElements] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const revokePreview = (preview: string) => {
     if (preview.startsWith('blob:')) {
@@ -284,7 +285,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
       .catch((error) => console.error("Erreur lors de la recupération des produits:", error))
       .finally(() => setLoading(false))
 
-  }, [currentPage, search, searchCategory, sortBy, sortOrder, isListTableView, categories, activeSection])
+  }, [currentPage, search, searchCategory, sortBy, sortOrder, isListTableView, categories, activeSection, refreshTrigger])
 
   useEffect(() => {
     setCurrentPage(1)
@@ -444,6 +445,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                   pendingImageFile: newProductImageFile ?? undefined,
                 })
                 resetNewProductForm()
+                setRefreshTrigger(prev => prev + 1)
                 alert('Produit ajouté !')
               }
             }} className="rounded-xl bg-brand-blue px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-brand-light transition-colors">Enregistrer le produit</button>
@@ -923,6 +925,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                             }
                             setEditingId(null)
                             resetEditProductImage()
+                            setRefreshTrigger(prev => prev + 1)
                           }}
                           className="rounded-md bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light transition-colors"
                         >
@@ -1024,11 +1027,12 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                         <IconEye className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (!handleDeleteProduct) return
                           const confirmed = window.confirm(`Supprimer définitivement le produit "${product.name}" ?`)
                           if (!confirmed) return
-                          handleDeleteProduct(product.id)
+                          await handleDeleteProduct(product.id)
+                          setRefreshTrigger(prev => prev + 1)
                         }}
                         className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex"
                         title="Supprimer"

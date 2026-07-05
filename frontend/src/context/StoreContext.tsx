@@ -75,6 +75,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
 
     loadStore()
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadStore()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
   return (
