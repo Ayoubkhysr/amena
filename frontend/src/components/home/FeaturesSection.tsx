@@ -28,8 +28,8 @@ const FeaturesSection = () => {
           </div>
 
           {/* Arabic Title Graphic */}
-          <div className="absolute right-10 top-1/2 transform -translate-y-1/2 z-30">
-            <img src="/images/image 1.png" alt="El Amine" className="w-auto h-auto" />
+          <div className="absolute -right-32 top-1/2 transform -translate-y-1/2 z-40">
+            <img src="/images/image 1.png" alt="El Amine" className="w-auto h-auto max-w-xs" />
           </div>
         </div>
       </div>
