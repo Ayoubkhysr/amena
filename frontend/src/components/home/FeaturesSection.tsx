@@ -27,11 +27,9 @@ const FeaturesSection = () => {
              <img src="/images/pro3.png" alt="Product" className="h-40 w-auto" />
           </div>
 
-          {/* Arabic Title Graphic Placeholder */}
+          {/* Arabic Title Graphic */}
           <div className="absolute right-10 top-1/2 transform -translate-y-1/2 z-30">
-            <div className="bg-red-600 text-white text-3xl font-bold px-6 py-2 rounded shadow-xl border-b-4 border-r-4 border-blue-800 transform rotate-[-5deg]">
-              النظافة<br/>صنعتنا
-            </div>
+            <img src="/images/image 1.png" alt="El Amine" className="w-auto h-auto" />
           </div>
         </div>
       </div>
