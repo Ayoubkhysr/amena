@@ -23,11 +23,13 @@ const AboutHistorySection = () => {
           </div>
         </div>
 
-        {/* Right Image Placeholder */}
+        {/* Right Image */}
         <div className="w-full md:w-1/2 flex justify-center md:justify-end">
-          <div className="w-full max-w-md h-64 bg-gray-200 rounded-xl shadow-inner">
-            {/* Replace with actual image later */}
-          </div>
+          <img
+            src="/images/Rectangle 381.png"
+            alt="El Amine Products"
+            className="w-full max-w-md h-auto rounded-xl shadow-lg object-cover"
+          />
         </div>
 
       </div>

@@ -10,6 +10,9 @@ import MainLayout from './layouts/MainLayout'
 import ProduitsPage from './pages/ProduitsPage'
 import CategoryPage from './pages/CategoryPage'
 import AboutPage from './pages/AboutPage'
+import NosMagasinsPage from './pages/NosMagasinsPage'
+import PanierPage from './pages/PanierPage'
+import LivraisonPage from './pages/LivraisonPage'
 
 const router = createBrowserRouter([
   {
@@ -31,6 +34,18 @@ const router = createBrowserRouter([
       {
         path: '/a-propos',
         element: <AboutPage />,
+      },
+      {
+        path: '/nos-magasins',
+        element: <NosMagasinsPage />,
+      },
+      {
+        path: '/panier',
+        element: <PanierPage />,
+      },
+      {
+        path: '/livraison',
+        element: <LivraisonPage />,
       }
     ]
   },
