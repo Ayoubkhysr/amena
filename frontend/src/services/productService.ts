@@ -14,6 +14,7 @@ export type ApiProduct = {
   brand?: string
   weight?: number
   isActive?: boolean
+  stock?: number
   isFeatured?: boolean
   metaTitle?: string
   metaDescription?: string
@@ -33,6 +34,7 @@ export type ApiProductRequest = {
   brand?: string
   weight?: number
   isActive?: boolean
+  stock?: number
   isFeatured?: boolean
   metaTitle?: string
   metaDescription?: string
@@ -107,7 +109,7 @@ export function toUiProduct(api: ApiProduct, categories: Category[]): Product {
     category: mainCategory,
     subcategories,
     price: api.price,
-    stock: isActive ? 50 : 0,
+    stock: api.stock ?? 0,
     status: isActive ? 'Actif' : 'Inactif',
     description: api.description ?? '',
     imageUrl: resolveImageUrl(api.imageUrl),
@@ -121,7 +123,7 @@ export function toApiRequest(
 ): ApiProductRequest {
   const name = product.name?.trim() ?? ''
   const slug = existing?.slug || slugify(name) || `produit-${Date.now()}`
-  const sku = existing?.sku || slug.toUpperCase().replace(/-/g, '_').slice(0, 50) || `SKU-${Date.now()}`
+  const sku = product.sku?.trim() || existing?.sku || slug.toUpperCase().replace(/-/g, '_').slice(0, 50) || `SKU-${Date.now()}`
 
   const categoryId = product.category ? categoryNameToId(product.category, categories) : undefined
   
@@ -144,6 +146,7 @@ export function toApiRequest(
     categoryId,
     subcategoryIds,
     isActive: product.status !== 'Inactif',
+    stock: product.stock ?? 0,
     isFeatured: false,
   }
 }
@@ -169,8 +172,10 @@ export async function fetchProductsPage(
   size = 20,
   search?: string,
   categoryId?: number,
+  subcategoryId?: number,
   sortBy = 'createdAt',
-  sortOrder = 'desc'
+  sortOrder = 'desc',
+  maxStock?: number
 ): Promise<ProductPage> {
   const params = new URLSearchParams({
     page: page.toString(),
@@ -180,8 +185,16 @@ export async function fetchProductsPage(
   })
   if (search) params.append('search', search)
   if (categoryId) params.append('categoryId', categoryId.toString())
+  if (subcategoryId) params.append('subcategoryId', subcategoryId.toString())
+  if (maxStock !== undefined) params.append('maxStock', maxStock.toString())
 
   const res = await fetch(`${API_BASE}/api/products?${params.toString()}`)
+  if (!res.ok) await parseError(res)
+  return res.json()
+}
+
+export async function fetchProductById(id: number | string): Promise<ApiProduct> {
+  const res = await fetch(`${API_BASE}/api/products/${id}`)
   if (!res.ok) await parseError(res)
   return res.json()
 }

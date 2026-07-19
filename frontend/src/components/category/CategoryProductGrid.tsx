@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export interface ProductItem {
   id: number;
   name: string;
@@ -17,12 +19,12 @@ const CategoryProductGrid = ({ products }: CategoryProductGridProps) => {
     <div className="w-full">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
-          <div 
-            key={product.id} 
-            className="bg-white rounded-2xl p-4 flex flex-col items-center hover:shadow-lg transition-shadow cursor-pointer"
-            style={{ border: '1px solid #c2eaff' }}
-          >
-            {/* Image Container */}
+          <Link to={`/produit/${product.id}`} key={product.id} className="block">
+            <div 
+              className="bg-white rounded-2xl p-4 flex flex-col items-center hover:shadow-lg transition-shadow cursor-pointer h-full"
+              style={{ border: '1px solid #c2eaff' }}
+            >
+              {/* Image Container */}
             <div className="w-full h-56 flex justify-center items-center mb-4">
               <img src={product.image} alt={product.name} className="max-h-full object-contain" />
             </div>
@@ -43,6 +45,7 @@ const CategoryProductGrid = ({ products }: CategoryProductGridProps) => {
               <span className="font-bold text-[#007dd6] text-sm">{product.price}</span>
             </div>
           </div>
+          </Link>
         ))}
       </div>
     </div>

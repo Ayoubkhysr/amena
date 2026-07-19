@@ -27,6 +27,7 @@ public class UsersApiController implements UsersApi {
 
     private final UtilisateurRepository utilisateurRepository;
 
+    @Override
     public ResponseEntity<UserPage> getUsers(Integer page, Integer size, String search, String role, String sortBy,
             String sortOrder) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), sortBy);
@@ -107,6 +108,8 @@ public class UsersApiController implements UsersApi {
             utilisateur.setFirstName(request.getFirstName());
         if (request.getLastName() != null)
             utilisateur.setLastName(request.getLastName());
+        if (request.getPhone() != null)
+            utilisateur.setPhone(request.getPhone());
 
         Utilisateur updated = utilisateurRepository.save(utilisateur);
         return ResponseEntity.ok(toUserResponse(updated));
@@ -127,6 +130,7 @@ public class UsersApiController implements UsersApi {
         response.setEmail(utilisateur.getEmail());
         response.setFirstName(utilisateur.getFirstName());
         response.setLastName(utilisateur.getLastName());
+        response.setPhone(utilisateur.getPhone());
         if (utilisateur.getCreatedAt() != null) {
             response.setCreatedAt(
                     java.time.OffsetDateTime.of(utilisateur.getCreatedAt(), java.time.ZoneOffset.UTC));

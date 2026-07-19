@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-stock-to-produits
+      author: amena
+      changes:
+        - addColumn:
+            tableName: produits
+            columns:
+              - column:
+                  name: stock
+                  type: int
+                  defaultValueNumeric: 0

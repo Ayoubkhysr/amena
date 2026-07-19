@@ -8,8 +8,7 @@ export const AdminStores: React.FC = () => {
   // Form state
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState<string>('');
-  const [longitude, setLongitude] = useState<string>('');
+  const [coordinatesInput, setCoordinatesInput] = useState('');
   const [phone, setPhone] = useState('');
   const [hours, setHours] = useState('');
 
@@ -28,23 +27,70 @@ export const AdminStores: React.FC = () => {
     fetchStores();
   }, []);
 
+  const parseCoordinates = async (input: string): Promise<{ lat?: number; lng?: number }> => {
+    if (!input.trim()) return {};
+
+    // 1. Direct coordinates (ex: 35.6172, 10.9891)
+    const directMatch = input.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+    if (directMatch) {
+      return { lat: parseFloat(directMatch[1]), lng: parseFloat(directMatch[2]) };
+    }
+
+    // 2. Plus Code with Locality (ex: "JXCV+7W4, Bekalta")
+    if (input.includes('+') && input.includes(',')) {
+      const parts = input.split(',');
+      const code = parts[0].trim();
+      const locality = parts.slice(1).join(',').trim();
+      
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locality)}&format=json`);
+        const data = await response.json();
+        if (data && data.length > 0) {
+          const refLat = parseFloat(data[0].lat);
+          const refLng = parseFloat(data[0].lon);
+          
+          const OpenLocationCode = (await import('open-location-code')).OpenLocationCode;
+          const olc = new OpenLocationCode();
+          const fullCode = olc.recoverNearest(code, refLat, refLng);
+          const decoded = olc.decode(fullCode);
+          return { lat: decoded.latitudeCenter, lng: decoded.longitudeCenter };
+        }
+      } catch (e) {
+        console.error("Geocoding failed", e);
+      }
+    }
+
+    // 3. Google Maps URL (ex: .../@35.6172,10.9891,...)
+    const urlMatch = input.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (urlMatch) {
+      return { lat: parseFloat(urlMatch[1]), lng: parseFloat(urlMatch[2]) };
+    }
+
+    return {};
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
+      const { lat, lng } = await parseCoordinates(coordinatesInput);
+
       await storesService.createStore({
         name,
         address,
-        latitude: parseFloat(latitude) || undefined,
-        longitude: parseFloat(longitude) || undefined,
+        latitude: lat,
+        longitude: lng,
         phone,
         hours
       });
       // Reset form
-      setName(''); setAddress(''); setLatitude(''); setLongitude(''); setPhone(''); setHours('');
-      fetchStores();
+      setName(''); setAddress(''); setCoordinatesInput(''); setPhone(''); setHours('');
+      await fetchStores();
     } catch (err) {
       console.error('Failed to create store', err);
       alert('Erreur lors de la création');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,13 +121,9 @@ export const AdminStores: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
             <input required type="text" value={address} onChange={e => setAddress(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Latitude (GPS)</label>
-            <input type="number" step="any" value={latitude} onChange={e => setLatitude(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Longitude (GPS)</label>
-            <input type="number" step="any" value={longitude} onChange={e => setLongitude(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Coordonnées / Code Plus (Google Maps)</label>
+            <input type="text" value={coordinatesInput} onChange={e => setCoordinatesInput(e.target.value)} placeholder="Ex: JXCV+7W4, Bekalta ou 35.617, 10.989" className="w-full px-3 py-2 border rounded-lg focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>

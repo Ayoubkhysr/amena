@@ -55,7 +55,8 @@ public class CategoriesApiController implements CategoriesApi {
         }
 
         validateUniqueNameForParent(categoryRequest.getName(), categoryRequest.getParentId(), categoryId);
-        String slug = resolveUniqueSlug(categoryRequest.getName(), categoryRequest.getSlug(), categorie.getSlug(), categoryId);
+        String slug = resolveUniqueSlug(categoryRequest.getName(), categoryRequest.getSlug(), categorie.getSlug(),
+                categoryId);
         applyRequest(categorie, categoryRequest, slug);
 
         Categorie updated = categorieRepository.save(categorie);
@@ -74,7 +75,8 @@ public class CategoriesApiController implements CategoriesApi {
     private void validateUniqueNameForParent(String name, Long parentId, Long excludeId) {
         categorieRepository.findByNameAndParentId(name, parentId).ifPresent(existing -> {
             if (excludeId == null || !existing.getId().equals(excludeId)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Category name already exists under this parent: " + name);
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Category name already exists under this parent: " + name);
             }
         });
     }
@@ -146,10 +148,10 @@ public class CategoriesApiController implements CategoriesApi {
         response.setIsActive(categorie.getIsActive());
         response.setSortOrder(categorie.getSortOrder());
         response.setCreatedAt(categorie.getCreatedAt());
-        
+
         long count = produitRepository.countByCategoryId(categorie.getId());
         response.setProductCount((int) count);
-        
+
         return response;
     }
 }

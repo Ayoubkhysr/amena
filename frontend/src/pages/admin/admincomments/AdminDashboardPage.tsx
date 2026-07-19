@@ -28,6 +28,7 @@ import { AdminContenu, Banner, StaticPage } from '../admincontenu/AdminContenu'
 import { AdminPromotions, PromoCode, Offre } from '../adminpromotions/AdminPromotions'
 import { AdminRapports } from '../adminrapports/AdminRapports'
 import { AdminParametres } from '../adminparametres/AdminParametres'
+import { AdminStores } from '../adminstores/AdminStores'
 
 import { useStore, Product } from '../../../context/StoreContext'
 import {
@@ -45,7 +46,7 @@ import {
   findCategoryByName,
   updateCategory,
 } from '../../../services/categoryService'
-import { fetchOrders, toUiOrder, updateOrderStatus } from '../../../services/orderService'
+import { fetchOrders, toUiOrder, updateOrderStatus, deleteOrderApi } from '../../../services/orderService'
 import {
   fetchCoupons,
   createCoupon,
@@ -62,6 +63,12 @@ import {
   toUiOffre,
   toApiOffreRequest,
 } from '../../../services/offreService'
+import {
+  createBanner,
+  updateBanner,
+  deleteBanner as deleteBannerApi,
+  uploadBannerImage,
+} from '../../../services/bannerService'
 
 type AdminSection =
   | 'dashboard-vue-generale'
@@ -73,6 +80,7 @@ type AdminSection =
   | 'contenu-bannieres' | 'contenu-pages'
   | 'rapports-ventes' | 'rapports-produits'
   | 'parametres-infos' | 'parametres-paiement' | 'parametres-livraison'
+  | 'stores-gestion'
 
 
 const SECTION_META: Record<AdminSection, { title: string; subtitle: string }> = {
@@ -100,6 +108,7 @@ const SECTION_META: Record<AdminSection, { title: string; subtitle: string }> = 
   'parametres-infos': { title: 'Infos de la boutique', subtitle: 'Nom, adresses, contacts.' },
   'parametres-paiement': { title: 'Modes de paiement', subtitle: 'Configuration des paiements.' },
   'parametres-livraison': { title: 'Livraison & zones', subtitle: 'Tarifs et méthodes de livraison.' },
+  'stores-gestion': { title: 'Points de vente', subtitle: 'Gérer les magasins et leurs horaires.' },
 }
 
 const PRODUITS_KEYS: AdminSection[] = ['produits-liste', 'produits-ajouter', 'produits-categories', 'produits-rupture']
@@ -109,7 +118,7 @@ const AVIS_KEYS: AdminSection[] = ['avis-tous', 'avis-attente', 'avis-approuves'
 const PROMOS_KEYS: AdminSection[] = ['promos-codes', 'promos-offres']
 const CONTENU_KEYS: AdminSection[] = ['contenu-bannieres', 'contenu-pages']
 const RAPPORTS_KEYS: AdminSection[] = ['rapports-ventes', 'rapports-produits']
-const PARAM_KEYS: AdminSection[] = ['parametres-infos', 'parametres-paiement', 'parametres-livraison']
+const PARAM_KEYS: AdminSection[] = ['parametres-infos', 'parametres-paiement', 'parametres-livraison', 'stores-gestion']
 
 function AdminDashboardPage() {
   const [activeSection, setActiveSection] = useState<AdminSection>(() => {
@@ -221,12 +230,48 @@ function AdminDashboardPage() {
     setReviews(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r))
   }
 
-  const handleEditBanner = (updatedBanner: Banner) => {
-    setBanners(prev => prev.map(b => b.id === updatedBanner.id ? updatedBanner : b))
+  const handleEditBanner = async (updatedBanner: Banner) => {
+    try {
+      let imageUrl = updatedBanner.imageUrl
+      if (updatedBanner.pendingImageFile) {
+        imageUrl = await uploadBannerImage(updatedBanner.pendingImageFile)
+      }
+      const saved = await updateBanner(updatedBanner.id, {
+        ...updatedBanner,
+        imageUrl,
+      })
+      setBanners(prev => prev.map(b => b.id === saved.id ? saved : b))
+    } catch (error) {
+      console.warn('Erreur lors de la modification de la bannière:', error)
+      alert('Impossible de modifier la bannière.')
+    }
   }
 
-  const handleAddBanner = (newBanner: Banner) => {
-    setBanners(prev => [...prev, newBanner])
+  const handleAddBanner = async (newBanner: Banner) => {
+    try {
+      let imageUrl = newBanner.imageUrl
+      if (newBanner.pendingImageFile) {
+        imageUrl = await uploadBannerImage(newBanner.pendingImageFile)
+      }
+      const saved = await createBanner({
+        ...newBanner,
+        imageUrl,
+      })
+      setBanners(prev => [...prev, saved])
+    } catch (error) {
+      console.warn('Erreur lors de la création de la bannière:', error)
+      alert('Impossible de créer la bannière.')
+    }
+  }
+
+  const handleDeleteBanner = async (id: string) => {
+    try {
+      await deleteBannerApi(id)
+      setBanners(prev => prev.filter(b => b.id !== id))
+    } catch (error) {
+      console.warn('Erreur lors de la suppression de la bannière:', error)
+      alert('Impossible de supprimer la bannière.')
+    }
   }
 
   const handleEditPage = (updatedPage: StaticPage) => {
@@ -291,6 +336,17 @@ function AdminDashboardPage() {
     } catch (error) {
       console.warn('Erreur lors de la suppression du produit:', error)
       alert('Impossible de supprimer le produit. Vérifiez que le backend est démarré.')
+    }
+  }
+
+  const handleDeleteOrder = async (orderId: number) => {
+    if (!window.confirm('Voulez-vous vraiment supprimer cette commande ?')) return
+    try {
+      await deleteOrderApi(orderId)
+      setOrders((prev) => prev.filter((o) => o.id !== orderId))
+    } catch (error) {
+      console.warn('Erreur lors de la suppression de la commande:', error)
+      alert('Impossible de supprimer la commande.')
     }
   }
 
@@ -594,6 +650,7 @@ function AdminDashboardPage() {
                   <NavLeaf sectionKey="parametres-infos" label="Infos de la boutique" Icon={IconSettings} />
                   <NavLeaf sectionKey="parametres-paiement" label="Modes de paiement" Icon={IconTag} />
                   <NavLeaf sectionKey="parametres-livraison" label="Livraison & zones" Icon={IconArchive} />
+                  <NavLeaf sectionKey="stores-gestion" label="Points de vente" Icon={IconClipboard} />
                 </div>
               )}
             </div>
@@ -748,7 +805,10 @@ function AdminDashboardPage() {
                   handleEditCategory={handleEditCategory}
                 />
               ) : COMMANDES_KEYS.includes(activeSection) ? (
-                <AdminCommandes activeSection={activeSection} />
+                <AdminCommandes 
+                  activeSection={activeSection} 
+                  handleDeleteOrder={handleDeleteOrder} 
+                />
               ) : CLIENTS_KEYS.includes(activeSection) ? (
                 <AdminClients clients={clients} activeSection={activeSection} orders={orders} handleEditClient={handleEditClient} />
               ) : AVIS_KEYS.includes(activeSection) ? (
@@ -765,6 +825,7 @@ function AdminDashboardPage() {
                   handleEditBanner={handleEditBanner}
                   handleEditPage={handleEditPage}
                   handleAddBanner={handleAddBanner}
+                  handleDeleteBanner={handleDeleteBanner}
                   handleAddPage={handleAddPage}
                 />
               ) : PROMOS_KEYS.includes(activeSection) ? (
@@ -786,6 +847,8 @@ function AdminDashboardPage() {
                   orders={orders}
                   products={products}
                 />
+              ) : activeSection === 'stores-gestion' ? (
+                <AdminStores />
               ) : PARAM_KEYS.includes(activeSection) ? (
                 <AdminParametres activeSection={activeSection} />
               ) : null}

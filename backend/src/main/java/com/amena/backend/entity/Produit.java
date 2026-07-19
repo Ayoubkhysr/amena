@@ -71,6 +71,10 @@ public class Produit {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "stock")
+    @Builder.Default
+    private Integer stock = 0;
+
     @Column(name = "is_featured")
     @Builder.Default
     private Boolean isFeatured = false;

@@ -131,6 +131,7 @@ export function AdminPromotions({
                   </td>
                   <td className="px-4 py-3">
                     <input type="date" value={newCodeForm.expiresAt}
+                      min={new Date().toISOString().split('T')[0]}
                       onChange={e => setNewCodeForm({ ...newCodeForm, expiresAt: e.target.value })}
                       className={INPUT} />
                   </td>
@@ -176,6 +177,7 @@ export function AdminPromotions({
                       </td>
                       <td className="px-4 py-3">
                         <input type="date" value={editCodeForm.expiresAt}
+                          min={new Date().toISOString().split('T')[0]}
                           onChange={e => setEditCodeForm({ ...editCodeForm, expiresAt: e.target.value })}
                           className={INPUT} />
                       </td>

@@ -71,45 +71,47 @@ const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySid
           Filtres principaux
         </h3>
         
-        {/* Categories / Options */}
-        {filters.map((filter, idx) => (
-          <div key={idx}>
-            <h4 className="text-xs font-semibold text-gray-700 mb-3">{filter.title}</h4>
-            <div className="space-y-2">
-              {filter.options.map((option, i) => (
-                <label key={i} className="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
-                    checked={selected[filter.title]?.includes(option) || false}
-                    onChange={(e) => handleCheckboxChange(filter.title, option, e.target.checked)}
-                  />
-                  <span>{option}</span>
-                </label>
-              ))}
+        <div className="space-y-8">
+          {/* Categories / Options */}
+          {filters.map((filter, idx) => (
+            <div key={idx}>
+              <h4 className="text-sm font-semibold text-gray-700 mb-4">{filter.title}</h4>
+              <div className="space-y-3">
+                {filter.options.map((option, i) => (
+                  <label key={i} className="flex items-center space-x-3 text-sm text-gray-600 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 w-4 h-4"
+                      checked={selected[filter.title]?.includes(option) || false}
+                      onChange={(e) => handleCheckboxChange(filter.title, option, e.target.checked)}
+                    />
+                    <span>{option}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {/* Prix */}
-        <div>
-          <h4 className="text-xs font-semibold text-gray-700 mb-3">Prix</h4>
-          <div className="flex items-center space-x-2">
-            <input 
-              type="number" 
-              placeholder="Min" 
-              value={minPrice}
-              onChange={handleMinPriceChange}
-              className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
-            />
-            <span className="text-gray-400">-</span>
-            <input 
-              type="number" 
-              placeholder="Max" 
-              value={maxPrice}
-              onChange={handleMaxPriceChange}
-              className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
-            />
+          {/* Prix */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-4">Prix</h4>
+            <div className="flex items-center space-x-3">
+              <input 
+                type="number" 
+                placeholder="Min" 
+                value={minPrice}
+                onChange={handleMinPriceChange}
+                className="w-20 px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
+              />
+              <span className="text-gray-400">-</span>
+              <input 
+                type="number" 
+                placeholder="Max" 
+                value={maxPrice}
+                onChange={handleMaxPriceChange}
+                className="w-20 px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
+              />
+            </div>
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { IconImage, IconEye, IconArchive } from '../../../components/admin'
+import { AdminAboutForm } from './AdminAboutForm'
 
 export type Banner = {
   id: string
@@ -8,6 +9,7 @@ export type Banner = {
   targetUrl: string
   position: number
   status: 'Actif' | 'Inactif'
+  pendingImageFile?: File
 }
 
 export type StaticPage = {
@@ -25,10 +27,11 @@ export type AdminContenuProps = {
   handleEditBanner?: (b: Banner) => void
   handleEditPage?: (p: StaticPage) => void
   handleAddBanner?: (b: Banner) => void
+  handleDeleteBanner?: (id: string) => void
   handleAddPage?: (p: StaticPage) => void
 }
 
-export function AdminContenu({ activeSection, banners, staticPages, handleEditBanner, handleEditPage, handleAddBanner, handleAddPage }: AdminContenuProps) {
+export function AdminContenu({ activeSection, banners, staticPages, handleEditBanner, handleEditPage, handleAddBanner, handleDeleteBanner, handleAddPage }: AdminContenuProps) {
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null)
   const [editingPageId, setEditingPageId] = useState<string | null>(null)
   const [editBannerForm, setEditBannerForm] = useState<Banner | null>(null)
@@ -90,6 +93,16 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                         value={newBannerForm.imageUrl} 
                         onChange={(e) => setNewBannerForm({...newBannerForm, imageUrl: e.target.value})}
                         className="w-full rounded-md border border-slate-300 px-2 py-1 text-sm focus:border-brand-blue focus:outline-none"
+                      />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setNewBannerForm({...newBannerForm, pendingImageFile: e.target.files[0]})
+                          }
+                        }}
+                        className="w-full text-xs"
                       />
                     </div>
                   </td>
@@ -163,6 +176,16 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                             value={editBannerForm.imageUrl} 
                             onChange={(e) => setEditBannerForm({...editBannerForm, imageUrl: e.target.value})}
                             className="w-full rounded-md border border-slate-300 px-2 py-1 text-sm focus:border-brand-blue focus:outline-none"
+                          />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setEditBannerForm({...editBannerForm, pendingImageFile: e.target.files[0]})
+                              }
+                            }}
+                            className="w-full text-xs"
                           />
                         </div>
                       </td>
@@ -250,7 +273,13 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                         >
                           <IconEye className="h-4 w-4" />
                         </button>
-                        <button className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Archiver">
+                        <button 
+                          onClick={() => {
+                            if (window.confirm('Voulez-vous vraiment supprimer cette bannière ?')) {
+                              if (handleDeleteBanner) handleDeleteBanner(banner.id)
+                            }
+                          }}
+                          className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Archiver">
                           <IconArchive className="h-4 w-4" />
                         </button>
                       </div>
@@ -267,12 +296,15 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
 
   if (activeSection === 'contenu-pages') {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm animate-admin-panel-in">
-        <header className="mb-6 flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-brand-blue uppercase tracking-wider">Pages statiques</h3>
-            <p className="mt-1 text-xs text-slate-500">Gérez le contenu des pages informatives (À propos, CGV, etc.).</p>
-          </div>
+      <div className="space-y-8 animate-admin-panel-in">
+        <AdminAboutForm />
+        
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <header className="mb-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-brand-blue uppercase tracking-wider">Pages statiques</h3>
+              <p className="mt-1 text-xs text-slate-500">Gérez le contenu des pages informatives (À propos, CGV, etc.).</p>
+            </div>
           <button 
             onClick={() => {
               setIsAddingPage(true)
@@ -443,6 +475,7 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
               })}
             </tbody>
           </table>
+        </div>
         </div>
       </div>
     )

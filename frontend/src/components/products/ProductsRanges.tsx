@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 const ProductsRanges = () => {
   const categories = [
     { id: 1, name: "SOL ET SURFACE", slug: "sol-et-surface", image: "/images/Sol%20Et%20Surface.png" },
-    { id: 2, name: "LESSIVE LINGE", slug: "lessive", image: "/images/lessive.png" },
+    { id: 2, name: "LESSIVE LINGE", slug: "lessive-linge", image: "/images/lessive.png" },
     { id: 3, name: "NETTOYANT", slug: "nettoyant", image: "/images/Gamme%20%20NETTOYANT.png" },
-    { id: 4, name: "VAISELLE", slug: "vaisselle", image: "/images/Gamme%20%20VAISSELLE.png" },
-    { id: 5, name: "DESODORISANTS", slug: "desodorisants", image: "/images/Desodorisants.png" },
-    { id: 6, name: "OUTILS DE NETTOYAGE", slug: "outils", image: "/images/Gamme%20%20ENTRETIEN%20NETTOYAGE.png" },
+    { id: 4, name: "VAISSELLE", slug: "vaisselle", image: "/images/Gamme%20%20VAISSELLE.png" },
+    { id: 5, name: "DÉSODORISANTS", slug: "desodorisants", image: "/images/Desodorisants.png" },
+    { id: 6, name: "OUTILS DE NETTOYAGE", slug: "outils-de-nettoyage", image: "/images/Gamme%20%20ENTRETIEN%20NETTOYAGE.png" },
   ];
 
   return (

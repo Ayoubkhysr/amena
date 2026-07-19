@@ -18,25 +18,19 @@ type OrderType = {
   total: number
   statut: 'En attente' | 'Préparée' | 'Livrée' | string
   date: string
+  clientPhone?: string
 }
 
 
 
-type ClientSortKey = 'id' | 'name' | 'date' | 'status'
+type ClientSortKey = 'name' | 'status'
 type SortOrder = 'asc' | 'desc'
 
 const compareClients = (a: Client, b: Client, sortBy: ClientSortKey, order: SortOrder) => {
   let cmp = 0
   switch (sortBy) {
-    case 'id':
-      cmp = a.id.localeCompare(b.id, 'fr', { numeric: true, sensitivity: 'base' })
-      break
     case 'name':
       cmp = a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
-      break
-    case 'date':
-      cmp = new Date(a.registrationDate).getTime() - new Date(b.registrationDate).getTime()
-      if (isNaN(cmp)) cmp = a.registrationDate.localeCompare(b.registrationDate)
       break
     case 'status':
       cmp = a.status.localeCompare(b.status, 'fr', { sensitivity: 'base' })
@@ -99,9 +93,7 @@ function ClientsListToolbar({
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-600">Trier par</label>
           <select value={sortBy} onChange={(e) => onSortByChange(e.target.value as ClientSortKey)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none">
-            <option value="date">Date d'inscription</option>
             <option value="name">Nom</option>
-            <option value="id">ID</option>
             <option value="status">Statut</option>
           </select>
         </div>
@@ -127,7 +119,7 @@ export function AdminClients({ activeSection, orders, handleEditClient }: { acti
   const [searchName, setSearchName] = useState('')
   const [searchEmail, setSearchEmail] = useState('')
   const [searchStatus, setSearchStatus] = useState('')
-  const [sortBy, setSortBy] = useState<ClientSortKey>('date')
+  const [sortBy, setSortBy] = useState<ClientSortKey>('name')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
   const [currentPage, setCurrentPage] = useState(1)
@@ -144,20 +136,56 @@ export function AdminClients({ activeSection, orders, handleEditClient }: { acti
     if (!isClientsList) return
     setLoading(true)
 
-    const apiSortBy = sortBy === 'date' ? 'createdAt' : sortBy === 'name' ? 'firstName' : 'id'
     const searchQuery = searchName.trim() || searchEmail.trim() || undefined
-    const apiRole = searchStatus || undefined // we mapped 'Actif' / 'Inactif' in backend
+    const apiRole = searchStatus || undefined
 
-    fetchUsersPage(currentPage - 1, itemsPerPage, searchQuery, apiRole, apiSortBy, sortOrder)
-      .then(page => {
-        setServerClients(page.content.map(toUiClient))
-        setTotalElements(page.totalElements)
-        setTotalPages(page.totalPages)
-      })
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false))
+    const orderClientsMap = new Map<string, Client>()
+    orders.forEach(o => {
+      const nameKey = o.client.toLowerCase()
+      if (!orderClientsMap.has(nameKey)) {
+        orderClientsMap.set(nameKey, {
+          id: `guest-${o.id}`,
+          name: o.client,
+          email: 'Client invité',
+          phone: o.clientPhone || '—',
+          registrationDate: o.date,
+          status: 'Actif',
+          totalOrders: 0,
+          totalSpent: 0
+        })
+      }
+      const c = orderClientsMap.get(nameKey)!
+      c.totalOrders += 1
+      c.totalSpent += o.total
+    })
 
-  }, [currentPage, searchName, searchEmail, searchStatus, sortBy, sortOrder, isClientsList])
+    let allClients = Array.from(orderClientsMap.values())
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      allClients = allClients.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q) || c.email.toLowerCase().includes(q))
+    }
+    if (apiRole) {
+      allClients = allClients.filter(c => c.status === apiRole)
+    }
+
+    allClients.sort((a, b) => {
+      let cmp = 0
+      if (sortBy === 'name') cmp = a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+      else if (sortBy === 'status') cmp = a.status.localeCompare(b.status, 'fr', { sensitivity: 'base' })
+      return sortOrder === 'asc' ? cmp : -cmp
+    })
+
+    setTotalElements(allClients.length)
+    setTotalPages(Math.ceil(allClients.length / itemsPerPage))
+    
+    const startIdx = (currentPage - 1) * itemsPerPage
+    const pagedClients = allClients.slice(startIdx, startIdx + itemsPerPage)
+
+    setServerClients(pagedClients)
+    setLoading(false)
+
+  }, [currentPage, searchName, searchEmail, searchStatus, sortBy, sortOrder, isClientsList, orders])
 
   useEffect(() => {
     setCurrentPage(1)
@@ -168,7 +196,7 @@ export function AdminClients({ activeSection, orders, handleEditClient }: { acti
     setSearchName('')
     setSearchEmail('')
     setSearchStatus('')
-    setSortBy('date')
+    setSortBy('name')
     setSortOrder('desc')
   }
 
@@ -231,24 +259,22 @@ export function AdminClients({ activeSection, orders, handleEditClient }: { acti
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 bg-slate-50">
-                <th className="px-4 py-3 rounded-tl-lg">ID</th>
-                <th className="px-4 py-3">Client</th>
-                <th className="px-4 py-3">Contact</th>
-                <th className="px-4 py-3">Inscription</th>
+                <th className="px-4 py-3 rounded-tl-lg">Client</th>
+                <th className="px-4 py-3">Numéro / Contact</th>
+                <th className="px-4 py-3">Historique d'achat</th>
                 <th className="px-4 py-3">Statut</th>
                 <th className="px-4 py-3 text-right rounded-tr-lg">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chargement des données...</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">Chargement des données...</td></tr>
               ) : serverClients.map((client) => {
                 const isEditing = editingId === client.id;
                 
                 if (isEditing && editForm) {
                   return (
                   <tr key={client.id} className="border-b border-slate-200 bg-brand-blue/5">
-                    <td className="px-4 py-4 font-semibold text-brand-blue">{client.id}</td>
                     <td className="px-4 py-4">
                       <input 
                         type="text" 
@@ -272,7 +298,10 @@ export function AdminClients({ activeSection, orders, handleEditClient }: { acti
                         placeholder="Téléphone"
                       />
                     </td>
-                    <td className="px-4 py-4 text-slate-600">{client.registrationDate}</td>
+                    <td className="px-4 py-4 text-slate-600">
+                      <p className="font-semibold text-brand-blue">{client.totalOrders} cmd(s)</p>
+                      <p className="text-xs text-slate-500">{client.totalSpent} TND</p>
+                    </td>
                     <td className="px-4 py-4">
                       <select 
                         value={editForm.status}
@@ -308,13 +337,15 @@ export function AdminClients({ activeSection, orders, handleEditClient }: { acti
 
                 return (
                 <tr key={client.id} className="border-b border-slate-100 last:border-none transition duration-150 hover:bg-slate-50">
-                  <td className="px-4 py-4 font-semibold text-brand-blue">{client.id}</td>
                   <td className="px-4 py-4 text-slate-700 font-medium">{client.name}</td>
                   <td className="px-4 py-4">
-                    <p className="text-slate-700 font-semibold">{client.email}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{client.phone}</p>
+                    <p className="text-slate-700 font-semibold">{client.phone}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{client.email}</p>
                   </td>
-                  <td className="px-4 py-4 text-slate-600">{client.registrationDate}</td>
+                  <td className="px-4 py-4">
+                    <p className="font-bold text-brand-blue">{client.totalOrders} commandes</p>
+                    <p className="text-sm font-semibold text-green-600">{client.totalSpent} TND</p>
+                  </td>
                   <td className="px-4 py-4">
                     <span className={`rounded-full px-2.5 py-1 text-[11px] uppercase font-extrabold ${
                       client.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'

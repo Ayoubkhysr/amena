@@ -1,14 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-
-interface CartItem {
-  id: number
-  name: string
-  category: string
-  price: number
-  quantity: number
-  image: string
-}
+import { useCart } from '../context/CartContext'
+import { createOrder, CreateOrderRequest } from '../services/orderService'
+import { fetchCoupons } from '../services/couponService'
 
 function LivraisonPage() {
   const [formData, setFormData] = useState({
@@ -22,39 +16,108 @@ function LivraisonPage() {
 
   const [shippingMethod, setShippingMethod] = useState('standard')
   const [paymentMethod, setPaymentMethod] = useState('livraison')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [orderSuccess, setOrderSuccess] = useState<string | null>(null)
 
-  const cartItems: CartItem[] = [
-    {
-      id: 1,
-      name: 'Ezzahra',
-      category: 'Gel machine automatique',
-      price: 174000,
-      quantity: 12,
-      image: '/images/ffffffffff 1.png',
-    },
-    {
-      id: 2,
-      name: 'Extra +',
-      category: 'Liquide vaisselle',
-      price: 105000,
-      quantity: 12,
-      image: '/images/rect.png',
-    },
-  ]
+  const { cartItems, updateQuantity, subtotal, clearCart, appliedPromo, applyPromo, removePromo } = useCart()
+  
+  const [isPromoOpen, setIsPromoOpen] = useState(false)
+  const [promoInput, setPromoInput] = useState('')
+  const [promoError, setPromoError] = useState<string | null>(null)
 
-  const updateQuantity = (id: number, delta: number) => {
-    // Logic to update quantity
+  const discountAmount = appliedPromo ? (subtotal * appliedPromo.discountValue) / 100 : 0
+  const shippingThreshold = 150
+  const freeShipping = subtotal >= shippingThreshold
+  const shippingCost = subtotal === 0 ? 0 : (shippingMethod === 'standard' ? (freeShipping ? 0 : 8) : 0)
+  const total = subtotal - discountAmount + shippingCost
+
+  const handleApplyPromo = async () => {
+    try {
+      setPromoError(null)
+      const coupons = await fetchCoupons()
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      const validCoupon = coupons.find(c => {
+        if (c.code !== promoInput || !c.isActive) return false
+        if (c.expiresAt) {
+          const expDate = new Date(c.expiresAt)
+          if (expDate < today) return false
+        }
+        return true
+      })
+      
+      if (validCoupon) {
+        if (validCoupon.usageLimit && (validCoupon.usedCount || 0) >= validCoupon.usageLimit) {
+          setPromoError("La limite d'utilisation de ce code est atteinte")
+        } else {
+          applyPromo(validCoupon.code, validCoupon.discountValue)
+          setPromoInput('')
+          setIsPromoOpen(false)
+        }
+      } else {
+        setPromoError('Code invalide ou expiré')
+      }
+    } catch (e) {
+      setPromoError('Erreur de validation')
+    }
   }
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shippingCost = shippingMethod === 'standard' ? 8000 : 0
-  const total = subtotal + shippingCost
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     })
+  }
+
+  const handleOrderSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    if (cartItems.length === 0) return
+
+    setIsSubmitting(true)
+    try {
+      const req: CreateOrderRequest = {
+        clientInfo: `Client: ${formData.prenom} ${formData.nom}\nAdresse: ${formData.adresse}, ${formData.ville} ${formData.codePostal}\nTel: ${formData.telephone}`,
+        subtotal,
+        shippingAmount: shippingCost,
+        discountAmount: discountAmount,
+        totalAmount: total,
+        couponCode: appliedPromo?.code,
+        items: cartItems.map(item => ({
+          productId: item.id,
+          productName: item.name,
+          quantity: item.quantity,
+          unitPrice: item.price
+        }))
+      }
+
+      const order = await createOrder(req)
+      clearCart()
+      setOrderSuccess(order.orderNumber)
+    } catch (e) {
+      alert("Erreur lors de la création de la commande")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (orderSuccess) {
+    return (
+      <div className="w-full min-h-[70vh] bg-white flex flex-col items-center justify-center py-20">
+        <div className="bg-white p-12 rounded-2xl flex flex-col items-center max-w-lg w-full text-center">
+          <div className="w-24 h-24 rounded-full border-2 border-green-500 flex items-center justify-center mb-8">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl text-gray-900 mb-4">Votre commande a été complétée avec succès !</h2>
+          <p className="text-xl font-bold text-gray-900 mb-8">Commande: #{orderSuccess}</p>
+          <Link to="/" className="px-8 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition-colors">
+            Continuer vos achats
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -66,15 +129,9 @@ function LivraisonPage() {
             Accueil
           </Link>
           <span className="mx-2">{'>'}</span>
-          <Link to="/produits" className="hover:text-blue-600">
-            Nos Gammes des Produits
+          <Link to="/panier" className="hover:text-blue-600">
+            Panier
           </Link>
-          <span className="mx-2">{'>'}</span>
-          <Link to="/produits/lessive" className="hover:text-blue-600">
-            Lessive de linge
-          </Link>
-          <span className="mx-2">{'>'}</span>
-          <span className="text-gray-700">Gel machine El Ezzahra</span>
           <span className="mx-2">{'>'}</span>
           <span className="font-semibold text-gray-900">Paiement</span>
         </div>
@@ -87,21 +144,24 @@ function LivraisonPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-8">Livraison</h1>
 
-            {/* Delivery Information Form */}
-            <div className="space-y-4 mb-8">
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="prenom"
-                  placeholder="Prénom"
-                  value={formData.prenom}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
-                />
+            <form onSubmit={handleOrderSubmit}>
+              {/* Delivery Information Form */}
+              <div className="space-y-4 mb-8">
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    name="prenom"
+                    placeholder="Prénom *"
+                    required
+                    value={formData.prenom}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
+                  />
                 <input
                   type="text"
                   name="nom"
-                  placeholder="Nom"
+                  placeholder="Nom *"
+                  required
                   value={formData.nom}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
@@ -111,7 +171,8 @@ function LivraisonPage() {
               <input
                 type="text"
                 name="adresse"
-                placeholder="Adresse"
+                placeholder="Adresse *"
+                required
                 value={formData.adresse}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
@@ -129,7 +190,8 @@ function LivraisonPage() {
                 <input
                   type="text"
                   name="ville"
-                  placeholder="Ville"
+                  placeholder="Ville *"
+                  required
                   value={formData.ville}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
@@ -139,7 +201,8 @@ function LivraisonPage() {
               <input
                 type="tel"
                 name="telephone"
-                placeholder="Téléphone"
+                placeholder="Téléphone *"
+                required
                 value={formData.telephone}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
@@ -161,7 +224,7 @@ function LivraisonPage() {
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Frais de Livraison</span>
-                    <span className="font-bold">8 DT</span>
+                    <span className="font-bold">{freeShipping ? "Gratuit" : "8 DT"}</span>
                   </div>
                 </button>
               </div>
@@ -184,24 +247,33 @@ function LivraisonPage() {
 
             {/* Buy Now Button */}
             <div className="flex justify-center mb-8">
-              <button className="px-12 py-3 bg-white border-2 border-blue-500 text-blue-600 font-bold rounded-full hover:bg-blue-50 transition-colors flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
-                  />
-                </svg>
-                Acheter maintenant
+              <button
+                type="submit"
+                disabled={isSubmitting || cartItems.length === 0}
+                className="px-12 py-3 bg-white border-2 border-blue-500 text-blue-600 font-bold rounded-full hover:bg-blue-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                    />
+                  </svg>
+                )}
+                {isSubmitting ? "Traitement..." : "Acheter maintenant"}
               </button>
             </div>
+            </form>
 
             {/* Features */}
             <div className="grid grid-cols-3 gap-8 text-center">
@@ -322,7 +394,7 @@ function LivraisonPage() {
                     {/* Price */}
                     <div className="text-right">
                       <p className="font-bold text-gray-900">
-                        {(item.price / 1000).toFixed(3)}DT
+                        {(item.price * item.quantity).toFixed(3)}DT
                       </p>
                     </div>
                   </div>
@@ -334,45 +406,85 @@ function LivraisonPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Sous-total:</span>
                   <span className="font-bold text-gray-900">
-                    {(subtotal / 1000).toFixed(3)}Dt
+                    {subtotal.toFixed(3)}Dt
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center pb-4 border-b border-gray-300">
-                  <span className="text-sm text-gray-600">Frais de port:</span>
-                  <div className="text-right">
-                    <select className="text-sm text-gray-600 border-none focus:outline-none cursor-pointer bg-transparent">
-                      <option>Selon le mode de livraison</option>
-                    </select>
+                  <span className="text-sm text-gray-600">Frais de livraison:</span>
+                  <div className="text-right font-bold text-gray-900">
+                    {subtotal === 0 ? "0.000Dt" : (freeShipping ? "Gratuit" : "8.000Dt")}
                   </div>
                 </div>
 
+                {appliedPromo && (
+                  <div className="flex justify-between items-center pb-4 border-b border-gray-300">
+                    <span className="text-sm text-green-600 font-semibold">Réduction ({appliedPromo.code}):</span>
+                    <span className="text-sm font-bold text-green-600">
+                      -{discountAmount.toFixed(3)}Dt
+                    </span>
+                  </div>
+                )}
+
                 {/* Promo Code */}
                 <div className="py-4 border-b border-gray-300">
-                  <button className="text-sm text-gray-600 flex items-center gap-1 hover:text-blue-600">
-                    <span>Vous avez un code promo ?</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                      />
-                    </svg>
-                  </button>
+                  {appliedPromo ? (
+                    <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg border border-green-200">
+                      <div>
+                        <span className="text-sm font-semibold text-green-800">Code appliqué: {appliedPromo.code}</span>
+                        <p className="text-xs text-green-600">-{appliedPromo.discountValue}% sur vos articles</p>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => removePromo()}
+                        className="text-red-500 hover:text-red-700 font-bold p-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setIsPromoOpen(!isPromoOpen)}
+                        className="text-sm text-gray-600 flex items-center gap-1 hover:text-blue-600"
+                      >
+                        <span>Vous avez un code promo ?</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-4 h-4 transition-transform ${isPromoOpen ? 'rotate-180' : ''}`}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </button>
+                      
+                      {isPromoOpen && (
+                        <div className="mt-3 flex gap-2">
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={promoInput}
+                              onChange={(e) => setPromoInput(e.target.value)}
+                              placeholder="Entrez votre code"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                            />
+                            {promoError && <p className="text-xs text-red-500 mt-1">{promoError}</p>}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleApplyPromo}
+                            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 whitespace-nowrap"
+                          >
+                            Appliquer
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Total */}
                 <div className="flex justify-between items-center pt-4">
                   <span className="text-xl font-bold text-gray-900">Montant Total</span>
                   <span className="text-xl font-bold text-gray-900">
-                    {(total / 1000).toFixed(3)}Dt
+                    {total.toFixed(3)}Dt
                   </span>
                 </div>
               </div>

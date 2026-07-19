@@ -5,6 +5,7 @@ export type ApiUser = {
   email: string
   firstName: string
   lastName: string
+  phone?: string
   createdAt: string
   updatedAt?: string
 }
@@ -27,9 +28,9 @@ export function toUiClient(api: ApiUser): Client {
     id: api.id.toString(),
     name: `${api.firstName} ${api.lastName}`.trim() || api.email,
     email: api.email,
-    phone: '—', // Phone is not in UserResponse right now, but we can default
+    phone: api.phone || '—',
     registrationDate: formatDate(api.createdAt),
-    totalOrders: 0, // This would ideally come from the backend, but we'll mock or leave 0 for now
+    totalOrders: 0,
     totalSpent: 0,
     status: 'Actif', // Mock status as it's not strictly in UserResponse
   }

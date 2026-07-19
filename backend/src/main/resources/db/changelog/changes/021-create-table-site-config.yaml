@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 021-create-table-site-config
+      author: ai
+      changes:
+        - createTable:
+            tableName: site_config
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: value
+                  type: TEXT
+                  constraints:
+                    nullable: true

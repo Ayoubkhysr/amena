@@ -39,6 +39,8 @@ type ProductListToolbarProps = {
   categories: Category[]
   onSearchChange: (value: string) => void
   onSearchCategoryChange: (value: string) => void
+  searchSubCategory?: string
+  onSearchSubCategoryChange?: (value: string) => void
   onSortByChange: (value: ProductSortKey) => void
   onSortOrderChange: (value: SortOrder) => void
   onReset: () => void
@@ -47,16 +49,25 @@ type ProductListToolbarProps = {
 function ProductListToolbar({
   search,
   searchCategory,
+  searchSubCategory,
   sortBy,
   sortOrder,
   categories,
   onSearchChange,
   onSearchCategoryChange,
+  onSearchSubCategoryChange,
   onSortByChange,
   onSortOrderChange,
   onReset,
 }: ProductListToolbarProps) {
-  const hasFilters = Boolean(search.trim() || searchCategory)
+  const hasFilters = Boolean(search.trim() || searchCategory || searchSubCategory)
+
+  // Get parent categories for main category dropdown
+  const parentCategories = categories.filter(c => !c.parentId)
+  
+  // Find subcategories based on selected parent category
+  const selectedParent = parentCategories.find(c => c.name === searchCategory)
+  const availableSubCategories = selectedParent ? categories.filter(c => c.parentId === selectedParent.id) : []
 
   return (
     <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -87,11 +98,28 @@ function ProductListToolbar({
           <label className="mb-1 block text-xs font-semibold text-slate-600">Catégorie</label>
           <select
             value={searchCategory}
-            onChange={(e) => onSearchCategoryChange(e.target.value)}
+            onChange={(e) => {
+              onSearchCategoryChange(e.target.value);
+              if (onSearchSubCategoryChange) onSearchSubCategoryChange('');
+            }}
             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
           >
             <option value="">Toutes les catégories</option>
-            {categories.map((cat) => (
+            {parentCategories.map((cat) => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-600">Sous-catégorie</label>
+          <select
+            value={searchSubCategory}
+            onChange={(e) => onSearchSubCategoryChange?.(e.target.value)}
+            disabled={!searchCategory}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue disabled:bg-slate-100 disabled:text-slate-400"
+          >
+            <option value="">Toutes les sous-catégories</option>
+            {availableSubCategories.map((cat) => (
               <option key={cat.id} value={cat.name}>{cat.name}</option>
             ))}
           </select>
@@ -144,7 +172,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const [editForm, setEditForm] = useState<Product | null>(null)
   
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
-    name: '', category: categories.find(c => !c.parentId)?.name || categories[0]?.name || 'Autre', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''
+    name: '', sku: '', category: '', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''
   })
   const [newProductSubCategories, setNewProductSubCategories] = useState<string[]>([])
   const [showNewSubcatInput, setShowNewSubcatInput] = useState(false)
@@ -157,6 +185,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const [editingCat, setEditingCat] = useState<{old: string, new: string, parentId?: string} | null>(null)
   const [search, setSearch] = useState('')
   const [searchCategory, setSearchCategory] = useState('')
+  const [searchSubCategory, setSearchSubCategory] = useState('')
   const [sortBy, setSortBy] = useState<ProductSortKey>('name')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [newProductImageFile, setNewProductImageFile] = useState<File | null>(null)
@@ -192,7 +221,8 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
     setNewProductImagePreview('')
     setNewProduct({
       name: '',
-      category: categories.find(c => !c.parentId)?.name || categories[0]?.name || 'Autre',
+      sku: '',
+      category: '',
       price: 0,
       stock: 0,
       status: 'Actif',
@@ -251,6 +281,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const resetListFilters = () => {
     setSearch('')
     setSearchCategory('')
+    setSearchSubCategory('')
     setSortBy('name')
     setSortOrder('asc')
   }
@@ -258,25 +289,26 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const isProductList = activeSection === 'produits-liste'
   const isRuptureView = activeSection === 'produits-rupture'
   const isListTableView = isProductList || isRuptureView
-  const hasActiveFilters = Boolean(search.trim() || searchCategory)
+  const hasActiveFilters = Boolean(search.trim() || searchCategory || searchSubCategory)
 
   useEffect(() => {
     if (!isListTableView) return
     setLoading(true)
 
-    // Map searchCategory string to category ID
-    const catObj = categories.find(c => c.name === searchCategory)
+    const catObj = categories.find(c => c.name === searchCategory && !c.parentId)
     const categoryId = catObj ? Number(catObj.id) : undefined
 
-    // For Rupture View, maybe force filter or something. Currently API has no stock filter.
-    // For now we'll just fetch normally if it's product list, but if rupture we might need
-    // special handling or just show all for this demo. We'll load normally.
+    const subCatObj = categories.find(c => c.name === searchSubCategory && c.parentId === catObj?.id)
+    const subCategoryId = subCatObj ? Number(subCatObj.id) : undefined
+
+    // For Rupture View, pass maxStock = 5
+    const maxStock = isRuptureView ? 5 : undefined
     
     // Map sortBy to backend values
     let backendSort = sortBy as string
     if (sortBy === 'stock' || sortBy === 'status') backendSort = 'isActive'
 
-    fetchProductsPage(currentPage - 1, itemsPerPage, search, categoryId, backendSort, sortOrder)
+    fetchProductsPage(currentPage - 1, itemsPerPage, search, categoryId, subCategoryId, backendSort, sortOrder, maxStock)
       .then((page) => {
         setServerProducts(page.content.map(apiProduct => toUiProduct(apiProduct, categories)))
         setTotalElements(page.totalElements)
@@ -285,11 +317,11 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
       .catch((error) => console.error("Erreur lors de la recupération des produits:", error))
       .finally(() => setLoading(false))
 
-  }, [currentPage, search, searchCategory, sortBy, sortOrder, isListTableView, categories, activeSection, refreshTrigger])
+  }, [currentPage, search, searchCategory, searchSubCategory, sortBy, sortOrder, isListTableView, categories, activeSection, refreshTrigger])
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, searchCategory, sortBy, sortOrder, activeSection])
+  }, [search, searchCategory, searchSubCategory, sortBy, sortOrder, activeSection])
   
   if (activeSection === 'produits-ajouter') {
     return (
@@ -305,8 +337,13 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
               <input type="text" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: Détergent Sol Pro" />
             </div>
             <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">SKU (Code Article)</label>
+              <input type="text" value={newProduct.sku || ''} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Laisser vide pour auto-générer" />
+            </div>
+            <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Catégorie</label>
               <select value={newProduct.category} onChange={e => { setNewProduct({...newProduct, category: e.target.value}); setNewProductSubCategories([]) }} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue">
+                <option value="" disabled>Sélectionnez une catégorie</option>
                 {categories.filter(cat => !cat.parentId).map(cat => (
                   <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
@@ -432,11 +469,16 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button type="button" onClick={resetNewProductForm} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">Annuler</button>
             <button type="button" onClick={async () => {
+                if (!newProduct.category) {
+                  alert("Veuillez sélectionner une catégorie pour le produit.");
+                  return;
+                }
                 if (handleAddProduct && newProduct.name?.trim()) {
                 await handleAddProduct({
                   id: '',
+                  sku: newProduct.sku?.trim(),
                   name: newProduct.name.trim(),
-                  category: newProduct.category || categories[0]?.name || 'Autre',
+                  category: newProduct.category,
                   subcategories: newProductSubCategories.length > 0 ? newProductSubCategories : undefined,
                   price: newProduct.price || 0,
                   stock: newProduct.stock || 0,
@@ -823,6 +865,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
           <thead>
             <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 bg-slate-50">
               <th className="px-4 py-3 rounded-tl-lg">ID</th>
+              <th className="px-4 py-3">SKU</th>
               <th className="px-4 py-3">Produit</th>
               <th className="px-4 py-3">Catégorie</th>
               <th className="px-4 py-3">Sous-catég</th>
@@ -834,7 +877,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500">Chargement des données...</td></tr>
+              <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-500">Chargement des données...</td></tr>
             ) : serverProducts.map((product) => {
               const isEditing = editingId === product.id;
 
@@ -843,6 +886,15 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                   <React.Fragment key={product.id}>
                     <tr className="bg-brand-blue/5">
                     <td className="px-4 py-4 font-semibold text-slate-500">{product.id}</td>
+                    <td className="px-4 py-4">
+                      <input
+                        type="text"
+                        value={editForm.sku || ''}
+                        onChange={(e) => setEditForm({...editForm, sku: e.target.value})}
+                        className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none"
+                        placeholder="SKU"
+                      />
+                    </td>
                     <td className="px-4 py-4">
                       <input
                         type="text"
@@ -944,7 +996,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     </td>
                   </tr>
                   <tr className="border-b border-slate-200 bg-brand-blue/5">
-                    <td colSpan={8} className="px-4 py-4 pt-0">
+                    <td colSpan={9} className="px-4 py-4 pt-0">
                       <label className="block text-xs font-semibold text-brand-blue mb-1 uppercase tracking-wider">Image</label>
                       <div className="flex flex-wrap items-center gap-3">
                         <label className="cursor-pointer rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50">
@@ -967,7 +1019,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     </td>
                   </tr>
                   <tr className="border-b border-slate-200 bg-brand-blue/5">
-                    <td colSpan={8} className="px-4 py-4 pt-0">
+                    <td colSpan={9} className="px-4 py-4 pt-0">
                       <label className="block text-xs font-semibold text-brand-blue mb-1 uppercase tracking-wider">Description</label>
                       <textarea 
                         rows={3} 
@@ -985,6 +1037,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
               return (
                 <tr key={product.id} className="border-b border-slate-100 last:border-none transition duration-150 hover:bg-slate-50">
                   <td className="px-4 py-4 font-semibold text-slate-500">{product.id}</td>
+                  <td className="px-4 py-4 font-semibold text-slate-600">{product.sku || '-'}</td>
                   <td className="px-4 py-4 font-bold text-brand-blue">
                     <div className="flex items-center gap-3">
                       {product.imageUrl ? (

@@ -4,6 +4,7 @@ export type ApiOrder = {
   id: number
   orderNumber: string
   clientName: string
+  clientPhone?: string
   userId?: number
   totalAmount: number
   shippingAmount?: number
@@ -50,14 +51,21 @@ const STATUS_TO_API: Record<OrderStatus, string> = {
 }
 
 export function toUiOrder(api: ApiOrder): Order {
+  const items = api.items.map(toUiOrderItem)
+  const subtotal = items.reduce((sum, item) => sum + (item.qty * item.price), 0)
+  const calculatedShipping = subtotal > 150 ? 0 : 8
+  const total = subtotal + calculatedShipping
+
   return {
     id: api.id,
     client: api.clientName,
-    total: api.totalAmount,
+    clientPhone: api.clientPhone,
+    total: total,
+    shippingAmount: calculatedShipping,
     statut: STATUS_TO_UI[api.status] ?? 'En attente',
     date: formatDate(api.createdAt),
     address: api.address || '—',
-    items: api.items.map(toUiOrderItem),
+    items: items,
   }
 }
 
@@ -115,4 +123,38 @@ export async function updateOrderStatus(orderId: number, statut: OrderStatus): P
   })
   if (!res.ok) await parseError(res)
   return res.json()
+}
+
+export type CreateOrderItemRequest = {
+  productId: number
+  productName: string
+  quantity: number
+  unitPrice: number
+}
+
+export type CreateOrderRequest = {
+  clientInfo?: string
+  subtotal: number
+  shippingAmount?: number
+  discountAmount?: number
+  totalAmount: number
+  couponCode?: string
+  items: CreateOrderItemRequest[]
+}
+
+export async function createOrder(req: CreateOrderRequest): Promise<ApiOrder> {
+  const res = await fetch(`${API_BASE}/api/orders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req),
+  })
+  if (!res.ok) await parseError(res)
+  return res.json()
+}
+
+export async function deleteOrderApi(orderId: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/orders/${orderId}`, {
+    method: 'DELETE',
+  })
+  if (!res.ok) await parseError(res)
 }

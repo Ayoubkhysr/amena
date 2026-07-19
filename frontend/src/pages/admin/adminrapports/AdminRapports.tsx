@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { IconChartBar, IconStar, IconTrending, IconPackage } from '../../../components/admin'
 import type { Product } from '../../../context/StoreContext'
 import type { Order } from '../admincommandes/AdminCommandes'
@@ -160,6 +161,9 @@ export function AdminRapports({ activeSection, orders, products }: AdminRapports
   if (activeSection === 'rapports-produits') {
     const maxUnits = topProducts.length ? topProducts[0].unitsSold : 1
 
+    const top5Products = [...topProducts].sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 5)
+    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8']
+
     return (
       <div className="space-y-6 animate-admin-panel-in">
         {/* Summary */}
@@ -176,11 +180,48 @@ export function AdminRapports({ activeSection, orders, products }: AdminRapports
           ))}
         </div>
 
-        {/* Ranked visual bars */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h3 className="mb-6 text-lg font-bold text-brand-blue uppercase tracking-wider flex items-center gap-2">
-            <IconStar className="h-5 w-5 text-amber-400" /> Classement des produits
-          </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Pie Chart Top 5 */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col">
+            <h3 className="mb-6 text-lg font-bold text-brand-blue uppercase tracking-wider flex items-center gap-2">
+              <IconChartBar className="h-5 w-5 text-amber-400" /> Répartition du Top 5 (Unités)
+            </h3>
+            <div className="flex-1 min-h-[300px]">
+              {top5Products.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={top5Products}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={5}
+                      dataKey="unitsSold"
+                      nameKey="name"
+                    >
+                      {top5Products.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value} unités`, 'Ventes']} />
+                    <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                  <IconStar className="h-10 w-10 mb-2 opacity-30" />
+                  <p className="text-sm">Aucune donnée de vente.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Ranked visual bars */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="mb-6 text-lg font-bold text-brand-blue uppercase tracking-wider flex items-center gap-2">
+              <IconStar className="h-5 w-5 text-amber-400" /> Classement des produits
+            </h3>
           <div className="space-y-4">
             {topProducts.map((p, i) => {
               const barW = Math.max(4, Math.round((p.unitsSold / maxUnits) * 100))
@@ -210,6 +251,7 @@ export function AdminRapports({ activeSection, orders, products }: AdminRapports
               </div>
             )}
           </div>
+        </div>
         </div>
 
         {/* Detailed table */}

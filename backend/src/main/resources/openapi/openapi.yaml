@@ -82,6 +82,28 @@ paths:
             default: 20
             minimum: 1
             maximum: 100
+        - name: search
+          in: query
+          description: Search term
+          schema:
+            type: string
+        - name: role
+          in: query
+          description: Role filter
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            default: createdAt
+        - name: sortOrder
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            default: desc
       responses:
         "200":
           description: List of users
@@ -234,6 +256,12 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: subcategoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
         - name: sortBy
           in: query
           schema:
@@ -244,6 +272,11 @@ paths:
           schema:
             type: string
             default: "desc"
+        - name: maxStock
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: Paginated list of products
@@ -447,11 +480,13 @@ paths:
       parameters:
         - name: page
           in: query
+          required: false
           schema:
             type: integer
             default: 0
         - name: size
           in: query
+          required: false
           schema:
             type: integer
             default: 20
@@ -482,6 +517,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OrderPage"
+    post:
+      tags:
+        - Orders
+      summary: Create a new order
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
 
   /api/orders/{orderId}:
     get:
@@ -503,6 +556,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OrderResponse"
+        "404":
+          description: Order not found
+    delete:
+      tags:
+        - Orders
+      summary: Delete order by ID
+      operationId: deleteOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: Order deleted
         "404":
           description: Order not found
 
@@ -743,13 +813,253 @@ paths:
         "404":
           description: Offre not found
 
+  /api/bannieres:
+    get:
+      tags:
+        - Bannieres
+      summary: List all bannieres
+      operationId: getBannieres
+      responses:
+        "200":
+          description: List of all bannieres
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BanniereResponse"
+    post:
+      tags:
+        - Bannieres
+      summary: Create a new banniere
+      operationId: createBanniere
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BanniereRequest"
+      responses:
+        "201":
+          description: Banniere created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BanniereResponse"
+
+  /api/bannieres/upload-image:
+    post:
+      tags:
+        - Bannieres
+      summary: Upload an image for a banniere
+      operationId: uploadBanniereImage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imageUrl:
+                    type: string
+
+  /api/bannieres/{banniereId}:
+    get:
+      tags:
+        - Bannieres
+      summary: Get banniere by ID
+      operationId: getBanniereById
+      parameters:
+        - name: banniereId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Banniere found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BanniereResponse"
+        "404":
+          description: Banniere not found
+    put:
+      tags:
+        - Bannieres
+      summary: Update banniere
+      operationId: updateBanniere
+      parameters:
+        - name: banniereId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BanniereRequest"
+      responses:
+        "200":
+          description: Banniere updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BanniereResponse"
+        "404":
+          description: Banniere not found
+    delete:
+      tags:
+        - Bannieres
+      summary: Delete banniere
+      operationId: deleteBanniere
+      parameters:
+        - name: banniereId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: Banniere deleted successfully
+        "404":
+          description: Banniere not found
+
+  /api/config/{id}:
+    get:
+      tags:
+        - Config
+      summary: Get config by ID
+      operationId: getConfigById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Config found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigResponse"
+        "404":
+          description: Config not found
+    put:
+      tags:
+        - Config
+      summary: Update config
+      operationId: updateConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfigRequest"
+      responses:
+        "200":
+          description: Config updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigResponse"
+        "201":
+          description: Config created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigResponse"
+
 components:
   schemas:
 
+    ConfigRequest:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
 
+    ConfigResponse:
+      type: object
+      required:
+        - id
+        - value
+      properties:
+        id:
+          type: string
+        value:
+          type: string
 
+    BanniereRequest:
+      type: object
+      required:
+        - title
+        - status
+      properties:
+        title:
+          type: string
+        imageUrl:
+          type: string
+        targetUrl:
+          type: string
+        position:
+          type: integer
+        status:
+          type: string
+          enum: [Actif, Inactif]
 
-
+    BanniereResponse:
+      type: object
+      required:
+        - id
+        - title
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        imageUrl:
+          type: string
+        targetUrl:
+          type: string
+        position:
+          type: integer
+        status:
+          type: string
+          enum: [Actif, Inactif]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     DashboardStatsResponse:
       type: object
       required:
@@ -850,6 +1160,9 @@ components:
           description: User's last name
           minLength: 1
           maxLength: 100
+        phone:
+          type: string
+          description: User's phone number
         createdAt:
           type: string
           format: date-time
@@ -905,6 +1218,9 @@ components:
           format: double
         isActive:
           type: boolean
+        stock:
+          type: integer
+          format: int32
         isFeatured:
           type: boolean
         metaTitle:
@@ -991,6 +1307,8 @@ components:
           type: string
         clientName:
           type: string
+        clientPhone:
+          type: string
         userId:
           type: integer
           format: int64
@@ -1020,6 +1338,53 @@ components:
         status:
           type: string
           description: pending, processing, shipped, delivered, cancelled, refunded
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - subtotal
+        - totalAmount
+        - items
+      properties:
+        clientInfo:
+          type: string
+        subtotal:
+          type: number
+          format: double
+        shippingAmount:
+          type: number
+          format: double
+        discountAmount:
+          type: number
+          format: double
+        totalAmount:
+          type: number
+          format: double
+        couponCode:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateOrderItemRequest"
+
+    CreateOrderItemRequest:
+      type: object
+      required:
+        - productId
+        - productName
+        - quantity
+        - unitPrice
+      properties:
+        productId:
+          type: integer
+          format: int64
+        productName:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+          format: double
 
     CategoryRequest:
       type: object
@@ -1086,6 +1451,9 @@ components:
           format: double
         isActive:
           type: boolean
+        stock:
+          type: integer
+          format: int32
         isFeatured:
           type: boolean
         metaTitle:
@@ -1128,6 +1496,9 @@ components:
           description: User's last name
           minLength: 1
           maxLength: 100
+        phone:
+          type: string
+          description: User's phone number
         email:
           type: string
           format: email

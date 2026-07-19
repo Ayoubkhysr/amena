@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { IconClipboard, IconArchive, IconPackage, Pagination } from '../../../components/admin'
+import { IconClipboard, IconArchive, IconPackage, IconPrinter, Pagination } from '../../../components/admin'
 
 export type OrderStatus = 'En attente' | 'Préparée' | 'Livrée' | 'Retournée'
 
@@ -12,7 +12,9 @@ export type OrderItem = {
 export type Order = {
   id: number
   client: string
+  clientPhone?: string
   total: number
+  shippingAmount?: number
   statut: OrderStatus
   date: string
   address: string
@@ -21,6 +23,7 @@ export type Order = {
 
 export type AdminCommandesProps = {
   activeSection: string
+  handleDeleteOrder?: (id: number) => Promise<void>
 }
 
 type OrderSortKey = 'id' | 'date' | 'client' | 'total' | 'statut'
@@ -125,8 +128,8 @@ function CommandesListToolbar({
 }
 
 import { fetchOrdersPage, updateOrderStatus as updateOrderApi, toUiOrder } from '../../../services/orderService'
-
-export function AdminCommandes({ activeSection }: AdminCommandesProps) {
+import { printDeliverySlip } from '../../../utils/printDeliverySlip'
+export function AdminCommandes({ activeSection, handleDeleteOrder }: AdminCommandesProps) {
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [searchId, setSearchId] = useState('')
   const [searchClient, setSearchClient] = useState('')
@@ -182,6 +185,19 @@ export function AdminCommandes({ activeSection }: AdminCommandesProps) {
   useEffect(() => {
     setCurrentPage(1)
   }, [searchId, searchClient, searchStatus, sortBy, sortOrder, activeSection])
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage)
+    }
+  }
+
+  const onDeleteOrder = async (id: number) => {
+    if (handleDeleteOrder) {
+      await handleDeleteOrder(id)
+      setServerOrders(prev => prev.filter(o => o.id !== id))
+    }
+  }
 
   const toggleExpand = (id: number) => {
     setExpandedOrderId(prev => prev === id ? null : id)
@@ -296,7 +312,18 @@ export function AdminCommandes({ activeSection }: AdminCommandesProps) {
                       >
                         <IconClipboard className="h-4 w-4" />
                       </button>
-                      <button className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Archiver">
+                      <button
+                        onClick={() => printDeliverySlip(order)}
+                        className="text-slate-400 hover:text-brand-light p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex"
+                        title="Imprimer bon de livraison"
+                      >
+                        <IconPrinter className="h-4 w-4" />
+                      </button>
+                      <button 
+                        onClick={() => onDeleteOrder(order.id)}
+                        className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
+                        title="Supprimer"
+                      >
                         <IconArchive className="h-4 w-4" />
                       </button>
                     </div>
@@ -311,6 +338,14 @@ export function AdminCommandes({ activeSection }: AdminCommandesProps) {
                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Détails de Livraison</h4>
                             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                               <p className="font-semibold text-brand-blue">{order.client}</p>
+                              {order.clientPhone && (
+                                <p className="text-sm text-slate-700 mt-1 font-medium flex items-center gap-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-slate-400">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                                  </svg>
+                                  {order.clientPhone}
+                                </p>
+                              )}
                               <p className="text-sm text-slate-600 mt-2 leading-relaxed">{order.address}</p>
                             </div>
                           </div>
@@ -339,11 +374,15 @@ export function AdminCommandes({ activeSection }: AdminCommandesProps) {
                                 </tbody>
                                 <tfoot className="bg-slate-50 border-t border-slate-200">
                                   <tr>
-                                    <td colSpan={2} className="px-4 py-3 font-bold text-slate-600 text-right">Frais Livraison:</td>
-                                    <td className="px-4 py-3 font-bold text-slate-700 text-right">10 TND</td>
+                                    <td colSpan={2} className="px-4 py-3 font-bold text-slate-600 text-right">Total de la commande:</td>
+                                    <td className="px-4 py-3 font-bold text-slate-700 text-right">{order.items.reduce((acc, item) => acc + (item.qty * item.price), 0)} TND</td>
                                   </tr>
                                   <tr>
-                                    <td colSpan={2} className="px-4 py-3 font-extrabold text-brand-blue text-right uppercase tracking-wider">Total Final:</td>
+                                    <td colSpan={2} className="px-4 py-3 font-bold text-slate-600 text-right">Frais Livraison:</td>
+                                    <td className="px-4 py-3 font-bold text-slate-700 text-right">{order.shippingAmount ?? 0} TND</td>
+                                  </tr>
+                                  <tr>
+                                    <td colSpan={2} className="px-4 py-3 font-extrabold text-brand-blue text-right uppercase tracking-wider">Prix avec livraison:</td>
                                     <td className="px-4 py-3 font-extrabold text-brand-blue text-right text-sm">{order.total} TND</td>
                                   </tr>
                                 </tfoot>

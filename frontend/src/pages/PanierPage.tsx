@@ -1,56 +1,13 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
-
-interface CartItem {
-  id: number
-  name: string
-  category: string
-  price: number
-  quantity: number
-  image: string
-  inStock: boolean
-}
+import { useCart } from '../context/CartContext'
 
 function PanierPage() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: 'Ezzahra',
-      category: 'Gel machine automatique',
-      price: 174000,
-      quantity: 6,
-      image: '/images/ffffffffff 1.png',
-      inStock: true,
-    },
-    {
-      id: 2,
-      name: 'Extra +',
-      category: 'Liquide vaisselle',
-      price: 105000,
-      quantity: 6,
-      image: '/images/rect.png',
-      inStock: true,
-    },
-  ])
+  const { cartItems, updateQuantity, removeFromCart: removeItem, subtotal } = useCart()
 
-  const updateQuantity = (id: number, delta: number) => {
-    setCartItems(
-      cartItems.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    )
-  }
-
-  const removeItem = (id: number) => {
-    setCartItems(cartItems.filter((item) => item.id !== id))
-  }
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shippingThreshold = 150000
+  const shippingThreshold = 150
   const freeShipping = subtotal >= shippingThreshold
-  const total = subtotal
+  const shippingCost = subtotal === 0 ? 0 : (freeShipping ? 0 : 8)
+  const total = subtotal + shippingCost
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -83,7 +40,7 @@ function PanierPage() {
           {/* Left Side - Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {/* Banners Row */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 gap-4 mb-6">
               {/* Free Shipping Card */}
               <div className="bg-white rounded-lg p-4 border border-gray-200">
                 <div className="flex items-center gap-2 mb-3">
@@ -111,33 +68,6 @@ function PanierPage() {
                     className="h-full bg-red-600 transition-all"
                     style={{ width: `${Math.min((subtotal / shippingThreshold) * 100, 100)}%` }}
                   ></div>
-                </div>
-              </div>
-
-              {/* Économiser Card */}
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6 text-gray-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
-                    />
-                  </svg>
-                  <span className="text-sm font-semibold text-gray-900">
-                    Économisez +10 %
-                  </span>
-                </div>
-                <div className="text-sm font-bold text-gray-900 mb-2">200DT</div>
-                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-red-600 w-1/3"></div>
                 </div>
               </div>
             </div>
@@ -191,7 +121,7 @@ function PanierPage() {
                 {/* Price */}
                 <div className="text-right">
                   <p className="font-bold text-blue-600 text-base">
-                    {(item.price / 1000).toFixed(3)}DT
+                    {item.price.toFixed(3)}DT
                   </p>
                 </div>
 
@@ -226,52 +156,35 @@ function PanierPage() {
                   {cartItems.reduce((sum, item) => sum + item.quantity, 0)} Articles
                 </span>
                 <span className="font-bold text-gray-900">
-                  {(subtotal / 1000).toFixed(3)}Dt
+                  {subtotal.toFixed(3)}Dt
                 </span>
               </div>
 
               {/* Shipping */}
-              <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-200">
-                <span className="text-sm text-gray-600">Frais de port:</span>
-                <select className="text-sm text-gray-600 border-none focus:outline-none cursor-pointer">
-                  <option>Selon le mode de livraison</option>
-                </select>
-              </div>
-
-              {/* Total */}
-              <div className="flex justify-between items-center mb-6">
-                <span className="text-lg font-bold text-gray-900">TOTAL</span>
-                <span className="text-xl font-bold text-gray-900">
-                  {(total / 1000).toFixed(3)}Dt
+              <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
+                <span className="text-sm text-gray-600">Frais de livraison:</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {subtotal === 0 ? "0.000Dt" : (freeShipping ? "Gratuit" : "8.000Dt")}
                 </span>
               </div>
 
-              {/* Promo Code */}
-              <div className="mb-6">
-                <button className="text-sm text-gray-600 flex items-center gap-1 hover:text-blue-600">
-                  <span>Vous avez un code promo ?</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-4 h-4"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                  </svg>
-                </button>
+              {/* Total */}
+              <div className="flex justify-between items-center mb-6 pt-4 border-t border-gray-200">
+                <span className="text-lg font-bold text-gray-900">TOTAL</span>
+                <span className="text-xl font-bold text-gray-900">
+                  {total.toFixed(3)}Dt
+                </span>
               </div>
 
               {/* Buttons */}
-              <div className="space-y-3">
-                <Link to="/livraison">
-                  <button className="w-full bg-white border-2 border-blue-500 text-blue-600 font-bold py-3 rounded-full hover:bg-blue-50 transition-colors">
+              <div className="flex flex-col gap-4">
+                <Link to="/livraison" className="block w-full">
+                  <button type="button" className="w-full bg-white border-2 border-blue-500 text-blue-600 font-bold py-3 rounded-full hover:bg-blue-50 transition-colors">
                     Acheter maintenant
                   </button>
                 </Link>
-                <Link to="/produits">
-                  <button className="w-full bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition-colors">
+                <Link to="/produits" className="block w-full">
+                  <button type="button" className="w-full bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition-colors">
                     Continuer mes achats
                   </button>
                 </Link>

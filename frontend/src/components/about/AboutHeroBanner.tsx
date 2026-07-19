@@ -1,4 +1,11 @@
+import { useStore } from '../../context/StoreContext';
+
 const AboutHeroBanner = () => {
+  const { aboutConfig } = useStore();
+  const title = aboutConfig?.heroTitle || 'ELAMINE,';
+  const subtitle = aboutConfig?.heroSubtitle || '10 Ans à vos cotés !';
+  const imageUrl = aboutConfig?.heroImageUrl || '/images/Rectangle 244.png';
+  
   return (
     <div className="w-full bg-[#f2fafd] flex justify-center py-10 px-8">
       <div className="max-w-7xl w-full bg-[#e6f7ff] rounded-lg overflow-hidden flex relative shadow-sm" style={{ minHeight: '300px' }}>
@@ -12,17 +19,16 @@ const AboutHeroBanner = () => {
           {/* Left Text */}
           <div className="w-1/2 flex flex-col justify-center pl-16 py-12">
             <h1 className="text-[#0055c4] font-black text-4xl md:text-5xl uppercase leading-none mb-2">
-              ELAMINE,
+              {title}
             </h1>
-            <h2 className="text-red-600 font-black text-5xl md:text-6xl uppercase leading-none">
-              10 Ans à<br />vos cotés !
+            <h2 className="text-red-600 font-black text-5xl md:text-6xl uppercase leading-none" dangerouslySetInnerHTML={{ __html: subtitle.replace(/\n/g, '<br />') }}>
             </h2>
           </div>
 
           {/* Right Image */}
           <div className="w-1/2 flex justify-end items-center">
             <img
-              src="/images/Rectangle%20244.png"
+              src={imageUrl}
               alt="Spray Bottle"
               className="h-full w-full object-cover object-left drop-shadow-xl z-20"
             />

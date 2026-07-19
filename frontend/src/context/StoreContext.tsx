@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { fetchCategories, toUiCategory } from '../services/categoryService'
 import { toUiProduct } from '../services/productService'
+import { fetchBanners } from '../services/bannerService'
+import { getConfig } from '../services/configService'
 import { Banner, StaticPage } from '../pages/admin/admincontenu/AdminContenu'
 
 export type Category = {
@@ -36,6 +38,8 @@ type StoreContextType = {
   setBanners: React.Dispatch<React.SetStateAction<Banner[]>>
   staticPages: StaticPage[]
   setStaticPages: React.Dispatch<React.SetStateAction<StaticPage[]>>
+  aboutConfig: any
+  setAboutConfig: React.Dispatch<React.SetStateAction<any>>
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
@@ -56,8 +60,9 @@ const MOCK_PAGES: StaticPage[] = [
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [banners, setBanners] = useState<Banner[]>(MOCK_BANNERS)
+  const [banners, setBanners] = useState<Banner[]>([])
   const [staticPages, setStaticPages] = useState<StaticPage[]>(MOCK_PAGES)
+  const [aboutConfig, setAboutConfig] = useState<any>(null)
 
   useEffect(() => {
     async function loadStore() {
@@ -65,6 +70,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const apiCategories = await fetchCategories()
         const uiCategories = apiCategories.map(toUiCategory)
         setCategories(uiCategories)
+
+        const apiBanners = await fetchBanners()
+        setBanners(apiBanners)
+
+        const config = await getConfig('about_page')
+        if (config) {
+          setAboutConfig(config)
+        }
 
         // Products are no longer loaded globally to support server-side pagination
         // Admin components will fetch their own paginated data
@@ -91,6 +104,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       categories, setCategories,
       banners, setBanners,
       staticPages, setStaticPages,
+      aboutConfig, setAboutConfig,
     }}>
       {children}
     </StoreContext.Provider>

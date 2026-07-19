@@ -27,7 +27,7 @@ public class ProductsApiController implements ProductsApi {
     private final CategorieRepository categorieRepository;
     private final ProductImageService productImageService;
 
-    public ResponseEntity<com.amena.backend.dto.ProductPage> getProducts(Integer page, Integer size, String search, Long categoryId, String sortBy, String sortOrder) {
+    public ResponseEntity<com.amena.backend.dto.ProductPage> getProducts(Integer page, Integer size, String search, Long categoryId, Long subcategoryId, String sortBy, String sortOrder, Integer maxStock) {
         org.springframework.data.domain.Sort.Direction direction = "asc".equalsIgnoreCase(sortOrder) ? org.springframework.data.domain.Sort.Direction.ASC : org.springframework.data.domain.Sort.Direction.DESC;
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by(direction, sortBy != null ? sortBy : "createdAt"));
         
@@ -40,6 +40,15 @@ public class ProductsApiController implements ProductsApi {
         }
         if (categoryId != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("categoryId"), categoryId));
+        }
+        if (subcategoryId != null) {
+            spec = spec.and((root, query, cb) -> {
+                jakarta.persistence.criteria.Join<Produit, Categorie> subcats = root.join("subCategories");
+                return cb.equal(subcats.get("id"), subcategoryId);
+            });
+        }
+        if (maxStock != null) {
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("stock"), maxStock));
         }
 
         org.springframework.data.domain.Page<Produit> productPageEntity = produitRepository.findAll(spec, pageable);
@@ -92,8 +101,17 @@ public class ProductsApiController implements ProductsApi {
         if (!produitRepository.existsById(productId)) {
             return ResponseEntity.notFound().build();
         }
-        productImageService.deleteAllForProduct(productId);
-        produitRepository.deleteById(productId);
+        
+        try {
+            productImageService.deleteAllForProduct(productId);
+            produitRepository.deleteById(productId);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            produitRepository.findById(productId).ifPresent(p -> {
+                p.setIsActive(false);
+                produitRepository.save(p);
+            });
+        }
+        
         return ResponseEntity.noContent().build();
     }
 
@@ -123,21 +141,20 @@ public class ProductsApiController implements ProductsApi {
         produit.setCompareAtPrice(toBigDecimal(request.getCompareAtPrice()));
         produit.setCostPrice(toBigDecimal(request.getCostPrice()));
         produit.setCategoryId(request.getCategoryId());
-        Set<Categorie> subCategories = request.getSubcategoryIds() == null || request.getSubcategoryIds().isEmpty()
-                ? new HashSet<>()
-                : new HashSet<>(categorieRepository.findAllById(request.getSubcategoryIds()));
-        System.out.println("Updating product " + produit.getSku() + " with subcategories: " + request.getSubcategoryIds() + " -> found: " + subCategories.size());
-        produit.setSubCategories(subCategories);
         produit.setBrand(request.getBrand());
         produit.setWeight(toBigDecimal(request.getWeight()));
-        if (request.getIsActive() != null) {
-            produit.setIsActive(request.getIsActive());
-        }
-        if (request.getIsFeatured() != null) {
-            produit.setIsFeatured(request.getIsFeatured());
-        }
+        produit.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
+        produit.setStock(request.getStock() != null ? request.getStock() : 0);
+        produit.setIsFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false);
         produit.setMetaTitle(request.getMetaTitle());
         produit.setMetaDescription(request.getMetaDescription());
+
+        if (request.getSubcategoryIds() != null && !request.getSubcategoryIds().isEmpty()) {
+            produit.setSubCategories(new HashSet<>(categorieRepository.findAllById(request.getSubcategoryIds())));
+        } else {
+            produit.setSubCategories(new HashSet<>());
+        }
+
         return produit;
     }
 
@@ -156,6 +173,7 @@ public class ProductsApiController implements ProductsApi {
         response.setBrand(produit.getBrand());
         response.setWeight(toDouble(produit.getWeight()));
         response.setIsActive(produit.getIsActive());
+        response.setStock(produit.getStock());
         response.setIsFeatured(produit.getIsFeatured());
         response.setMetaTitle(produit.getMetaTitle());
         response.setMetaDescription(produit.getMetaDescription());
