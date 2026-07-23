@@ -5,8 +5,6 @@ import com.amena.backend.dto.HealthResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 /**
  * Implementation of the Health API generated from OpenAPI spec.
  */

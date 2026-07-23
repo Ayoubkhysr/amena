@@ -147,7 +147,7 @@
                         <configuration>
                             <inputSpec>src/main/resources/openapi/openapi.yaml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <outputDir>${project.build.directory}/generated-sources/openapi</outputDir>
+                            <output>${project.build.directory}/generated-sources/openapi</output>
                             <generateApiTests>false</generateApiTests>
                             <generateModelTests>false</generateModelTests>
                             <generateApiDocumentation>false</generateApiDocumentation>

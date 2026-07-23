@@ -7,8 +7,6 @@ import com.amena.backend.repository.SiteConfigRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class SiteConfigService {

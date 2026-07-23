@@ -18,9 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-
 @RestController
 @RequiredArgsConstructor
 public class UsersApiController implements UsersApi {
