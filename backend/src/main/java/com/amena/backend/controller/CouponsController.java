@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class CouponsApiController implements CouponsApi {
+public class CouponsController implements CouponsApi {
 
     private final CouponService couponService;
 

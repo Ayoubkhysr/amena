@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class OrdersApiController implements OrdersApi {
+public class OrdersController implements OrdersApi {
 
     private final CommandeService commandeService;
 

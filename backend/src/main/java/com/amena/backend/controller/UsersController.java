@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class UsersApiController implements UsersApi {
+public class UsersController implements UsersApi {
 
     private final UtilisateurService utilisateurService;
 

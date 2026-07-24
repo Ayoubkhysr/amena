@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class OffresApiController implements OffresApi {
+public class OffresController implements OffresApi {
 
     private final OffreService offreService;
 

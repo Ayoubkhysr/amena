@@ -9,11 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class DashboardApiController implements DashboardApi {
+public class DashboardController implements DashboardApi {
 
     private final ProduitRepository produitRepository;
-
-    private final com.amena.backend.repository.CommandeRepository commandeRepository;
 
     @Override
     public ResponseEntity<DashboardStatsResponse> getDashboardStats() {

@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class CategoriesApiController implements CategoriesApi {
+public class CategoriesController implements CategoriesApi {
 
     private final CategorieService categorieService;
 

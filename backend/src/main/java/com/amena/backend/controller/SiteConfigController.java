@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class SiteConfigApiController implements ConfigApi {
+public class SiteConfigController implements ConfigApi {
 
     private final SiteConfigService configService;
 

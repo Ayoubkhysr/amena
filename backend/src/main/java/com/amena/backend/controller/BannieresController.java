@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class BannieresApiController implements BannieresApi {
+public class BannieresController implements BannieresApi {
 
     private final BanniereService banniereService;
     private final SiteImageStorageService siteImageStorageService;

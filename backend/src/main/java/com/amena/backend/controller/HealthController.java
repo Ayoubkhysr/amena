@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Implementation of the Health API generated from OpenAPI spec.
  */
 @RestController
-public class HealthApiController implements HealthApi {
+public class HealthController implements HealthApi {
 
     @Override
     public ResponseEntity<HealthResponse> getHealth() {

@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class ProductsApiController implements ProductsApi {
+public class ProductsController implements ProductsApi {
 
     private final ProduitService produitService;
     private final ProductImageService productImageService;
@@ -56,7 +56,7 @@ public class ProductsApiController implements ProductsApi {
 
     @Override
     public ResponseEntity<ProductImageResponse> uploadProductImage(Long productId, MultipartFile file, Boolean primary) {
-        boolean isPrimary = primary != null ? primary : true;
+        boolean isPrimary = primary == null || primary;
         ProductImageResponse response = productImageService.upload(productId, file, isPrimary);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
