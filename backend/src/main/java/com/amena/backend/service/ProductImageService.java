@@ -94,14 +94,13 @@ public class ProductImageService {
     }
 
     private ProductImageResponse toResponse(ImageProduit image) {
-        return ProductImageResponse.builder()
+        return new ProductImageResponse()
                 .id(image.getId())
                 .productId(image.getProductId())
                 .imageUrl(image.getImageUrl())
                 .altText(image.getAltText())
                 .sortOrder(image.getSortOrder())
                 .isPrimary(image.getIsPrimary())
-                .createdAt(image.getCreatedAt())
-                .build();
+                .createdAt(image.getCreatedAt());
     }
 }

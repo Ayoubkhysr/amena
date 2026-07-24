@@ -1,4 +1,4 @@
-package com.amena.backend.controller.impl;
+package com.amena.backend.controller;
 
 import com.amena.backend.api.DashboardApi;
 import com.amena.backend.dto.DashboardStatsResponse;
