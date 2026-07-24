@@ -1,29 +1,11 @@
-import { Client } from '../pages/admin/adminclients/AdminClients'
+import { Client } from '../pages/admin/adminclients/AdminClients';
+import { UserResponse, UserPage as GeneratedUserPage, UsersService } from '../generated';
 
-export type ApiUser = {
-  id: number
-  email: string
-  firstName: string
-  lastName: string
-  phone?: string
-  createdAt: string
-  updatedAt?: string
-}
+export type ApiUser = UserResponse;
 
-export type UserPage = {
-  content: ApiUser[]
-  totalElements: number
-  totalPages: number
-  size: number
-  number: number
-  first: boolean
-  last: boolean
-  empty: boolean
-}
+export type UserPage = GeneratedUserPage;
 
-const API_BASE = import.meta.env.VITE_API_URL ?? ''
-
-export function toUiClient(api: ApiUser): Client {
+export function toUiClient(api: UserResponse): Client {
   return {
     id: api.id.toString(),
     name: `${api.firstName} ${api.lastName}`.trim() || api.email,
@@ -32,19 +14,14 @@ export function toUiClient(api: ApiUser): Client {
     registrationDate: formatDate(api.createdAt),
     totalOrders: 0,
     totalSpent: 0,
-    status: 'Actif', // Mock status as it's not strictly in UserResponse
-  }
+    status: 'Actif',
+  };
 }
 
 function formatDate(isoDate: string): string {
-  const date = new Date(isoDate)
-  if (Number.isNaN(date.getTime())) return isoDate
-  return date.toISOString().slice(0, 10)
-}
-
-async function parseError(res: Response): Promise<never> {
-  const message = await res.text().catch(() => res.statusText)
-  throw new Error(message || `Erreur API (${res.status})`)
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return isoDate;
+  return date.toISOString().slice(0, 10);
 }
 
 export async function fetchUsersPage(
@@ -55,16 +32,13 @@ export async function fetchUsersPage(
   sortBy = 'createdAt',
   sortOrder = 'desc'
 ): Promise<UserPage> {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    size: size.toString(),
+  const result = await UsersService.getUsers({
+    page,
+    size,
+    search,
+    role,
     sortBy,
     sortOrder,
-  })
-  if (search) params.append('search', search)
-  if (role) params.append('role', role)
-
-  const res = await fetch(`${API_BASE}/api/users?${params.toString()}`)
-  if (!res.ok) await parseError(res)
-  return res.json()
+  });
+  return result;
 }

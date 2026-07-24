@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/openapi.json",
+  "input": {
+    "path": "../openapi/schema.yaml"
+  },
+  "output": {
+    "path": "./src/generated",
+    "format": "prettier",
+    "client": "fetch",
+    "services": true,
+    "models": {
+      "mode": "dto"
+    },
+    "exportCore": true,
+    "exportServices": true,
+    "exportModels": true,
+    "exportSchemas": true,
+    "clean": true,
+    "override": {
+      "mutator": {
+        "path": "./src/generated/core/customFetch.ts",
+        "name": "customFetch"
+      }
+    }
+  }
+}
