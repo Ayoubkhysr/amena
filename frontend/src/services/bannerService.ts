@@ -1,91 +1,66 @@
 import { Banner } from '../pages/admin/admincontenu/AdminContenu';
-
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8081';
-
-async function parseError(res: Response): Promise<never> {
-  const message = await res.text().catch(() => res.statusText);
-  throw new Error(message || `Erreur API (${res.status})`);
-}
+import { BannieresService } from '../generated';
 
 export const fetchBanners = async (): Promise<Banner[]> => {
-  const response = await fetch(`${API_BASE}/api/bannieres`);
-  if (!response.ok) await parseError(response);
-  const data = await response.json();
-  return data.map((b: any) => ({
+  const data = await BannieresService.getBannieres();
+  return (data ?? []).map((b) => ({
     id: b.id.toString(),
     title: b.title,
     imageUrl: b.imageUrl || '',
     targetUrl: b.targetUrl || '',
-    position: b.position,
-    status: b.status,
+    position: b.position ?? 0,
+    status: b.status as unknown as Banner['status'],
   }));
 };
 
 export const createBanner = async (banner: Omit<Banner, 'id'>): Promise<Banner> => {
-  const payload = {
-    title: banner.title,
-    imageUrl: banner.imageUrl,
-    targetUrl: banner.targetUrl,
-    position: banner.position,
-    status: banner.status,
-  };
-  const response = await fetch(`${API_BASE}/api/bannieres`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+  const data = await BannieresService.createBanniere({
+    requestBody: {
+      title: banner.title,
+      imageUrl: banner.imageUrl,
+      targetUrl: banner.targetUrl,
+      position: banner.position,
+      status: banner.status as any,
+    },
   });
-  if (!response.ok) await parseError(response);
-  const data = await response.json();
   return {
     id: data.id.toString(),
     title: data.title,
     imageUrl: data.imageUrl || '',
     targetUrl: data.targetUrl || '',
-    position: data.position,
-    status: data.status,
+    position: data.position ?? 0,
+    status: data.status as unknown as Banner['status'],
   };
 };
 
 export const updateBanner = async (id: string, banner: Omit<Banner, 'id'>): Promise<Banner> => {
-  const payload = {
-    title: banner.title,
-    imageUrl: banner.imageUrl,
-    targetUrl: banner.targetUrl,
-    position: banner.position,
-    status: banner.status,
-  };
-  const response = await fetch(`${API_BASE}/api/bannieres/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+  const data = await BannieresService.updateBanniere({
+    banniereId: Number(id),
+    requestBody: {
+      title: banner.title,
+      imageUrl: banner.imageUrl,
+      targetUrl: banner.targetUrl,
+      position: banner.position,
+      status: banner.status as any,
+    },
   });
-  if (!response.ok) await parseError(response);
-  const data = await response.json();
   return {
     id: data.id.toString(),
     title: data.title,
     imageUrl: data.imageUrl || '',
     targetUrl: data.targetUrl || '',
-    position: data.position,
-    status: data.status,
+    position: data.position ?? 0,
+    status: data.status as unknown as Banner['status'],
   };
 };
 
 export const deleteBanner = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_BASE}/api/bannieres/${id}`, {
-    method: 'DELETE',
-  });
-  if (!response.ok) await parseError(response);
+  await BannieresService.deleteBanniere({ banniereId: Number(id) });
 };
 
 export const uploadBannerImage = async (file: File): Promise<string> => {
-  const formData = new FormData();
-  formData.append('file', file);
-  const response = await fetch(`${API_BASE}/api/bannieres/upload-image`, {
-    method: 'POST',
-    body: formData,
+  const data = await BannieresService.uploadBanniereImage({
+    formData: { file: file as unknown as Blob },
   });
-  if (!response.ok) await parseError(response);
-  const data = await response.json();
-  return data.imageUrl;
+  return data.imageUrl ?? '';
 };

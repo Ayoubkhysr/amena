@@ -1,29 +1,9 @@
 import type { Category } from '../context/StoreContext'
+import type { CategoryResponse, CategoryRequest } from '../generated'
+import { CategoriesService } from '../generated'
 
-export type ApiCategory = {
-  id: number
-  name: string
-  slug: string
-  description?: string
-  parentId?: number
-  imageUrl?: string
-  isActive?: boolean
-  sortOrder?: number
-  createdAt?: string
-  productCount?: number
-}
-
-export type ApiCategoryRequest = {
-  name: string
-  slug?: string
-  description?: string
-  parentId?: number
-  imageUrl?: string
-  isActive?: boolean
-  sortOrder?: number
-}
-
-const API_BASE = import.meta.env.VITE_API_URL ?? ''
+export type ApiCategory = CategoryResponse
+export type ApiCategoryRequest = CategoryRequest
 
 export function toUiCategory(api: ApiCategory): Category {
   return {
@@ -35,40 +15,20 @@ export function toUiCategory(api: ApiCategory): Category {
   }
 }
 
-async function parseError(res: Response): Promise<never> {
-  const message = await res.text().catch(() => res.statusText)
-  throw new Error(message || `Erreur API (${res.status})`)
-}
-
 export async function fetchCategories(): Promise<ApiCategory[]> {
-  const res = await fetch(`${API_BASE}/api/categories`)
-  if (!res.ok) await parseError(res)
-  return res.json()
+  return CategoriesService.getCategories()
 }
 
 export async function createCategory(body: ApiCategoryRequest): Promise<ApiCategory> {
-  const res = await fetch(`${API_BASE}/api/categories`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) await parseError(res)
-  return res.json()
+  return CategoriesService.createCategory({ requestBody: body })
 }
 
 export async function updateCategory(id: number, body: ApiCategoryRequest): Promise<ApiCategory> {
-  const res = await fetch(`${API_BASE}/api/categories/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) await parseError(res)
-  return res.json()
+  return CategoriesService.updateCategory({ categoryId: id, requestBody: body })
 }
 
 export async function deleteCategory(id: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' })
-  if (!res.ok) await parseError(res)
+  await CategoriesService.deleteCategory({ categoryId: id })
 }
 
 export function findCategoryByName(categories: Category[], name: string): Category | undefined {

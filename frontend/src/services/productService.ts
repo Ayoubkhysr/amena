@@ -1,48 +1,13 @@
 import type { Category, Product } from '../context/StoreContext'
+import type { ProductResponse, ProductRequest, ProductPage as ProductPageType } from '../generated'
+import { ProductsService } from '../generated'
 
-export type ApiProduct = {
-  id: number
-  sku: string
-  name: string
-  slug: string
-  description?: string
-  price: number
-  compareAtPrice?: number
-  costPrice?: number
-  categoryId?: number
-  subcategoryIds?: number[]
-  brand?: string
-  weight?: number
-  isActive?: boolean
-  stock?: number
-  isFeatured?: boolean
-  metaTitle?: string
-  metaDescription?: string
-  imageUrl?: string
-}
-
-export type ApiProductRequest = {
-  sku: string
-  name: string
-  slug: string
-  description?: string
-  price: number
-  compareAtPrice?: number
-  costPrice?: number
-  categoryId?: number
-  subcategoryIds?: number[]
-  brand?: string
-  weight?: number
-  isActive?: boolean
-  stock?: number
-  isFeatured?: boolean
-  metaTitle?: string
-  metaDescription?: string
-}
+export type ApiProduct = ProductResponse
+export type ApiProductRequest = ProductRequest
+export type ProductPage = ProductPageType
 
 const API_BASE = import.meta.env.VITE_API_URL ?? ''
 
-/** Resolves a product image path from the API into a browser-loadable URL. */
 export function resolveImageUrl(imageUrl?: string): string {
   if (!imageUrl?.trim()) return ''
   const normalized = imageUrl.trim().replace(/\\/g, '/')
@@ -79,7 +44,6 @@ export function toUiProduct(api: ApiProduct, categories: Category[]): Product {
   const categoryObj = categories.find((item) => Number(item.id) === api.categoryId)
   const categoryName = categoryObj?.name ?? 'Autre'
 
-  // Legacy data: if the category itself has a parent, categoryId used to point directly at the subcategory
   let mainCategory = categoryName
   let legacySubcategory: string | undefined = undefined
 
@@ -151,22 +115,6 @@ export function toApiRequest(
   }
 }
 
-async function parseError(res: Response): Promise<never> {
-  const message = await res.text().catch(() => res.statusText)
-  throw new Error(message || `Erreur API (${res.status})`)
-}
-
-export type ProductPage = {
-  content: ApiProduct[]
-  totalElements: number
-  totalPages: number
-  number: number
-  size: number
-  first: boolean
-  last: boolean
-  empty: boolean
-}
-
 export async function fetchProductsPage(
   page = 0,
   size = 20,
@@ -177,49 +125,30 @@ export async function fetchProductsPage(
   sortOrder = 'desc',
   maxStock?: number
 ): Promise<ProductPage> {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    size: size.toString(),
+  return ProductsService.getProducts({
+    page,
+    size,
+    search,
+    categoryId,
+    subcategoryId,
     sortBy,
     sortOrder,
+    maxStock,
   })
-  if (search) params.append('search', search)
-  if (categoryId) params.append('categoryId', categoryId.toString())
-  if (subcategoryId) params.append('subcategoryId', subcategoryId.toString())
-  if (maxStock !== undefined) params.append('maxStock', maxStock.toString())
-
-  const res = await fetch(`${API_BASE}/api/products?${params.toString()}`)
-  if (!res.ok) await parseError(res)
-  return res.json()
 }
 
 export async function fetchProductById(id: number | string): Promise<ApiProduct> {
-  const res = await fetch(`${API_BASE}/api/products/${id}`)
-  if (!res.ok) await parseError(res)
-  return res.json()
+  return ProductsService.getProductById({ productId: Number(id) })
 }
 
 export async function createProduct(body: ApiProductRequest): Promise<ApiProduct> {
-  const res = await fetch(`${API_BASE}/api/products`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) await parseError(res)
-  return res.json()
+  return ProductsService.createProduct({ requestBody: body })
 }
 
 export async function updateProduct(id: number, body: ApiProductRequest): Promise<ApiProduct> {
-  const res = await fetch(`${API_BASE}/api/products/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) await parseError(res)
-  return res.json()
+  return ProductsService.updateProduct({ productId: id, requestBody: body })
 }
 
 export async function deleteProduct(id: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/products/${id}`, { method: 'DELETE' })
-  if (!res.ok) await parseError(res)
+  await ProductsService.deleteProduct({ productId: id })
 }

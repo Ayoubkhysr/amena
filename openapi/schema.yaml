@@ -28,6 +28,8 @@ tags:
     description: Category-based discount offer management operations
   - name: Dashboard
     description: Dashboard analytics operations
+  - name: Bannieres
+    description: Banner management operations
 
 paths:
 
@@ -1166,6 +1168,12 @@ components:
 
     ProductPage:
       type: object
+      required:
+        - content
+        - totalElements
+        - totalPages
+        - size
+        - number
       properties:
         content:
           type: array
@@ -1189,6 +1197,12 @@ components:
 
     OrderPage:
       type: object
+      required:
+        - content
+        - totalElements
+        - totalPages
+        - size
+        - number
       properties:
         content:
           type: array

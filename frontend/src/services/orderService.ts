@@ -1,38 +1,10 @@
 import type { Order, OrderItem, OrderStatus } from '../pages/admin/admincommandes/AdminCommandes'
+import type { OrderResponse, OrderItemResponse, OrderPage as OrderPageType, CreateOrderRequest as CreateOrderRequestType, CreateOrderItemRequest } from '../generated'
+import { OrdersService } from '../generated'
 
-export type ApiOrder = {
-  id: number
-  orderNumber: string
-  clientName: string
-  clientPhone?: string
-  userId?: number
-  totalAmount: number
-  shippingAmount?: number
-  status: string
-  createdAt: string
-  address: string
-  items: ApiOrderItem[]
-}
-
-export type ApiOrderItem = {
-  productName: string
-  quantity: number
-  unitPrice: number
-  totalPrice: number
-}
-
-export type OrderPage = {
-  content: ApiOrder[]
-  totalElements: number
-  totalPages: number
-  size: number
-  number: number
-  first: boolean
-  last: boolean
-  empty: boolean
-}
-
-const API_BASE = import.meta.env.VITE_API_URL ?? ''
+export type ApiOrder = OrderResponse
+export type ApiOrderItem = OrderItemResponse
+export type OrderPage = OrderPageType
 
 const STATUS_TO_UI: Record<string, OrderStatus> = {
   pending: 'En attente',
@@ -83,11 +55,6 @@ function formatDate(isoDate: string): string {
   return date.toISOString().slice(0, 10)
 }
 
-async function parseError(res: Response): Promise<never> {
-  const message = await res.text().catch(() => res.statusText)
-  throw new Error(message || `Erreur API (${res.status})`)
-}
-
 export async function fetchOrdersPage(
   page = 0,
   size = 20,
@@ -96,65 +63,34 @@ export async function fetchOrdersPage(
   sortBy = 'createdAt',
   sortOrder = 'desc'
 ): Promise<OrderPage> {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    size: size.toString(),
+  return OrdersService.getOrders({
+    page,
+    size,
+    search,
+    status,
     sortBy,
     sortOrder,
   })
-  if (search) params.append('search', search)
-  if (status) params.append('status', status)
-
-  const res = await fetch(`${API_BASE}/api/orders?${params.toString()}`)
-  if (!res.ok) await parseError(res)
-  return res.json()
 }
 
 export async function fetchOrders(): Promise<ApiOrder[]> {
-  const page = await fetchOrdersPage(0, 1000, undefined, undefined, 'createdAt', 'desc')
-  return page.content
+  const page = await fetchOrdersPage(0, 1000)
+  return page.content ?? []
 }
 
 export async function updateOrderStatus(orderId: number, statut: OrderStatus): Promise<ApiOrder> {
-  const res = await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status: STATUS_TO_API[statut] }),
+  return OrdersService.updateOrderStatus({
+    orderId,
+    requestBody: { status: STATUS_TO_API[statut] },
   })
-  if (!res.ok) await parseError(res)
-  return res.json()
 }
 
-export type CreateOrderItemRequest = {
-  productId: number
-  productName: string
-  quantity: number
-  unitPrice: number
-}
+export { CreateOrderItemRequest, CreateOrderRequestType as CreateOrderRequest }
 
-export type CreateOrderRequest = {
-  clientInfo?: string
-  subtotal: number
-  shippingAmount?: number
-  discountAmount?: number
-  totalAmount: number
-  couponCode?: string
-  items: CreateOrderItemRequest[]
-}
-
-export async function createOrder(req: CreateOrderRequest): Promise<ApiOrder> {
-  const res = await fetch(`${API_BASE}/api/orders`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(req),
-  })
-  if (!res.ok) await parseError(res)
-  return res.json()
+export async function createOrder(req: CreateOrderRequestType): Promise<ApiOrder> {
+  return OrdersService.createOrder({ requestBody: req })
 }
 
 export async function deleteOrderApi(orderId: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/orders/${orderId}`, {
-    method: 'DELETE',
-  })
-  if (!res.ok) await parseError(res)
+  await OrdersService.deleteOrder({ orderId })
 }

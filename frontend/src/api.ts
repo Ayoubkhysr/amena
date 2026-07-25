@@ -6,5 +6,9 @@ import { OpenAPI } from './generated/core/OpenAPI';
 const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8081';
 
 OpenAPI.BASE = baseUrl;
+OpenAPI.TOKEN = () => {
+  const token = localStorage.getItem('auth_token');
+  return Promise.resolve(token ?? '');
+};
 
 export { OpenAPI };

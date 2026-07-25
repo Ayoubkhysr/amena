@@ -1,35 +1,9 @@
 import type { PromoCode } from '../pages/admin/adminpromotions/AdminPromotions'
+import type { CouponResponse, CouponRequest } from '../generated'
+import { CouponsService } from '../generated'
 
-export type ApiCoupon = {
-  id: number
-  code: string
-  description?: string
-  discountType: string
-  discountValue: number
-  minimumOrderAmount?: number
-  maximumDiscount?: number
-  usageLimit?: number
-  usedCount?: number
-  startsAt?: string
-  expiresAt?: string
-  isActive?: boolean
-  createdAt?: string
-}
-
-export type ApiCouponRequest = {
-  code: string
-  description?: string
-  discountType: string
-  discountValue: number
-  minimumOrderAmount?: number
-  maximumDiscount?: number
-  usageLimit?: number
-  startsAt?: string
-  expiresAt?: string
-  isActive?: boolean
-}
-
-const API_BASE = import.meta.env.VITE_API_URL ?? ''
+export type ApiCoupon = CouponResponse
+export type ApiCouponRequest = CouponRequest
 
 export function toUiPromoCode(api: ApiCoupon): PromoCode {
   return {
@@ -54,38 +28,18 @@ export function toApiCouponRequest(promo: PromoCode): ApiCouponRequest {
   }
 }
 
-async function parseError(res: Response): Promise<never> {
-  const message = await res.text().catch(() => res.statusText)
-  throw new Error(message || `Erreur API (${res.status})`)
-}
-
 export async function fetchCoupons(): Promise<ApiCoupon[]> {
-  const res = await fetch(`${API_BASE}/api/coupons`)
-  if (!res.ok) await parseError(res)
-  return res.json()
+  return CouponsService.getCoupons()
 }
 
 export async function createCoupon(body: ApiCouponRequest): Promise<ApiCoupon> {
-  const res = await fetch(`${API_BASE}/api/coupons`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) await parseError(res)
-  return res.json()
+  return CouponsService.createCoupon({ requestBody: body })
 }
 
 export async function updateCoupon(id: number, body: ApiCouponRequest): Promise<ApiCoupon> {
-  const res = await fetch(`${API_BASE}/api/coupons/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) await parseError(res)
-  return res.json()
+  return CouponsService.updateCoupon({ couponId: id, requestBody: body })
 }
 
 export async function deleteCoupon(id: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/coupons/${id}`, { method: 'DELETE' })
-  if (!res.ok) await parseError(res)
+  await CouponsService.deleteCoupon({ couponId: id })
 }

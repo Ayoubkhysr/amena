@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate:api": "openapi-typescript-codegen -c openapi.json"
+    "generate:api": "rm -rf ./src/generated/models ./src/generated/services ./src/generated/schemas ./src/generated/core ./src/generated/index.ts && openapi --input ../openapi/schema.yaml --output ./src/generated --client fetch --useOptions --exportCore true --exportServices true --exportModels true --exportSchemas true"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.21",
