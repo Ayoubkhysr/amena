@@ -78,14 +78,14 @@ const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySid
               <h4 className="text-sm font-semibold text-gray-700 mb-4">{filter.title}</h4>
               <div className="space-y-3">
                 {filter.options.map((option, i) => (
-                  <label key={i} className="flex items-center space-x-3 text-sm text-gray-600 cursor-pointer">
+                  <label key={i} className="flex items-center space-x-3 text-sm text-gray-600 cursor-pointer w-full py-1.5">
                     <input 
                       type="checkbox" 
-                      className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 w-4 h-4"
+                      className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 w-4 h-4 min-w-4"
                       checked={selected[filter.title]?.includes(option) || false}
                       onChange={(e) => handleCheckboxChange(filter.title, option, e.target.checked)}
                     />
-                    <span>{option}</span>
+                    <span className="flex-1">{option}</span>
                   </label>
                 ))}
               </div>
@@ -95,21 +95,21 @@ const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySid
           {/* Prix */}
           <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-4">Prix</h4>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-2">
               <input 
                 type="number" 
                 placeholder="Min" 
                 value={minPrice}
                 onChange={handleMinPriceChange}
-                className="w-20 px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
+                className="w-full min-w-0 px-3 py-2.5 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
               />
-              <span className="text-gray-400">-</span>
+              <span className="text-gray-400 flex-shrink-0">-</span>
               <input 
                 type="number" 
                 placeholder="Max" 
                 value={maxPrice}
                 onChange={handleMaxPriceChange}
-                className="w-20 px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
+                className="w-full min-w-0 px-3 py-2.5 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
               />
             </div>
           </div>

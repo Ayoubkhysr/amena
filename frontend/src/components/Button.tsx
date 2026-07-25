@@ -28,9 +28,9 @@ const Button = ({
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    sm: 'px-3 py-2.5 text-sm min-h-11',
+    md: 'px-4 py-3 text-base min-h-11',
+    lg: 'px-6 py-3 text-lg min-h-12',
   };
 
   const disabledStyles = disabled ? 'opacity-50 cursor-not-allowed' : '';

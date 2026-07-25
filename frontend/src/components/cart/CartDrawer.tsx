@@ -10,19 +10,18 @@ function CartDrawer() {
     <>
       {/* Overlay */}
       <div 
-        className="fixed inset-0 z-40 transition-opacity"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        className="fixed inset-0 z-40 bg-black/50 transition-opacity"
         onClick={closeCart}
       />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 h-full w-96 bg-white z-50 shadow-2xl transform transition-transform flex flex-col">
+      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform flex flex-col">
         {/* Header */}
         <div className="bg-[#0033cc] text-white p-4 flex justify-between items-center">
           <h2 className="text-xl font-bold">Mon panier</h2>
           <button 
             onClick={closeCart}
-            className="w-8 h-8 flex justify-center items-center rounded border border-white hover:bg-white hover:text-red-600 transition-colors bg-red-600"
+            className="min-w-11 min-h-11 flex justify-center items-center rounded border border-white hover:bg-white hover:text-red-600 transition-colors bg-red-600"
             aria-label="Fermer"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="w-5 h-5 hover:stroke-red-600">

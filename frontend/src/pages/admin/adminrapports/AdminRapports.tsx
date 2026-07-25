@@ -284,7 +284,7 @@ export function AdminRapports({ activeSection, orders, products }: AdminRapports
                       </td>
                       <td className="px-4 py-3">
                         {product ? (
-                          <span className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${product.stock === 0 ? 'bg-red-100 text-red-600' : product.stock <= 5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                          <span className={`rounded-full px-2.5 py-1.5 min-h-7 text-[11px] font-extrabold ${product.stock === 0 ? 'bg-red-100 text-red-600' : product.stock <= 5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
                             {product.stock} restants
                           </span>
                         ) : '—'}

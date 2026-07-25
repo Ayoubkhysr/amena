@@ -307,21 +307,21 @@ export function AdminCommandes({ activeSection, handleDeleteOrder }: AdminComman
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => toggleExpand(order.id)}
-                        className={`p-2 rounded-lg transition-colors inline-flex ${expandedOrderId === order.id ? 'bg-brand-blue text-white' : 'text-slate-400 hover:text-brand-blue bg-slate-50 hover:bg-slate-200'}`}
+                        className={`p-2.5 min-w-11 min-h-11 rounded-lg transition-colors inline-flex ${expandedOrderId === order.id ? 'bg-brand-blue text-white' : 'text-slate-400 hover:text-brand-blue bg-slate-50 hover:bg-slate-200'}`}
                         title="Voir détails"
                       >
                         <IconClipboard className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => printDeliverySlip(order)}
-                        className="text-slate-400 hover:text-brand-light p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex"
+                        className="text-slate-400 hover:text-brand-light p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex"
                         title="Imprimer bon de livraison"
                       >
                         <IconPrinter className="h-4 w-4" />
                       </button>
                       <button 
                         onClick={() => onDeleteOrder(order.id)}
-                        className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
+                        className="text-slate-400 hover:text-red-500 p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
                         title="Supprimer"
                       >
                         <IconArchive className="h-4 w-4" />

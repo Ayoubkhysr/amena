@@ -125,7 +125,7 @@ function ProductDetailsPage() {
 
       <div className="max-w-7xl mx-auto px-8 py-8 flex flex-col lg:flex-row gap-10">
         {/* Left Side: Product Image Container */}
-        <div className="w-full lg:w-1/2 flex justify-center items-center border border-blue-200 rounded-3xl p-8 bg-white h-[500px]">
+        <div className="w-full lg:w-1/2 flex justify-center items-center border border-blue-200 rounded-3xl p-4 sm:p-8 bg-white min-h-[300px] sm:min-h-[400px]">
           <img src={product.imageUrl} alt={product.name} className="max-w-full max-h-full object-contain" />
         </div>
 
@@ -165,7 +165,7 @@ function ProductDetailsPage() {
             </div>
 
             {/* Pricing Block */}
-            <div className="border border-blue-300 rounded-2xl p-6 bg-white w-full xl:w-[320px] flex-shrink-0">
+            <div className="border border-blue-300 rounded-2xl p-6 bg-white w-full xl:max-w-[320px] flex-shrink-0">
               <div className="flex justify-between items-center mb-6">
                 <span className="text-blue-600 font-bold text-sm">Prix unitaire</span>
                 <span className="text-gray-900 font-bold text-sm">{product.price.toFixed(3)}DT</span>
@@ -174,9 +174,9 @@ function ProductDetailsPage() {
               <div className="flex justify-between items-center mb-6">
                 <span className="text-blue-600 font-bold text-sm">Quantité</span>
                 <div className="flex items-center border border-blue-400 rounded-full px-4 py-1">
-                  <button onClick={() => updateQuantity(-1)} className="text-blue-500 font-bold text-xl px-2 hover:bg-blue-50 rounded-full flex items-center justify-center">-</button>
-                  <span className="mx-4 text-blue-500 font-bold min-w-[20px] text-center">{quantity}</span>
-                  <button onClick={() => updateQuantity(1)} className="text-blue-500 font-bold text-xl px-2 hover:bg-blue-50 rounded-full flex items-center justify-center">+</button>
+                  <button onClick={() => updateQuantity(-1)} className="text-blue-500 font-bold text-xl min-w-11 min-h-11 hover:bg-blue-50 rounded-full flex items-center justify-center">-</button>
+                  <span className="mx-2 sm:mx-4 text-blue-500 font-bold min-w-[20px] text-center">{quantity}</span>
+                  <button onClick={() => updateQuantity(1)} className="text-blue-500 font-bold text-xl min-w-11 min-h-11 hover:bg-blue-50 rounded-full flex items-center justify-center">+</button>
                 </div>
               </div>
 
@@ -199,7 +199,7 @@ function ProductDetailsPage() {
       {/* Related Products Section */}
       <div className="mt-16 bg-transparent">
         <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-center text-3xl font-bold text-blue-700 mb-10" style={{ fontFamily: 'cursive' }}>
+          <h2 className="text-center text-2xl sm:text-3xl font-bold text-blue-700 mb-10 font-[cursive]">
             Les Clients Qui Ont Acheté Ce Produit Ont Également Acheté...
           </h2>
 
@@ -207,7 +207,7 @@ function ProductDetailsPage() {
             {relatedProducts.map((relProduct) => (
               <Link to={`/produit/${relProduct.id}`} key={relProduct.id} className="block">
                 <div className="bg-white rounded-2xl p-4 flex flex-col items-center hover:shadow-lg transition-shadow border border-blue-200">
-                  <div className="w-full h-48 flex justify-center items-center mb-4">
+                  <div className="w-full h-40 sm:h-48 flex justify-center items-center mb-4">
                     <img src={relProduct.image} alt={relProduct.name} className="max-h-full object-contain" />
                   </div>
                   <div className="w-full text-left">

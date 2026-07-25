@@ -14,23 +14,23 @@ const AboutHeroBanner = () => {
         <div className="absolute top-0 right-0 w-1/2 h-full bg-[#00bfff] transform skew-x-[-20deg] translate-x-32 z-0 opacity-50"></div>
 
         {/* Content Container */}
-        <div className="relative z-10 flex w-full h-full">
+        <div className="relative z-10 flex flex-col md:flex-row w-full h-full">
           
           {/* Left Text */}
-          <div className="w-1/2 flex flex-col justify-center pl-16 py-12">
-            <h1 className="text-[#0055c4] font-black text-4xl md:text-5xl uppercase leading-none mb-2">
+          <div className="w-full md:w-1/2 flex flex-col justify-center px-6 md:pl-16 py-8 md:py-12">
+            <h1 className="text-[#0055c4] font-black text-3xl md:text-4xl xl:text-5xl uppercase leading-none mb-2">
               {title}
             </h1>
-            <h2 className="text-red-600 font-black text-5xl md:text-6xl uppercase leading-none" dangerouslySetInnerHTML={{ __html: subtitle.replace(/\n/g, '<br />') }}>
+            <h2 className="text-red-600 font-black text-4xl md:text-5xl xl:text-6xl uppercase leading-none" dangerouslySetInnerHTML={{ __html: subtitle.replace(/\n/g, '<br />') }}>
             </h2>
           </div>
 
           {/* Right Image */}
-          <div className="w-1/2 flex justify-end items-center">
+          <div className="w-full md:w-1/2 flex justify-end items-center">
             <img
               src={imageUrl}
               alt="Spray Bottle"
-              className="h-full w-full object-cover object-left drop-shadow-xl z-20"
+              className="w-full h-48 md:h-full object-cover object-left drop-shadow-xl z-20"
             />
           </div>
           

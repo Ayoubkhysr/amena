@@ -39,7 +39,7 @@ const ProductsBestSellers = () => {
       <div className="max-w-7xl mx-auto px-8">
         {/* Title */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#0055c4] mb-2" style={{ fontFamily: 'cursive' }}>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#0055c4] mb-2 font-[cursive]">
             Nos Best-Sellers
           </h2>
           <p className="text-xs text-gray-500 uppercase tracking-widest">DÉCOUVREZ NOS PRODUITS PHARES</p>
@@ -49,7 +49,7 @@ const ProductsBestSellers = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {products.map((product) => (
             <div key={product.id} className="bg-white rounded-lg shadow-sm p-4 border border-blue-200 flex flex-col items-center hover:shadow-xl transition-shadow cursor-pointer group">
-              <img src={product.image} alt={product.name} className="h-48 object-contain mb-4 group-hover:scale-105 transition-transform" />
+              <img src={product.image} alt={product.name} className="h-40 sm:h-48 object-contain mb-4 group-hover:scale-105 transition-transform w-full" />
               <div className="w-full text-left">
                 <div className="flex justify-between items-start mb-1">
                    <h3 className="font-bold text-gray-800 text-sm truncate">{product.name}</h3>

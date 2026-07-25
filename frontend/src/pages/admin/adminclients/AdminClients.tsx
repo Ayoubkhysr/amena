@@ -319,13 +319,13 @@ export function AdminClients({ activeSection, orders, handleEditClient }: { acti
                             if (handleEditClient) handleEditClient(editForm);
                             setEditingId(null);
                           }}
-                          className="rounded-md bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light transition-colors"
+                          className="rounded-md bg-brand-blue px-3 py-2 min-h-11 text-xs font-bold text-white hover:bg-brand-light transition-colors"
                         >
                           Sauver
                         </button>
                         <button 
                           onClick={() => setEditingId(null)}
-                          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                          className="rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                         >
                           Annul.
                         </button>
@@ -347,7 +347,7 @@ export function AdminClients({ activeSection, orders, handleEditClient }: { acti
                     <p className="text-sm font-semibold text-green-600">{client.totalSpent} TND</p>
                   </td>
                   <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] uppercase font-extrabold ${
+                    <span className={`rounded-full px-2.5 py-1.5 min-h-7 text-[11px] uppercase font-extrabold ${
                       client.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'
                     }`}>
                       {client.status}
@@ -356,7 +356,7 @@ export function AdminClients({ activeSection, orders, handleEditClient }: { acti
                   <td className="px-4 py-4 text-right">
                     <button 
                       onClick={() => { setEditingId(client.id); setEditForm({...client}); }}
-                      className="text-brand-light hover:text-brand-blue p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex items-center justify-center"
+                      className="text-brand-light hover:text-brand-blue p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex items-center justify-center"
                       title="Modifier"
                     >
                       <IconEye className="h-4 w-4" />

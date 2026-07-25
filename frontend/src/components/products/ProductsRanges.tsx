@@ -15,7 +15,7 @@ const ProductsRanges = () => {
       <div className="max-w-7xl mx-auto px-8">
         {/* Title */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-blue-500 mb-2" style={{ fontFamily: 'cursive' }}>
+          <h2 className="text-3xl md:text-4xl font-bold text-blue-500 mb-2 font-[cursive]">
             Nos gamme des produits
           </h2>
           <p className="text-xs text-gray-500 uppercase tracking-widest">DÉCOUVREZ NOS SOLUTIONS D'ENTRETIEN,<br/>DE FRAÎCHEUR ET DE BIEN-ÊTRE.</p>
@@ -27,14 +27,14 @@ const ProductsRanges = () => {
             <Link
               key={category.id}
               to={`/produits/${category.slug}`}
-              className="bg-[#c2eaff] rounded-xl shadow-sm flex items-center h-32 hover:bg-[#a1e0ff] transition-colors cursor-pointer group block relative"
+              className="bg-[#c2eaff] rounded-xl shadow-sm flex items-center min-h-24 sm:h-28 md:h-32 hover:bg-[#a1e0ff] transition-colors cursor-pointer group block relative overflow-hidden"
             >
               {/* Image Container */}
               <div className="w-1/2 h-full flex justify-center items-center relative">
                  <img
                    src={category.image}
                    alt={category.name}
-                   className="absolute h-40 w-auto object-contain z-10 drop-shadow-md group-hover:scale-110 transition-transform"
+                   className="h-32 sm:h-36 md:h-40 w-auto object-contain z-10 drop-shadow-md group-hover:scale-110 transition-transform"
                  />
               </div>
 

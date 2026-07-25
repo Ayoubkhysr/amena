@@ -36,8 +36,8 @@ type AdminPromotionsProps = {
 }
 
 const INPUT = 'w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-brand-blue focus:outline-none'
-const BTN_PRIMARY = 'rounded-md bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light transition-colors'
-const BTN_GHOST = 'rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors'
+const BTN_PRIMARY = 'rounded-md bg-brand-blue px-3 py-2 min-h-11 text-xs font-bold text-white hover:bg-brand-light transition-colors'
+const BTN_GHOST = 'rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors'
 
 export function AdminPromotions({
   activeSection, categories,
@@ -224,18 +224,18 @@ export function AdminPromotions({
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] uppercase font-extrabold ${code.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className={`rounded-full px-2.5 py-1.5 min-h-7 text-[11px] uppercase font-extrabold ${code.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
                         {code.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => { setEditingCodeId(code.id); setEditCodeForm({ ...code }) }}
-                          className="text-slate-400 hover:text-brand-blue p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Modifier">
+                          className="text-slate-400 hover:text-brand-blue p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Modifier">
                           <IconEye className="h-4 w-4" />
                         </button>
                         <button onClick={() => handleDeletePromoCode(code.id)}
-                          className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-red-50 transition-colors inline-flex" title="Supprimer">
+                          className="text-slate-400 hover:text-red-500 p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-red-50 transition-colors inline-flex" title="Supprimer">
                           <IconArchive className="h-4 w-4" />
                         </button>
                       </div>
@@ -422,18 +422,18 @@ export function AdminPromotions({
                       {offre.endsAt && <span className="text-xs text-slate-400"> → {offre.endsAt}</span>}
                     </td>
                     <td className="px-4 py-4">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] uppercase font-extrabold ${offre.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className={`rounded-full px-2.5 py-1.5 min-h-7 text-[11px] uppercase font-extrabold ${offre.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
                         {offre.status}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => { setEditingOffreId(offre.id); setEditOffreForm({ ...offre }) }}
-                          className="text-slate-400 hover:text-brand-blue p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Modifier">
+                          className="text-slate-400 hover:text-brand-blue p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Modifier">
                           <IconEye className="h-4 w-4" />
                         </button>
                         <button onClick={() => handleDeleteOffre(offre.id)}
-                          className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-red-50 transition-colors inline-flex" title="Supprimer">
+                          className="text-slate-400 hover:text-red-500 p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-red-50 transition-colors inline-flex" title="Supprimer">
                           <IconArchive className="h-4 w-4" />
                         </button>
                       </div>

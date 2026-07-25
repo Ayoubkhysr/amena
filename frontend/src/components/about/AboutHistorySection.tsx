@@ -21,7 +21,7 @@ présents dans de nombreux foyers !`;
         
         {/* Left Text */}
         <div className="w-full md:w-1/2">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ fontFamily: 'cursive' }}>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 font-[cursive]">
             {hasComma ? (
               <>
                 <span className="text-[#007dd6]">{titleParts[0]},</span>
@@ -32,7 +32,7 @@ présents dans de nombreux foyers !`;
               <span className="text-[#007dd6]">{title}</span>
             )}
           </h2>
-          <div className="text-xs text-gray-700 space-y-4 font-medium leading-relaxed max-w-sm whitespace-pre-wrap">
+          <div className="text-sm text-gray-700 space-y-4 font-medium leading-relaxed max-w-sm whitespace-pre-wrap">
             <p>{text}</p>
           </div>
         </div>

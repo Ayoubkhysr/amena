@@ -28,7 +28,7 @@ const TestimonialsSection = () => {
       <div className="max-w-7xl mx-auto px-8">
         {/* Header */}
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-blue-900 mb-2 italic" style={{ fontFamily: 'cursive' }}>
+          <h2 className="text-3xl font-bold text-blue-900 mb-2 italic font-[cursive]">
             Les avis de nos clients
           </h2>
           <div className="flex justify-center items-center space-x-2">
@@ -46,7 +46,7 @@ const TestimonialsSection = () => {
         {/* Carousel/Grid */}
         <div className="flex items-center justify-center space-x-4">
           {/* Left Arrow Placeholder */}
-          <button className="bg-white rounded-full p-2 shadow hover:bg-gray-100 text-gray-500 hidden md:block">
+          <button className="bg-white rounded-full min-w-11 min-h-11 shadow hover:bg-gray-100 text-gray-500 hidden md:flex items-center justify-center">
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
              </svg>
@@ -72,7 +72,7 @@ const TestimonialsSection = () => {
           </div>
 
           {/* Right Arrow Placeholder */}
-          <button className="bg-white rounded-full p-2 shadow hover:bg-gray-100 text-gray-500 hidden md:block">
+          <button className="bg-white rounded-full min-w-11 min-h-11 shadow hover:bg-gray-100 text-gray-500 hidden md:flex items-center justify-center">
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
              </svg>

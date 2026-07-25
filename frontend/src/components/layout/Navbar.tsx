@@ -70,7 +70,7 @@ const Navbar = () => {
                 />
               </div>
               {/* Cart Icon */}
-              <Link to="/panier" className="flex-shrink-0">
+              <Link to="/panier" className="flex-shrink-0 min-w-11 min-h-11 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 text-gray-900">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                 </svg>
@@ -95,12 +95,12 @@ const Navbar = () => {
 
           {/* Mobile Right Content (Cart + Hamburger) */}
           <div className="flex md:hidden items-center gap-4 z-20 text-current">
-            <Link to="/panier" className="flex-shrink-0">
+            <Link to="/panier" className="flex-shrink-0 min-w-11 min-h-11 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
               </svg>
             </Link>
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 focus:outline-none">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="min-w-11 min-h-11 flex items-center justify-center focus:outline-none">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                 {isMobileMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -115,7 +115,7 @@ const Navbar = () => {
 
         {/* Mobile Menu Dropdown */}
         <div 
-          className={`absolute top-full left-0 w-full bg-white text-gray-800 shadow-xl transition-all duration-300 ease-in-out md:hidden overflow-hidden ${isMobileMenuOpen ? 'max-h-[500px] border-b border-gray-200 opacity-100' : 'max-h-0 opacity-0'}`}
+          className={`absolute top-full left-0 w-full bg-white text-gray-800 shadow-xl transition-all duration-300 ease-in-out md:hidden overflow-hidden ${isMobileMenuOpen ? 'max-h-[calc(100vh-80px)] border-b border-gray-200 opacity-100 overflow-y-auto' : 'max-h-0 opacity-0'}`}
         >
           <div className="px-6 py-6 flex flex-col gap-4">
             {/* Mobile Search */}

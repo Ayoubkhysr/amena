@@ -140,13 +140,13 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                           if (handleAddBanner) handleAddBanner(newBannerForm)
                           setIsAddingBanner(false)
                         }}
-                        className="rounded-md bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light transition-colors"
+                        className="rounded-md bg-brand-blue px-3 py-2 min-h-11 text-xs font-bold text-white hover:bg-brand-light transition-colors"
                       >
                         Ajouter
                       </button>
                       <button 
                         onClick={() => setIsAddingBanner(false)}
-                        className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                        className="rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                       >
                         Annul.
                       </button>
@@ -222,13 +222,13 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                               if (handleEditBanner) handleEditBanner(editBannerForm)
                               setEditingBannerId(null)
                             }}
-                            className="rounded-md bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light transition-colors"
+                            className="rounded-md bg-brand-blue px-3 py-2 min-h-11 text-xs font-bold text-white hover:bg-brand-light transition-colors"
                           >
                             Sauver
                           </button>
                           <button 
                             onClick={() => setEditingBannerId(null)}
-                            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                            className="rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                           >
                             Annul.
                           </button>
@@ -260,7 +260,7 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                       {banner.position}
                     </td>
                     <td className="px-4 py-4">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] uppercase font-extrabold ${banner.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className={`rounded-full px-2.5 py-1.5 min-h-7 text-[11px] uppercase font-extrabold ${banner.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
                         {banner.status}
                       </span>
                     </td>
@@ -268,7 +268,7 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                       <div className="flex justify-end gap-2">
                         <button 
                           onClick={() => { setEditingBannerId(banner.id); setEditBannerForm({...banner}) }}
-                          className="text-slate-400 hover:text-brand-blue p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
+                          className="text-slate-400 hover:text-brand-blue p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
                           title="Modifier"
                         >
                           <IconEye className="h-4 w-4" />
@@ -279,7 +279,7 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                               if (handleDeleteBanner) handleDeleteBanner(banner.id)
                             }
                           }}
-                          className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Archiver">
+                          className="text-slate-400 hover:text-red-500 p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Archiver">
                           <IconArchive className="h-4 w-4" />
                         </button>
                       </div>
@@ -370,13 +370,13 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                           if (handleAddPage) handleAddPage(newPageForm)
                           setIsAddingPage(false)
                         }}
-                        className="rounded-md bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light transition-colors"
+                        className="rounded-md bg-brand-blue px-3 py-2 min-h-11 text-xs font-bold text-white hover:bg-brand-light transition-colors"
                       >
                         Ajouter
                       </button>
                       <button 
                         onClick={() => setIsAddingPage(false)}
-                        className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                        className="rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                       >
                         Annul.
                       </button>
@@ -427,13 +427,13 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                               if (handleEditPage) handleEditPage({...editPageForm, lastModified: new Date().toISOString().split('T')[0]})
                               setEditingPageId(null)
                             }}
-                            className="rounded-md bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light transition-colors"
+                            className="rounded-md bg-brand-blue px-3 py-2 min-h-11 text-xs font-bold text-white hover:bg-brand-light transition-colors"
                           >
                             Sauver
                           </button>
                           <button 
                             onClick={() => setEditingPageId(null)}
-                            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                            className="rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                           >
                             Annul.
                           </button>
@@ -452,7 +452,7 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                     <td className="px-4 py-4 text-slate-600">/{page.slug}</td>
                     <td className="px-4 py-4 text-slate-500">{page.lastModified}</td>
                     <td className="px-4 py-4">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] uppercase font-extrabold ${page.status === 'Publiée' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-amber-700'}`}>
+                      <span className={`rounded-full px-2.5 py-1.5 min-h-7 text-[11px] uppercase font-extrabold ${page.status === 'Publiée' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-amber-700'}`}>
                         {page.status}
                       </span>
                     </td>
@@ -460,12 +460,12 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
                       <div className="flex justify-end gap-2">
                         <button 
                           onClick={() => { setEditingPageId(page.id); setEditPageForm({...page}) }}
-                          className="text-slate-400 hover:text-brand-blue p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
+                          className="text-slate-400 hover:text-brand-blue p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
                           title="Modifier"
                         >
                           <IconEye className="h-4 w-4" />
                         </button>
-                        <button className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Archiver">
+                        <button className="text-slate-400 hover:text-red-500 p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Archiver">
                           <IconArchive className="h-4 w-4" />
                         </button>
                       </div>

@@ -39,7 +39,7 @@ const BestSellersSection = () => {
       <div className="max-w-7xl mx-auto px-8">
         {/* Title */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-red-600 mb-2" style={{ fontFamily: 'cursive' }}>
+          <h2 className="text-4xl font-bold text-red-600 mb-2 font-[cursive]">
             Meilleures Ventes
           </h2>
           <p className="text-xs text-gray-500 uppercase tracking-widest">PRODUITS LES MIEUX NOTÉS DE L'ANNÉE</p>
@@ -49,10 +49,10 @@ const BestSellersSection = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {products.map((product) => (
             <div key={product.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-100 flex flex-col items-center hover:shadow-xl transition-shadow cursor-pointer">
-              <img src={product.image} alt={product.name} className="h-48 object-contain mb-4" />
+              <img src={product.image} alt={product.name} className="h-40 sm:h-48 object-contain mb-4 w-full" />
               <div className="w-full text-left">
                 <h3 className="font-bold text-gray-800 text-lg">{product.name}</h3>
-                <p className="text-xs text-gray-500 mb-2 h-8">{product.description}</p>
+                <p className="text-xs text-gray-500 mb-2">{product.description}</p>
                 <div className="flex justify-between items-end">
                   <span className="font-bold text-blue-600">{product.price}</span>
                   <div className="flex text-yellow-400 text-xs">

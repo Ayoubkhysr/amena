@@ -21,11 +21,10 @@ const CategoryProductGrid = ({ products }: CategoryProductGridProps) => {
         {products.map((product) => (
           <Link to={`/produit/${product.id}`} key={product.id} className="block">
             <div 
-              className="bg-white rounded-2xl p-4 flex flex-col items-center hover:shadow-lg transition-shadow cursor-pointer h-full"
-              style={{ border: '1px solid #c2eaff' }}
+              className="bg-white rounded-2xl p-4 flex flex-col items-center hover:shadow-lg transition-shadow cursor-pointer h-full border border-[#c2eaff]"
             >
               {/* Image Container */}
-            <div className="w-full h-56 flex justify-center items-center mb-4">
+            <div className="w-full h-40 sm:h-48 md:h-56 flex justify-center items-center mb-4">
               <img src={product.image} alt={product.name} className="max-h-full object-contain" />
             </div>
             

@@ -391,14 +391,14 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                       setShowNewSubcatInput(false)
                       setNewSubcatInputValue('')
                     }}
-                    className="rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light"
+                    className="rounded-lg bg-brand-blue px-3 py-2 min-h-11 text-xs font-bold text-white hover:bg-brand-light"
                   >
                     Valider
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowNewSubcatInput(false)}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                    className="rounded-lg border border-slate-300 px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50"
                   >
                     Annuler
                   </button>
@@ -678,14 +678,14 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                           setInlineNewSubcatParentId(null)
                           setInlineNewSubcatName('')
                         }}
-                        className="rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light"
+                        className="rounded-lg bg-brand-blue px-3 py-2 min-h-11 text-xs font-bold text-white hover:bg-brand-light"
                       >
                         Valider
                       </button>
                       <button
                         type="button"
                         onClick={() => setInlineNewSubcatParentId(null)}
-                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50"
                       >
                         Annuler
                       </button>
@@ -979,7 +979,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                             resetEditProductImage()
                             setRefreshTrigger(prev => prev + 1)
                           }}
-                          className="rounded-md bg-brand-blue px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-light transition-colors"
+                          className="rounded-md bg-brand-blue px-3 py-2 min-h-11 text-xs font-bold text-white hover:bg-brand-light transition-colors"
                         >
                           Sauver
                         </button>
@@ -988,7 +988,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                             setEditingId(null)
                             resetEditProductImage()
                           }}
-                          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                          className="rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                         >
                           Annul.
                         </button>
@@ -999,7 +999,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     <td colSpan={9} className="px-4 py-4 pt-0">
                       <label className="block text-xs font-semibold text-brand-blue mb-1 uppercase tracking-wider">Image</label>
                       <div className="flex flex-wrap items-center gap-3">
-                        <label className="cursor-pointer rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                        <label className="cursor-pointer rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-700 hover:bg-slate-50">
                           Changer l&apos;image
                           <input
                             type="file"
@@ -1059,7 +1059,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                     </span>
                   </td>
                     <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] uppercase font-extrabold ${
+                    <span className={`rounded-full px-2.5 py-1.5 min-h-7 text-[11px] uppercase font-extrabold ${
                       product.stock <= 5 || product.status === 'Rupture' ? 'bg-red-100 text-red-700' : 
                       product.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'
                     }`}>
@@ -1074,7 +1074,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                           setEditingId(product.id)
                           setEditForm({ ...product })
                         }}
-                        className="text-slate-400 hover:text-brand-blue p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
+                        className="text-slate-400 hover:text-brand-blue p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" 
                         title="Modifier"
                       >
                         <IconEye className="h-4 w-4" />
@@ -1087,7 +1087,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                           await handleDeleteProduct(product.id)
                           setRefreshTrigger(prev => prev + 1)
                         }}
-                        className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex"
+                        className="text-slate-400 hover:text-red-500 p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex"
                         title="Supprimer"
                       >
                         <IconArchive className="h-4 w-4" />

@@ -349,7 +349,7 @@ function LivraisonPage() {
           <div>
             <div className="bg-gray-50 rounded-lg p-6">
               {/* Header */}
-              <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-300">
+              <div className="hidden sm:grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-300">
                 <span className="text-sm font-semibold text-gray-600">Article</span>
                 <span className="text-sm font-semibold text-gray-600 text-center">Quantité</span>
                 <span className="text-sm font-semibold text-gray-600 text-right">Prix</span>
@@ -358,33 +358,36 @@ function LivraisonPage() {
               {/* Cart Items */}
               <div className="space-y-4 mb-6">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="grid grid-cols-3 gap-4 items-center">
+                  <div key={item.id} className="flex flex-col sm:grid sm:grid-cols-3 gap-3 sm:gap-4 sm:items-center pb-4 border-b border-gray-200 sm:border-0 last:border-0">
                     {/* Product Info */}
                     <div className="flex items-center gap-3">
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-12 h-16 object-contain"
+                        className="w-12 h-16 sm:w-14 sm:h-20 object-contain flex-shrink-0"
                       />
                       <div>
                         <h4 className="font-bold text-gray-900 text-sm">{item.name}</h4>
                         <p className="text-xs text-gray-500">{item.category}</p>
+                        <p className="font-bold text-gray-900 text-sm sm:hidden mt-1">
+                          {(item.price * item.quantity).toFixed(3)}DT
+                        </p>
                       </div>
                     </div>
 
                     {/* Quantity Controls */}
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center justify-start sm:justify-center gap-2">
                       <button
-                        className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold hover:bg-blue-200"
+                        className="min-w-11 min-h-11 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold hover:bg-blue-200"
                         onClick={() => updateQuantity(item.id, -1)}
                       >
                         -
                       </button>
-                      <span className="font-semibold text-gray-900 w-8 text-center">
+                      <span className="font-semibold text-gray-900 min-w-[20px] text-center">
                         {item.quantity}
                       </span>
                       <button
-                        className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold hover:bg-blue-200"
+                        className="min-w-11 min-h-11 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold hover:bg-blue-200"
                         onClick={() => updateQuantity(item.id, 1)}
                       >
                         +
@@ -392,7 +395,7 @@ function LivraisonPage() {
                     </div>
 
                     {/* Price */}
-                    <div className="text-right">
+                    <div className="text-right hidden sm:block">
                       <p className="font-bold text-gray-900">
                         {(item.price * item.quantity).toFixed(3)}DT
                       </p>

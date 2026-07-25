@@ -223,7 +223,7 @@ function NosMagasinsPage() {
           </div>
 
           {/* Right Side - Map */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 lg:col-span-2 relative" style={{ height: '550px' }}>
+          <div className="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 lg:col-span-2 relative min-h-[350px] md:min-h-[450px] lg:min-h-[550px]">
             <MapContainer 
               center={mapCenter} 
               zoom={mapZoom} 

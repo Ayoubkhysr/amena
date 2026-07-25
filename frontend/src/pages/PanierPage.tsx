@@ -76,10 +76,10 @@ function PanierPage() {
             {cartItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-4 border border-gray-200 rounded-lg p-4"
+                className="flex flex-wrap sm:flex-nowrap items-center gap-4 border border-gray-200 rounded-lg p-4"
               >
                 {/* Product Image */}
-                <div className="w-20 h-28 flex-shrink-0">
+                <div className="w-16 sm:w-20 h-20 sm:h-28 flex-shrink-0">
                   <img
                     src={item.image}
                     alt={item.name}
@@ -88,8 +88,8 @@ function PanierPage() {
                 </div>
 
                 {/* Product Details */}
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-900 text-base mb-1">{item.name}</h3>
+                <div className="flex-1 min-w-[120px]">
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-1">{item.name}</h3>
                   <p className="text-xs text-gray-500 mb-2">{item.category}</p>
                   {item.inStock && (
                     <div className="flex items-center gap-1 mb-2">
@@ -100,19 +100,19 @@ function PanierPage() {
                 </div>
 
                 {/* Quantity Controls */}
-                <div className="flex items-center border border-blue-500 rounded-full px-3 py-1">
+                <div className="flex items-center border border-blue-500 rounded-full px-2 sm:px-3 py-1">
                   <button
                     onClick={() => updateQuantity(item.id, -1)}
-                    className="text-blue-500 font-bold text-lg w-6 h-6 flex items-center justify-center"
+                    className="text-blue-500 font-bold text-lg min-w-11 min-h-11 flex items-center justify-center"
                   >
                     -
                   </button>
-                  <span className="mx-3 font-semibold text-gray-900 min-w-[20px] text-center">
+                  <span className="mx-2 sm:mx-3 font-semibold text-gray-900 min-w-[20px] text-center">
                     {item.quantity}
                   </span>
                   <button
                     onClick={() => updateQuantity(item.id, 1)}
-                    className="text-blue-500 font-bold text-lg w-6 h-6 flex items-center justify-center"
+                    className="text-blue-500 font-bold text-lg min-w-11 min-h-11 flex items-center justify-center"
                   >
                     +
                   </button>
@@ -120,7 +120,7 @@ function PanierPage() {
 
                 {/* Price */}
                 <div className="text-right">
-                  <p className="font-bold text-blue-600 text-base">
+                  <p className="font-bold text-blue-600 text-sm sm:text-base">
                     {item.price.toFixed(3)}DT
                   </p>
                 </div>
@@ -128,7 +128,7 @@ function PanierPage() {
                 {/* Remove Button */}
                 <button
                   onClick={() => removeItem(item.id)}
-                  className="text-gray-400 hover:text-red-500 ml-2"
+                  className="text-gray-400 hover:text-red-500 min-w-11 min-h-11 flex items-center justify-center"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -198,8 +198,7 @@ function PanierPage() {
       <div className="bg-gray-50 py-12">
         <div className="max-w-7xl mx-auto px-8">
           <h2
-            className="text-center text-3xl font-bold text-blue-600 mb-8"
-            style={{ fontFamily: 'cursive' }}
+            className="text-center text-2xl sm:text-3xl font-bold text-blue-600 mb-8 font-[cursive]"
           >
             Les Clients Qui Ont Acheté Ce Produit Ont Également Acheté...
           </h2>
@@ -243,7 +242,7 @@ function PanierPage() {
                 key={product.id}
                 className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow cursor-pointer"
               >
-                <div className="w-full h-48 flex justify-center items-center mb-4">
+                <div className="w-full h-40 sm:h-48 flex justify-center items-center mb-4">
                   <img
                     src={product.image}
                     alt={product.name}

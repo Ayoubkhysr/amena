@@ -33,7 +33,7 @@ type AdminParametresProps = {
 const INPUT = 'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-blue focus:outline-none transition-colors'
 const LABEL = 'mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500'
 const BTN_PRIMARY = 'rounded-md bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-light transition-colors shadow-sm'
-const BTN_GHOST = 'rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors'
+const BTN_GHOST = 'rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors'
 
 const DEFAULT_STORE_INFO: StoreInfo = {
   name: 'Etablissement Al Amine',
@@ -336,11 +336,11 @@ export function AdminParametres({ activeSection }: AdminParametresProps) {
                       <td className="px-4 py-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button onClick={() => { setEditingZoneId(zone.id); setEditZoneForm({ ...zone }) }}
-                            className="text-slate-400 hover:text-brand-blue p-2 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Modifier">
+                            className="text-slate-400 hover:text-brand-blue p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-slate-200 transition-colors inline-flex" title="Modifier">
                             <IconEye className="h-4 w-4" />
                           </button>
                           <button onClick={() => setZones(prev => prev.filter(z => z.id !== zone.id))}
-                            className="text-slate-400 hover:text-red-500 p-2 rounded-lg bg-slate-50 hover:bg-red-50 transition-colors inline-flex" title="Supprimer">
+                            className="text-slate-400 hover:text-red-500 p-2.5 min-w-11 min-h-11 rounded-lg bg-slate-50 hover:bg-red-50 transition-colors inline-flex" title="Supprimer">
                             <IconArchive className="h-4 w-4" />
                           </button>
                         </div>
