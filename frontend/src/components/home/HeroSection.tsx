@@ -73,7 +73,7 @@ const HeroSection = () => {
           {banner.targetUrl ? (
             <Link to={banner.targetUrl} className="block w-full h-full">
               <img
-                src={banner.imageUrl ? `http://localhost:8081${banner.imageUrl}` : '/images/placeholder.jpg'}
+                src={banner.imageUrl ? `http://localhost:8080${banner.imageUrl}` : '/images/placeholder.jpg'}
                 alt={banner.title}
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -85,7 +85,7 @@ const HeroSection = () => {
             </Link>
           ) : (
             <img
-              src={banner.imageUrl ? `http://localhost:8081${banner.imageUrl}` : '/images/placeholder.jpg'}
+              src={banner.imageUrl ? `http://localhost:8080${banner.imageUrl}` : '/images/placeholder.jpg'}
               alt={banner.title}
               className="w-full h-full object-cover"
               onError={(e) => {

@@ -1,0 +1,17 @@
+.git
+.gitignore
+AGENTS.md
+*.md
+.env*
+node_modules
+frontend/node_modules
+frontend/dist
+backend/target
+backend/.apt_generated
+backend/.classpath
+backend/.project
+backend/.settings
+backend/.springBeans
+backend/.sts4-cache
+backend/logs
+deployment
