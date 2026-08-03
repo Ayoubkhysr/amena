@@ -5,6 +5,7 @@ COPY backend/pom.xml ./backend/pom.xml
 COPY openapi ./openapi
 RUN mvn dependency:go-offline -B -f backend/pom.xml
 COPY backend/src ./backend/src
+RUN cat openapi/schema.yaml | head -n 10
 RUN mvn package -DskipTests -f backend/pom.xml
 
 # Run stage
