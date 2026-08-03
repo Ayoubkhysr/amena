@@ -38,7 +38,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: frontend/Dockerfile
       args:
         VITE_API_URL: ""
     container_name: amena-frontend
