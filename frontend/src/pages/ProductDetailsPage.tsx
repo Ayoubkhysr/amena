@@ -125,12 +125,12 @@ function ProductDetailsPage() {
 
       <div className="max-w-7xl mx-auto px-8 py-8 flex flex-col lg:flex-row gap-10">
         {/* Left Side: Product Image Container */}
-        <div className="w-full lg:w-1/3 flex justify-center items-center border border-blue-200 rounded-3xl p-4 sm:p-8 bg-white min-h-[300px] sm:min-h-[400px]">
+        <div className="w-full lg:w-1/4 flex justify-center items-center border border-blue-200 rounded-3xl p-4 sm:p-6 bg-white min-h-[250px] sm:min-h-[350px]">
           <img src={product.imageUrl} alt={product.name} className="max-w-full max-h-full object-contain" />
         </div>
 
         {/* Right Side: Product Details & Add to Cart */}
-        <div className="w-full lg:w-2/3 flex flex-col md:flex-row gap-8 items-start justify-start">
+        <div className="w-full lg:w-3/4 flex flex-col md:flex-row gap-8 items-start justify-start">
           
           {/* Left Column of Right Side: Info & Description */}
           <div className="flex-1 w-full flex flex-col">
