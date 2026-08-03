@@ -179,12 +179,12 @@ function PanierPage() {
               {/* Buttons */}
               <div className="flex flex-col gap-4">
                 <Link to="/livraison" className="block w-full">
-                  <button type="button" className="w-full bg-white border-2 border-blue-500 text-blue-600 font-bold py-3 rounded-full hover:bg-blue-50 transition-colors">
+                  <button type="button" className="w-full bg-white border-2 border-blue-500 text-blue-600 font-bold py-3 px-2 sm:px-4 rounded-full hover:bg-blue-50 transition-colors text-sm sm:text-base leading-tight break-words">
                     Acheter maintenant
                   </button>
                 </Link>
                 <Link to="/produits" className="block w-full">
-                  <button type="button" className="w-full bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition-colors">
+                  <button type="button" className="w-full bg-blue-600 text-white font-bold py-3 px-2 sm:px-4 rounded-full hover:bg-blue-700 transition-colors text-sm sm:text-base leading-tight break-words">
                     Continuer mes achats
                   </button>
                 </Link>

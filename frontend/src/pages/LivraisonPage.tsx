@@ -246,11 +246,11 @@ function LivraisonPage() {
             </div>
 
             {/* Buy Now Button */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-8 w-full">
               <button
                 type="submit"
                 disabled={isSubmitting || cartItems.length === 0}
-                className="px-12 py-3 bg-white border-2 border-blue-500 text-blue-600 font-bold rounded-full hover:bg-blue-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto px-4 sm:px-12 py-3 bg-white border-2 border-blue-500 text-blue-600 font-bold rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base leading-tight break-words whitespace-normal sm:whitespace-nowrap"
               >
                 {isSubmitting ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>

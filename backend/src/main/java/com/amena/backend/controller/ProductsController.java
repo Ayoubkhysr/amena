@@ -24,8 +24,8 @@ public class ProductsController implements ProductsApi {
 
     @Override
     public ResponseEntity<ProductPage> getProducts(Integer page, Integer size, String search, Long categoryId,
-                                                           Long subcategoryId, String sortBy, String sortOrder, Integer maxStock) {
-        return ResponseEntity.ok(produitService.getProducts(page, size, search, categoryId, subcategoryId, sortBy, sortOrder, maxStock));
+                                                           Long subcategoryId, Boolean isActive, String sortBy, String sortOrder, Integer maxStock) {
+        return ResponseEntity.ok(produitService.getProducts(page, size, search, categoryId, subcategoryId, isActive, sortBy, sortOrder, maxStock));
     }
 
     @Override
@@ -65,5 +65,10 @@ public class ProductsController implements ProductsApi {
     public ResponseEntity<Void> deleteProductImage(Long productId, Long imageId) {
         productImageService.delete(productId, imageId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<ProductResponse>> getBestSellers(Integer limit) {
+        return ResponseEntity.ok(produitService.getBestSellers(limit));
     }
 }

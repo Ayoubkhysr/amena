@@ -1,38 +1,56 @@
+import { useEffect, useState, useContext } from 'react';
+import { fetchBestSellers, resolveImageUrl } from '../../services/productService';
+import type { ApiProduct } from '../../services/productService';
+import { StoreContext } from '../../context/StoreContext';
+import { Link } from 'react-router-dom';
+
 const BestSellersSection = () => {
-  const products = [
-    {
-      id: 1,
-      name: "TAMPAN",
-      description: "Gel nettoyant multi-surfaces",
-      price: "10,900 DT",
-      image: "/images/Tampan.png",
-      rating: 5,
-    },
-    {
-      id: 2,
-      name: "Super Dégraissant",
-      description: "Multi-graisse",
-      price: "15,500 DT",
-      image: "/images/Super%20D%C3%A9graissant.png",
-      rating: 5,
-    },
-    {
-      id: 3,
-      name: "Top gel %",
-      description: "Nettoyant vaisselle",
-      price: "14,500 DT",
-      image: "/images/Rectangle%2034.png",
-      rating: 5,
-    },
-    {
-      id: 4,
-      name: "El Wanja",
-      description: "Nettoyant bois et sols",
-      price: "8,900 DT",
-      image: "/images/Rectangle%2035.png",
-      rating: 5,
-    },
-  ];
+  const [bestsellers, setBestsellers] = useState<ApiProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const storeContext = useContext(StoreContext);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const products = await fetchBestSellers(4);
+        setBestsellers(products);
+      } catch (error) {
+        console.error('Failed to load best sellers', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Fallback to first 4 products if no sales exist yet
+  const displayProducts = bestsellers.length > 0 
+    ? bestsellers.map(p => ({
+        id: p.id,
+        name: p.name,
+        description: p.description || 'Produit El Amine',
+        price: `${p.price?.toFixed(3) || '0.000'} DT`,
+        image: resolveImageUrl(p.imageUrl),
+        rating: 5,
+        slug: p.slug
+      }))
+    : (storeContext?.products || []).slice(0, 4).map(p => ({
+        id: p.id,
+        name: p.name,
+        description: p.description || 'Produit El Amine',
+        price: `${p.price?.toFixed(3) || '0.000'} DT`,
+        image: p.imageUrl,
+        rating: 5,
+        slug: p.slug
+      }));
+
+  if (loading && displayProducts.length === 0) {
+    return null;
+  }
+
+  if (displayProducts.length === 0) {
+    return null;
+  }
 
   return (
     <section className="w-full py-16 bg-gray-50">
@@ -47,12 +65,12 @@ const BestSellersSection = () => {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-100 flex flex-col items-center hover:shadow-xl transition-shadow cursor-pointer">
+          {displayProducts.map((product) => (
+            <Link to={`/produit/${product.slug}`} key={product.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-100 flex flex-col items-center hover:shadow-xl transition-shadow cursor-pointer block">
               <img src={product.image} alt={product.name} className="h-40 sm:h-48 object-contain mb-4 w-full" />
-              <div className="w-full text-left">
-                <h3 className="font-bold text-gray-800 text-lg">{product.name}</h3>
-                <p className="text-xs text-gray-500 mb-2">{product.description}</p>
+              <div className="w-full text-left mt-auto">
+                <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{product.name}</h3>
+                <p className="text-xs text-gray-500 mb-2 line-clamp-1">{product.description}</p>
                 <div className="flex justify-between items-end">
                   <span className="font-bold text-blue-600">{product.price}</span>
                   <div className="flex text-yellow-400 text-xs">
@@ -64,7 +82,7 @@ const BestSellersSection = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

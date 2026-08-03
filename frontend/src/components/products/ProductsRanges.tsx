@@ -27,7 +27,7 @@ const ProductsRanges = () => {
             <Link
               key={category.id}
               to={`/produits/${category.slug}`}
-              className="bg-[#c2eaff] rounded-xl shadow-sm flex items-center min-h-24 sm:h-28 md:h-32 hover:bg-[#a1e0ff] transition-colors cursor-pointer group block relative overflow-hidden"
+              className="bg-[#c2eaff] rounded-xl shadow-sm flex items-center min-h-24 sm:h-28 md:h-32 hover:bg-[#a1e0ff] transition-colors cursor-pointer group block relative"
             >
               {/* Image Container */}
               <div className="w-1/2 h-full flex justify-center items-center relative">

@@ -52,7 +52,7 @@ function AllProductsPage() {
     async function loadAllProducts() {
       setLoading(true);
       try {
-        const page = await fetchProductsPage(0, 1000, searchQuery, undefined);
+        const page = await fetchProductsPage(0, 1000, searchQuery, undefined, undefined, 'createdAt', 'desc', undefined, true);
         const apiProducts = page.content;
 
         const mappedProducts: ProductItem[] = apiProducts.map(p => {

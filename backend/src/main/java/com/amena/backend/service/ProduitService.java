@@ -33,7 +33,7 @@ public class ProduitService {
 
     @Transactional(readOnly = true)
     public ProductPage getProducts(Integer page, Integer size, String search, Long categoryId, Long subcategoryId,
-                                   String sortBy, String sortOrder, Integer maxStock) {
+                                   Boolean isActive, String sortBy, String sortOrder, Integer maxStock) {
         Sort.Direction direction = "asc".equalsIgnoreCase(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
         PageRequest pageable = PageRequest.of(page, size, Sort.by(direction, sortBy != null ? sortBy : "createdAt"));
 
@@ -52,6 +52,9 @@ public class ProduitService {
                 Join<Produit, Categorie> subcats = root.join("subCategories");
                 return cb.equal(subcats.get("id"), subcategoryId);
             });
+        }
+        if (isActive != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("isActive"), isActive));
         }
         if (maxStock != null) {
             spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("stock"), maxStock));
@@ -76,6 +79,14 @@ public class ProduitService {
         return produitRepository.findById(id)
                 .map(this::toResponseWithImage)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<ProductResponse> getBestSellers(Integer limit) {
+        PageRequest pageable = PageRequest.of(0, limit != null ? limit : 4);
+        return produitRepository.findBestSellers(pageable).getContent().stream()
+                .map(this::toResponseWithImage)
+                .toList();
     }
 
     @Transactional
@@ -104,14 +115,25 @@ public class ProduitService {
         if (!produitRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
         }
-        try {
-            productImageService.deleteAllForProduct(id);
-            produitRepository.deleteById(id);
-        } catch (DataIntegrityViolationException e) {
+        
+        if (produitRepository.isProductInOrders(id)) {
+            // Cannot hard delete, so we soft delete
             produitRepository.findById(id).ifPresent(p -> {
                 p.setIsActive(false);
                 produitRepository.save(p);
             });
+        } else {
+            // Hard delete
+            try {
+                productImageService.deleteAllForProduct(id);
+                produitRepository.deleteById(id);
+            } catch (DataIntegrityViolationException e) {
+                // Fallback for other constraints (like foreign keys in tables not mapped by JPA yet)
+                produitRepository.findById(id).ifPresent(p -> {
+                    p.setIsActive(false);
+                    produitRepository.save(p);
+                });
+            }
         }
     }
 

@@ -24,16 +24,15 @@ const STATUS_TO_API: Record<OrderStatus, string> = {
 
 export function toUiOrder(api: ApiOrder): Order {
   const items = api.items.map(toUiOrderItem)
-  const subtotal = items.reduce((sum, item) => sum + (item.qty * item.price), 0)
-  const calculatedShipping = subtotal > 150 ? 0 : 8
-  const total = subtotal + calculatedShipping
 
   return {
     id: api.id,
     client: api.clientName,
     clientPhone: api.clientPhone,
-    total: total,
-    shippingAmount: calculatedShipping,
+    total: api.totalAmount,
+    shippingAmount: api.shippingAmount,
+    discountAmount: api.discountAmount,
+    couponCode: api.couponCode,
     statut: STATUS_TO_UI[api.status] ?? 'En attente',
     date: formatDate(api.createdAt),
     address: api.address || '—',

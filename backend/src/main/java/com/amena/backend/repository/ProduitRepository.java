@@ -24,4 +24,10 @@ public interface ProduitRepository extends JpaRepository<Produit, Long>, JpaSpec
     List<Produit> findByIsActiveTrue();
 
     Page<Produit> findAll(Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM Produit p, LigneCommande lc WHERE p.id = lc.productId AND p.isActive = true GROUP BY p ORDER BY SUM(lc.quantity) DESC")
+    Page<Produit> findBestSellers(Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT CASE WHEN COUNT(lc) > 0 THEN true ELSE false END FROM LigneCommande lc WHERE lc.productId = :productId")
+    boolean isProductInOrders(@org.springframework.data.repository.query.Param("productId") Long productId);
 }

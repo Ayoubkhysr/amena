@@ -32,13 +32,11 @@ public interface CommandeMapper {
     @Mapping(target = "lignes", ignore = true)
     Commande toEntity(CreateOrderRequest request);
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "clientName", ignore = true)
     @Mapping(target = "clientPhone", ignore = true)
     @Mapping(target = "address", ignore = true)
     @Mapping(target = "items", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "orderNumber", ignore = true)
     @Mapping(target = "userId", ignore = true)
     OrderResponse toResponse(Commande commande);
 
@@ -49,7 +47,7 @@ public interface CommandeMapper {
     @Mapping(target = "createdAt", ignore = true)
     LigneCommande toLigneEntity(com.amena.backend.dto.CreateOrderItemRequest request);
 
-    @Mapping(target = "productName", ignore = true)
+
     OrderItemResponse toLigneResponse(LigneCommande ligne);
 
     default BigDecimal map(Double value) {

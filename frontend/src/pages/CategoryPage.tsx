@@ -69,7 +69,7 @@ function CategoryPage() {
           categoryId = Number(categoryObj.id);
         }
 
-        const page = await fetchProductsPage(0, 1000, undefined, categoryId);
+        const page = await fetchProductsPage(0, 1000, undefined, categoryId, undefined, 'createdAt', 'desc', undefined, true);
         
         // Ensure we only show products belonging to this category (in case categoryId was undefined, we filter manually as a fallback, or just rely on API)
         let apiProducts = page.content;

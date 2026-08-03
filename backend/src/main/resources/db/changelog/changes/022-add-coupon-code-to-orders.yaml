@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 22
+      author: amena
+      changes:
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: coupon_code
+                  type: varchar(50)

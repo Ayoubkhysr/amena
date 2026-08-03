@@ -123,7 +123,8 @@ export async function fetchProductsPage(
   subcategoryId?: number,
   sortBy = 'createdAt',
   sortOrder = 'desc',
-  maxStock?: number
+  maxStock?: number,
+  isActive?: boolean
 ): Promise<ProductPage> {
   return ProductsService.getProducts({
     page,
@@ -131,6 +132,7 @@ export async function fetchProductsPage(
     search,
     categoryId,
     subcategoryId,
+    isActive,
     sortBy,
     sortOrder,
     maxStock,
@@ -151,4 +153,8 @@ export async function updateProduct(id: number, body: ApiProductRequest): Promis
 
 export async function deleteProduct(id: number): Promise<void> {
   await ProductsService.deleteProduct({ productId: id })
+}
+
+export async function fetchBestSellers(limit = 4): Promise<ApiProduct[]> {
+  return ProductsService.getBestSellers({ limit })
 }

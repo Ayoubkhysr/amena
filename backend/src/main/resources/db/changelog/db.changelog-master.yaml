@@ -37,3 +37,5 @@ databaseChangeLog:
       file: db/changelog/changes/020-create-table-bannieres.yaml
   - include:
       file: db/changelog/changes/021-create-table-site-config.yaml
+  - include:
+      file: db/changelog/changes/022-add-coupon-code-to-orders.yaml

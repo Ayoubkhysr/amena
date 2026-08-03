@@ -54,11 +54,11 @@ const Footer = () => {
             </li>
             <li className="flex items-center">
                <span className="font-bold mr-2 text-gray-800">E-mail:</span>
-               <a href="mailto:contact@elamine.tn" className="hover:text-blue-600">contact@elamine.tn</a>
+               <a href="mailto:prodelamine@gmail.com" className="hover:text-blue-600">prodelamine@gmail.com</a>
             </li>
             <li className="flex items-start">
                <span className="font-bold mr-2 text-gray-800">Adresse:</span>
-               <span>Z.I Mghira 3, lot 106<br/>Ben Arous 2082</span>
+               <span>R.amilcar 5090 - Monastir - Bekalta</span>
             </li>
           </ul>
         </div>

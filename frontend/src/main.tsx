@@ -7,6 +7,8 @@ import { StoreProvider } from './context/StoreContext'
 import { CartProvider } from './context/CartContext'
 import HomePage from './pages/HomePage'
 import AdminDashboardPage from './pages/admin/admincomments/AdminDashboardPage'
+import AdminLoginPage from './pages/admin/AdminLoginPage'
+import AdminProtectedRoute from './pages/admin/AdminProtectedRoute'
 import StaticPageView from './pages/StaticPageView'
 import MainLayout from './layouts/MainLayout'
 import ProduitsPage from './pages/ProduitsPage'
@@ -62,8 +64,18 @@ const router = createBrowserRouter([
     ]
   },
   {
+    path: '/admin/login',
+    element: <AdminLoginPage />,
+  },
+  {
     path: '/admin',
-    element: <AdminDashboardPage />,
+    element: <AdminProtectedRoute />,
+    children: [
+      {
+        path: '',
+        element: <AdminDashboardPage />,
+      },
+    ]
   },
   {
     path: '/:slug',

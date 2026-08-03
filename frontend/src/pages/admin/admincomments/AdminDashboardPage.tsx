@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ElementType } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   IconArchive,
   IconChartBar,
@@ -77,7 +77,7 @@ type AdminSection =
   | 'clients-liste' | 'clients-historique'
   | 'avis-tous' | 'avis-attente' | 'avis-approuves' | 'avis-rejetes'
   | 'promos-codes' | 'promos-offres'
-  | 'contenu-bannieres' | 'contenu-pages'
+  | 'contenu-bannieres' | 'contenu-pages' | 'contenu-entete'
   | 'rapports-ventes' | 'rapports-produits'
   | 'parametres-infos' | 'parametres-paiement' | 'parametres-livraison'
   | 'stores-gestion'
@@ -103,6 +103,7 @@ const SECTION_META: Record<AdminSection, { title: string; subtitle: string }> = 
   'promos-offres': { title: 'Offres & réductions', subtitle: 'Remises générales.' },
   'contenu-bannieres': { title: 'Bannières / Slider', subtitle: 'Visuels de la page d\'accueil.' },
   'contenu-pages': { title: 'Pages statiques', subtitle: 'À propos, CGV, Mentions légales...' },
+  'contenu-entete': { title: 'En-tête', subtitle: 'Texte de la barre supérieure rouge.' },
   'rapports-ventes': { title: 'Ventes par période', subtitle: 'Statistiques financières.' },
   'rapports-produits': { title: 'Produits les plus vendus', subtitle: 'Top des ventes.' },
   'parametres-infos': { title: 'Infos de la boutique', subtitle: 'Nom, adresses, contacts.' },
@@ -116,11 +117,12 @@ const COMMANDES_KEYS: AdminSection[] = ['commandes-toutes', 'commandes-attente',
 const CLIENTS_KEYS: AdminSection[] = ['clients-liste', 'clients-historique']
 const AVIS_KEYS: AdminSection[] = ['avis-tous', 'avis-attente', 'avis-approuves', 'avis-rejetes']
 const PROMOS_KEYS: AdminSection[] = ['promos-codes', 'promos-offres']
-const CONTENU_KEYS: AdminSection[] = ['contenu-bannieres', 'contenu-pages']
+const CONTENU_KEYS: AdminSection[] = ['contenu-bannieres', 'contenu-pages', 'contenu-entete']
 const RAPPORTS_KEYS: AdminSection[] = ['rapports-ventes', 'rapports-produits']
 const PARAM_KEYS: AdminSection[] = ['parametres-infos', 'parametres-paiement', 'parametres-livraison', 'stores-gestion']
 
 function AdminDashboardPage() {
+  const navigate = useNavigate()
   const [activeSection, setActiveSection] = useState<AdminSection>(() => {
     const saved = localStorage.getItem('adminActiveSection') as AdminSection | null;
     return saved || 'dashboard-vue-generale';
@@ -628,6 +630,7 @@ function AdminDashboardPage() {
                 <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
                   <NavLeaf sectionKey="contenu-bannieres" label="Bannières / Slider" Icon={IconImage} />
                   <NavLeaf sectionKey="contenu-pages" label="Pages statiques" Icon={IconSettings} />
+                  <NavLeaf sectionKey="contenu-entete" label="En-tête" Icon={IconSettings} />
                 </div>
               )}
             </div>
@@ -655,6 +658,21 @@ function AdminDashboardPage() {
               )}
             </div>
           </nav>
+
+          <div className="p-6 border-t border-slate-100">
+            <button
+              onClick={() => {
+                localStorage.removeItem('admin_auth')
+                navigate('/admin/login')
+              }}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-50 py-3 font-medium text-red-600 transition-colors hover:bg-red-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
+              </svg>
+              Déconnexion
+            </button>
+          </div>
         </aside>
 
         <main className="min-w-0 flex flex-col bg-white">

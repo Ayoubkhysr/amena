@@ -8,7 +8,7 @@ info:
     email: support@amena.com
 
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:8081
     description: Development server
 
 tags:
@@ -230,6 +230,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/products/bestsellers:
+    get:
+      tags:
+        - Products
+      summary: Get best selling products
+      operationId: getBestSellers
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 4
+      responses:
+        "200":
+          description: List of best selling products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductResponse"
+
   /api/products:
     get:
       tags:
@@ -264,6 +286,11 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: isActive
+          in: query
+          required: false
+          schema:
+            type: boolean
         - name: sortBy
           in: query
           schema:
@@ -1418,6 +1445,11 @@ components:
         shippingAmount:
           type: number
           format: double
+        discountAmount:
+          type: number
+          format: double
+        couponCode:
+          type: string
         status:
           type: string
         createdAt:

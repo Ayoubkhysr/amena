@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { IconImage, IconEye, IconArchive } from '../../../components/admin'
 import { AdminAboutForm } from './AdminAboutForm'
+import { AdminEnteteForm } from './AdminEnteteForm'
 
 export type Banner = {
   id: string
@@ -42,6 +43,14 @@ export function AdminContenu({ activeSection, banners, staticPages, handleEditBa
 
   const [isAddingPage, setIsAddingPage] = useState(false)
   const [newPageForm, setNewPageForm] = useState<StaticPage>({ id: '', title: '', slug: '', lastModified: new Date().toISOString().split('T')[0], status: 'Brouillon' })
+
+  if (activeSection === 'contenu-entete') {
+    return (
+      <div className="animate-admin-panel-in">
+        <AdminEnteteForm />
+      </div>
+    )
+  }
 
   if (activeSection === 'contenu-bannieres') {
     return (

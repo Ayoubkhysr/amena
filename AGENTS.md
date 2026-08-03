@@ -9,7 +9,7 @@
 ## Commands
 
 ### Frontend
-- `npm run dev` — Vite dev server (`:5173`), proxies `/api` and `/uploads` to `localhost:8080`
+- `npm run dev` — Vite dev server (`:5173`), proxies `/api` and `/uploads` to `localhost:8081`
 - `npm run build` — production build to `dist/`
 - `npm run preview` — preview production build locally
 - `npm run lint` — ESLint flat config (`eslint.config.js`), JS-only (`.js,.jsx`), no TS plugin
@@ -21,7 +21,7 @@
 - `mvn test` — runs tests (requires Docker daemon for Testcontainers)
 
 ### Docker (full stack)
-- `docker compose up` — starts PostgreSQL, backend (`:8080`), frontend nginx (`:3000`)
+- `docker compose up` — starts PostgreSQL, backend (`:8081`), frontend nginx (`:3000`)
 
 ## Code generation
 
@@ -55,7 +55,7 @@ All routes in `src/main.tsx` via `createBrowserRouter` (`react-router-dom` v7). 
 ## Key gotchas
 
 - Auth token: read from `localStorage` key `auth_token` for every API request (set in `src/api.ts`).
-- Frontend env: `VITE_API_URL` defaults to `http://localhost:8080`. Actual `.env` and Vite proxy both target `:8080`.
+- Frontend env: `VITE_API_URL` defaults to `http://localhost:8081`. Actual `.env` and Vite proxy both target `:8081`.
 - TypeScript strict: `noUnusedLocals`, `noUnusedParameters`, `noUncheckedSideEffectImports` are enabled — unused imports/vars cause build errors.
 - No test framework on frontend; backend tests use Testcontainers (require Docker daemon).
 - Image uploads: admin uses separate endpoints (`productImageService.ts`, `bannerService.ts`) from product/banner create/update.

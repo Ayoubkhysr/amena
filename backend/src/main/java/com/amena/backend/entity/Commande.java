@@ -67,7 +67,8 @@ public class Commande {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-
+    @Column(name = "coupon_code", length = 50)
+    private String couponCode;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

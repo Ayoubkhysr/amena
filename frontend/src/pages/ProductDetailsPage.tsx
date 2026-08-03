@@ -32,7 +32,7 @@ function ProductDetailsPage() {
 
         // Try to fetch related products from the same category
         if (apiProduct.categoryId) {
-          const relatedPage = await fetchProductsPage(0, 5, undefined, apiProduct.categoryId)
+          const relatedPage = await fetchProductsPage(0, 5, undefined, apiProduct.categoryId, undefined, 'createdAt', 'desc', undefined, true)
           const relatedMapped = relatedPage.content
             .filter(p => p.id.toString() !== id)
             .map(p => {
@@ -187,7 +187,7 @@ function ProductDetailsPage() {
                 <span className="text-gray-900 font-extrabold text-lg">{totalPrice.toFixed(3)} DT</span>
               </div>
 
-              <button onClick={handleAddToCart} className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-full transition-colors text-sm uppercase tracking-wide">
+              <button onClick={handleAddToCart} className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-2 sm:px-4 rounded-full transition-colors text-xs sm:text-sm uppercase tracking-normal sm:tracking-wide flex justify-center items-center text-center leading-tight">
                 AJOUTEZ AU PANIER
               </button>
             </div>

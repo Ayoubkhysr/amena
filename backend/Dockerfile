@@ -18,5 +18,5 @@ COPY --from=build /app/backend/target/*.jar app.jar
 COPY backend/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-EXPOSE 8080
+EXPOSE 8081
 ENTRYPOINT ["docker-entrypoint.sh"]

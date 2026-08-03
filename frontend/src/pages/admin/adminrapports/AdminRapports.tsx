@@ -94,11 +94,12 @@ export function AdminRapports({ activeSection, orders, products }: AdminRapports
           </div>
 
           {monthlyData.length > 0 ? (
-            <div className="flex items-end gap-4 overflow-x-auto pb-4" style={{ minHeight: '220px' }}>
+            <div className="w-full overflow-x-auto pb-4" style={{ minHeight: '220px' }}>
+              <div className="flex items-end w-max mx-auto gap-16 px-4 h-full">
               {monthlyData.map((m) => {
                 const barHeight = Math.max(8, Math.round((m.revenue / maxRevenue) * 180))
                 return (
-                  <div key={m.month} className="flex flex-col items-center gap-2 flex-1 min-w-[80px] group">
+                  <div key={m.month} className="flex flex-col items-center gap-2 w-28 shrink-0 group">
                     <div className="relative flex flex-col items-center w-full">
                       {/* Tooltip */}
                       <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-brand-blue px-2 py-1 text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md">
@@ -115,6 +116,7 @@ export function AdminRapports({ activeSection, orders, products }: AdminRapports
                   </div>
                 )
               })}
+              </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">

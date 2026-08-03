@@ -26,48 +26,20 @@ const HeroSection = () => {
   };
 
   if (activeBanners.length === 0) {
-    return (
-      <section
-        className="relative w-full overflow-hidden pt-8 pb-16 md:pb-32"
-        style={{ background: 'radial-gradient(circle at 25% 20%, #0098FF 0%, #005BB5 100%)' }}
-      >
-        <svg
-          className="absolute bottom-0 left-0 w-full"
-          style={{ height: '12rem' }}
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
-          <path d="M0,10 C40,5 70,100 100,100 L100,100 L0,100 Z" fill="#f9fafb" />
-        </svg>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between">
-          <div className="w-full md:w-1/2 flex justify-center md:justify-end relative md:translate-y-8">
-            <img
-              src="/images/Group.png"
-              alt="Feather"
-              className="absolute z-0 w-[200px] sm:w-[300px] md:w-[540px] max-w-[90%] md:max-w-[85%] left-0 bottom-0"
-            />
-            <img
-              src="/images/AlaminePro.png"
-              alt="Hero Product"
-              className="w-48 sm:w-72 h-auto drop-shadow-2xl z-10 relative"
-            />
-          </div>
-          <div className="w-full md:w-1/2 text-white mt-8 md:mt-0 md:pl-12 text-center md:text-left">
-            <h2 className="text-3xl sm:text-4xl md:text-7xl font-bold italic text-yellow-400 drop-shadow-md mb-2 font-[cursive]">
-              Fraîcheur
-            </h2>
-            <h3 className="text-2xl sm:text-3xl md:text-5xl font-black drop-shadow-md">
-              Longue durée
-            </h3>
-          </div>
-        </div>
-      </section>
-    );
+    return <div className="w-full bg-white py-8"></div>;
   }
 
   return (
-    <section className="relative w-full overflow-hidden min-h-[300px] md:min-h-[450px] lg:min-h-[550px] bg-slate-100">
+    <section className="relative w-full overflow-hidden bg-slate-100">
+      {/* Invisible placeholder to define the section's height based on the first image's aspect ratio */}
+      {activeBanners[0] && (
+        <img
+          src={resolveImageUrl(activeBanners[0].imageUrl)}
+          className="w-full h-auto invisible block"
+          alt="placeholder"
+        />
+      )}
+      
       {activeBanners.map((banner, index) => (
         <div
           key={banner.id}

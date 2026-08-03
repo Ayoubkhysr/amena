@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useStore } from '../../context/StoreContext';
 
 const Navbar = () => {
+  const { topHeaderText } = useStore();
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
@@ -24,14 +26,16 @@ const Navbar = () => {
   return (
     <header className="w-full font-sans">
       {/* Top Red Bar */}
-      <div className="bg-[#e60000] text-white text-[13px] py-2 px-4 font-medium tracking-wide overflow-hidden whitespace-nowrap w-full relative">
-        <div className="animate-marquee hover:[animation-play-state:paused] inline-block">
-          5% de réduction sur votre premier achat sur notre Site. Coupon: ELAMINE5
+      {topHeaderText && (
+        <div className="bg-[#e60000] text-white text-[13px] py-2 px-4 font-medium tracking-wide overflow-hidden whitespace-nowrap w-full relative">
+          <div className="animate-marquee hover:[animation-play-state:paused] inline-block">
+            {topHeaderText}
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Main Navigation */}
-      <nav className={`${navBgClass} ${navTextClass} py-5 px-8 flex justify-center items-center relative z-10 ${!isHome ? 'border-b border-gray-200' : ''}`}>
+      <nav className={`${navBgClass} ${navTextClass} py-5 px-8 flex justify-center items-center relative z-50 ${!isHome ? 'border-b border-gray-200' : ''}`}>
         <div className="max-w-7xl w-full flex items-center justify-between">
           
           {/* Left Logo */}
@@ -82,10 +86,10 @@ const Navbar = () => {
               <Link to="/" className={`${hoverTextClass} transition-colors`}>Accueil</Link>
               <Link to="/tous-les-produits" className={`${hoverTextClass} transition-colors`}>Nos Produits</Link>
               <Link to="/produits" className={`${hoverTextClass} transition-colors`}>Nos gammes</Link>
-              <Link to="/accessoires" className={`${hoverTextClass} transition-colors`}>Accessoires</Link>
+              <span className={`${linkTextClass} opacity-50 cursor-not-allowed transition-colors`} title="Bientôt disponible">Accessoires</span>
               <Link to="/a-propos" className={`${hoverTextClass} transition-colors`}>À propos</Link>
               <Link to="/nos-magasins" className={`${hoverTextClass} transition-colors`}>Nos magasins</Link>
-              <Link to="/promos" className={`${hoverTextClass} transition-colors`}>Promos</Link>
+              <span className={`${linkTextClass} opacity-50 cursor-not-allowed transition-colors`} title="Bientôt disponible">Promos</span>
             </div>
 
           </div>
@@ -137,10 +141,10 @@ const Navbar = () => {
             <Link to="/" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Accueil</Link>
             <Link to="/tous-les-produits" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Nos Produits</Link>
             <Link to="/produits" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Nos gammes</Link>
-            <Link to="/accessoires" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Accessoires</Link>
+            <span className="font-semibold text-lg text-gray-400 cursor-not-allowed py-2 border-b border-gray-100" title="Bientôt disponible">Accessoires</span>
             <Link to="/a-propos" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">À propos</Link>
             <Link to="/nos-magasins" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Nos magasins</Link>
-            <Link to="/promos" className="font-semibold text-lg hover:text-red-600 transition-colors py-2">Promos</Link>
+            <span className="font-semibold text-lg text-gray-400 cursor-not-allowed py-2" title="Bientôt disponible">Promos</span>
           </div>
         </div>
       </nav>

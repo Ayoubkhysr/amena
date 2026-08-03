@@ -34,6 +34,15 @@ function MapController({ center, zoom }: { center: [number, number], zoom: numbe
   useEffect(() => {
     map.flyTo(center, zoom, { duration: 1.5 });
   }, [center, zoom, map]);
+
+  // Fix: Force Leaflet to recalculate container size to remove gray tiles
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [map]);
+
   return null;
 }
 
@@ -152,7 +161,7 @@ function NosMagasinsPage() {
       setSelectedStore(closest);
       if (closest.latitude && closest.longitude) {
         setMapCenter([closest.latitude, closest.longitude]);
-        setMapZoom(12);
+        setMapZoom(16);
       }
     }
   }, [userLocation, stores]);
@@ -161,7 +170,7 @@ function NosMagasinsPage() {
     setSelectedStore(store);
     if (store.latitude && store.longitude) {
       setMapCenter([store.latitude, store.longitude]);
-      setMapZoom(15);
+      setMapZoom(16);
     }
   };
 
@@ -223,7 +232,7 @@ function NosMagasinsPage() {
           </div>
 
           {/* Right Side - Map */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 lg:col-span-2 relative min-h-[350px] md:min-h-[450px] lg:min-h-[550px]">
+          <div className="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 lg:col-span-2 relative h-[350px] md:h-[450px] lg:h-[550px]">
             <MapContainer 
               center={mapCenter} 
               zoom={mapZoom} 

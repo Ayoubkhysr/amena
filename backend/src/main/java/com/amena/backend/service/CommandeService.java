@@ -106,14 +106,15 @@ public class CommandeService {
         }).toList();
 
         commande.setLignes(lignes);
-        Commande saved = commandeRepository.save(commande);
-
         if (request.getCouponCode() != null && !request.getCouponCode().isEmpty()) {
+            commande.setCouponCode(request.getCouponCode());
             couponRepository.findByCode(request.getCouponCode()).ifPresent(coupon -> {
                 coupon.setUsedCount((coupon.getUsedCount() == null ? 0 : coupon.getUsedCount()) + 1);
                 couponRepository.save(coupon);
             });
         }
+
+        Commande saved = commandeRepository.save(commande);
 
         return toEnrichedResponse(saved);
     }

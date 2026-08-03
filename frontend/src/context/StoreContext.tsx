@@ -40,9 +40,11 @@ type StoreContextType = {
   setStaticPages: React.Dispatch<React.SetStateAction<StaticPage[]>>
   aboutConfig: any
   setAboutConfig: React.Dispatch<React.SetStateAction<any>>
+  topHeaderText: string
+  setTopHeaderText: React.Dispatch<React.SetStateAction<string>>
 }
 
-const StoreContext = createContext<StoreContextType | undefined>(undefined)
+export const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 const MOCK_BANNERS: Banner[] = [
   { id: 'B1', title: 'Promo Printemps', imageUrl: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=1200', targetUrl: '/promotions', position: 1, status: 'Actif' },
@@ -63,6 +65,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [banners, setBanners] = useState<Banner[]>([])
   const [staticPages, setStaticPages] = useState<StaticPage[]>(MOCK_PAGES)
   const [aboutConfig, setAboutConfig] = useState<any>(null)
+  const [topHeaderText, setTopHeaderText] = useState<string>('5% de réduction sur votre premier achat sur notre Site. Coupon: ELAMINE5')
 
   useEffect(() => {
     async function loadStore() {
@@ -77,6 +80,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const config = await getConfig('about_page')
         if (config) {
           setAboutConfig(config)
+        }
+
+        const headerConfig = await getConfig('top_header_text')
+        if (headerConfig !== null && headerConfig !== undefined) {
+          setTopHeaderText(typeof headerConfig === 'string' ? headerConfig : (headerConfig.value || ''))
         }
 
         // Products are no longer loaded globally to support server-side pagination
@@ -105,6 +113,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       banners, setBanners,
       staticPages, setStaticPages,
       aboutConfig, setAboutConfig,
+      topHeaderText, setTopHeaderText,
     }}>
       {children}
     </StoreContext.Provider>

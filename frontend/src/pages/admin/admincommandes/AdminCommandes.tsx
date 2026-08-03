@@ -15,6 +15,8 @@ export type Order = {
   clientPhone?: string
   total: number
   shippingAmount?: number
+  discountAmount?: number
+  couponCode?: string
   statut: OrderStatus
   date: string
   address: string
@@ -381,8 +383,18 @@ export function AdminCommandes({ activeSection, handleDeleteOrder }: AdminComman
                                     <td colSpan={2} className="px-4 py-3 font-bold text-slate-600 text-right">Frais Livraison:</td>
                                     <td className="px-4 py-3 font-bold text-slate-700 text-right">{order.shippingAmount ?? 0} TND</td>
                                   </tr>
+                                  {order.couponCode && (
+                                    <tr>
+                                      <td colSpan={2} className="px-4 py-3 font-bold text-slate-600 text-right text-brand-light">
+                                        Code Promo ({order.couponCode}) :
+                                      </td>
+                                      <td className="px-4 py-3 font-bold text-brand-light text-right">
+                                        -{order.discountAmount ?? 0} TND
+                                      </td>
+                                    </tr>
+                                  )}
                                   <tr>
-                                    <td colSpan={2} className="px-4 py-3 font-extrabold text-brand-blue text-right uppercase tracking-wider">Prix avec livraison:</td>
+                                    <td colSpan={2} className="px-4 py-3 font-extrabold text-brand-blue text-right uppercase tracking-wider">Total Payé:</td>
                                     <td className="px-4 py-3 font-extrabold text-brand-blue text-right text-sm">{order.total} TND</td>
                                   </tr>
                                 </tfoot>
