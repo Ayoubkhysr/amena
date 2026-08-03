@@ -123,79 +123,75 @@ function ProductDetailsPage() {
         <span className="text-gray-900 font-semibold">{product.name}</span>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-8 flex flex-col lg:flex-row gap-10">
-        {/* Left Side: Product Image Container */}
-        <div className="w-full lg:w-1/5 flex justify-center items-center border border-blue-200 rounded-3xl p-4 sm:p-6 bg-white min-h-[200px] sm:min-h-[300px]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex flex-col lg:flex-row gap-8 items-start">
+        
+        {/* Left Column: Product Image Container */}
+        <div className="w-full lg:w-[350px] flex-shrink-0 flex justify-center items-center border border-blue-200 rounded-3xl p-6 bg-white h-[350px]">
           <img src={product.imageUrl} alt={product.name} className="max-w-full max-h-full object-contain" />
         </div>
 
-        {/* Right Side: Product Details & Add to Cart */}
-        <div className="w-full lg:w-4/5 flex flex-col md:flex-row gap-8 items-start justify-start">
-          
-          {/* Left Column of Right Side: Info & Description */}
-          <div className="flex-1 w-full flex flex-col">
-            <h1 className="text-3xl sm:text-4xl font-bold text-blue-700 uppercase mb-1">{product.name}</h1>
-            <p className="text-gray-500 text-sm mb-6">{product.category}</p>
+        {/* Middle Column: Info & Description */}
+        <div className="flex-1 w-full flex flex-col">
+          <h1 className="text-3xl sm:text-4xl font-bold text-blue-800 uppercase mb-1">{product.name}</h1>
+          <p className="text-gray-500 text-sm mb-4">{product.category}</p>
 
-            <div className="flex items-center gap-4 mb-6">
-              {isStockAvailable && (
-                <div className="flex items-center gap-2 border border-green-200 rounded-full px-3 py-1 bg-white">
-                  <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
-                  <span className="text-xs font-bold text-gray-700 uppercase">EN STOCK</span>
-                </div>
-              )}
-              <div className="flex items-center bg-white">
-                <img src="/images/produit tunisien.png" alt="Fabrication Tunisienne" className="h-10 object-contain" />
-              </div>
-            </div>
-
-            {product.sku && (
-              <div className="mb-6">
-                <span className="text-gray-500 font-bold text-sm uppercase tracking-wide">Réf : </span>
-                <span className="text-gray-900 font-bold text-sm">{product.sku}</span>
+          <div className="flex items-center gap-4 mb-6">
+            {isStockAvailable && (
+              <div className="flex items-center gap-2 border border-green-200 rounded-full px-3 py-1 bg-white">
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+                <span className="text-xs font-bold text-gray-700 uppercase">EN STOCK</span>
               </div>
             )}
-
-            {/* Description Block */}
-            <div className="border border-blue-300 rounded-2xl overflow-hidden bg-white w-full">
-              <div className="bg-blue-50 px-4 py-2 border-b border-blue-200">
-                <h3 className="text-blue-700 font-bold text-xs uppercase tracking-wide">DESCRIPTION DU PRODUIT</h3>
-              </div>
-              <div className="p-4 text-sm text-gray-600 leading-relaxed">
-                {product.description || `${product.name} : est un produit spécialement conçu pour votre usage quotidien. Il garantit une qualité irréprochable et répond à toutes vos attentes.`}
-              </div>
+            <div className="flex items-center bg-white">
+              <img src="/images/produit tunisien.png" alt="Fabrication Tunisienne" className="h-10 object-contain" />
             </div>
           </div>
 
-          {/* Right Column of Right Side: Pricing Block */}
-          <div className="border border-blue-300 rounded-2xl p-6 bg-white w-full md:max-w-[320px] flex-shrink-0 lg:sticky lg:top-24">
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-blue-600 font-bold text-sm">Prix unitaire</span>
-              <span className="text-gray-900 font-bold text-sm">{product.price.toFixed(3)}DT</span>
+          {product.sku && (
+            <div className="mb-6">
+              <span className="text-gray-500 font-bold text-sm uppercase tracking-wide">Réf : </span>
+              <span className="text-gray-900 font-bold text-sm">{product.sku}</span>
             </div>
+          )}
 
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-blue-600 font-bold text-sm">Quantité</span>
-              <div className="flex items-center border border-blue-400 rounded-full px-4 py-1">
-                <button onClick={() => updateQuantity(-1)} className="text-blue-500 font-bold text-xl min-w-11 min-h-11 hover:bg-blue-50 rounded-full flex items-center justify-center">-</button>
-                <span className="mx-2 sm:mx-4 text-blue-500 font-bold min-w-[20px] text-center">{quantity}</span>
-                <button onClick={() => updateQuantity(1)} className="text-blue-500 font-bold text-xl min-w-11 min-h-11 hover:bg-blue-50 rounded-full flex items-center justify-center">+</button>
-              </div>
+          {/* Description Block */}
+          <div className="border border-blue-300 rounded-2xl overflow-hidden bg-white w-full">
+            <div className="bg-blue-50 px-4 py-3 border-b border-blue-200">
+              <h3 className="text-blue-700 font-bold text-sm uppercase tracking-wide">DESCRIPTION DU PRODUIT</h3>
             </div>
-
-            <div className="w-full h-px bg-gray-200 mb-6"></div>
-
-            <div className="flex justify-between items-center mb-8">
-              <span className="text-blue-700 font-bold text-lg">TOTAL</span>
-              <span className="text-gray-900 font-extrabold text-lg">{totalPrice.toFixed(3)} DT</span>
+            <div className="p-5 text-sm text-gray-600 leading-relaxed">
+              {product.description || `${product.name} : est un produit spécialement conçu pour votre usage quotidien. Il garantit une qualité irréprochable et répond à toutes vos attentes.`}
             </div>
-
-            <button onClick={handleAddToCart} className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-2 sm:px-4 rounded-full transition-colors text-xs sm:text-sm uppercase tracking-normal sm:tracking-wide flex justify-center items-center text-center leading-tight">
-              AJOUTEZ AU PANIER
-            </button>
           </div>
-
         </div>
+
+        {/* Right Column: Pricing Block */}
+        <div className="border border-blue-400 rounded-2xl p-6 bg-white w-full lg:w-[320px] flex-shrink-0 lg:sticky lg:top-24">
+          
+          <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+            <span className="text-blue-500 font-medium text-sm leading-tight max-w-[80px]">Prix unitaire</span>
+            <span className="text-gray-900 font-bold text-sm">{product.price.toFixed(3)}DT</span>
+          </div>
+
+          <div className="flex justify-between items-center py-4 border-b border-gray-100">
+            <span className="text-blue-500 font-medium text-sm">Quantité</span>
+            <div className="flex items-center border border-blue-300 rounded-full px-3 py-1 bg-white">
+              <button onClick={() => updateQuantity(-1)} className="text-blue-400 font-light text-lg min-w-8 min-h-8 hover:bg-blue-50 rounded-full flex items-center justify-center">-</button>
+              <span className="mx-2 text-blue-500 font-medium min-w-[20px] text-center text-sm">{quantity}</span>
+              <button onClick={() => updateQuantity(1)} className="text-blue-400 font-light text-lg min-w-8 min-h-8 hover:bg-blue-50 rounded-full flex items-center justify-center">+</button>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center py-4 border-b border-gray-100 mb-6">
+            <span className="text-blue-700 font-bold text-lg">TOTAL</span>
+            <span className="text-gray-900 font-extrabold text-lg">{totalPrice.toFixed(3)} DT</span>
+          </div>
+
+          <button onClick={handleAddToCart} className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3.5 px-4 rounded-xl transition-colors text-sm uppercase tracking-wide flex justify-center items-center text-center">
+            AJOUTEZ AU PANIER
+          </button>
+        </div>
+
       </div>
 
       {/* Related Products Section */}
