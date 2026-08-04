@@ -29,14 +29,14 @@ const ProductRangesSection = () => {
               <Link
                 key={category.id}
                 to={`/produits/${slug}`}
-                className="bg-[#00bfff] rounded-xl shadow-md flex items-stretch h-28 sm:h-32 md:h-36 hover:bg-[#00a8e6] transition-colors cursor-pointer group relative mt-4 mb-4"
+                className="bg-[#00bfff] rounded-xl shadow-md flex items-stretch h-28 sm:h-32 md:h-36 hover:bg-[#00a8e6] transition-colors cursor-pointer group relative mt-4 mb-4 overflow-visible"
               >
                 {/* Image Container */}
-                <div className="w-1/2 relative">
+                <div className="w-1/2 relative overflow-visible z-20">
                    <img
                      src={category.image}
                      alt={category.name}
-                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[140%] w-auto object-contain z-10 drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
+                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[130%] sm:h-[140%] md:h-[150%] w-auto max-w-none object-contain z-10 drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
                    />
                 </div>
  
