@@ -29,21 +29,21 @@ const ProductRangesSection = () => {
               <Link
                 key={category.id}
                 to={`/produits/${slug}`}
-                className="bg-[#00bfff] rounded-xl shadow-md flex items-center min-h-24 sm:h-28 md:h-32 hover:bg-[#00a8e6] transition-colors cursor-pointer group relative block"
+                className="bg-[#00bfff] rounded-xl shadow-md flex items-stretch h-28 sm:h-32 md:h-36 hover:bg-[#00a8e6] transition-colors cursor-pointer group relative mt-4 mb-4"
               >
                 {/* Image Container */}
-                <div className="w-1/2 h-full relative">
+                <div className="w-1/2 relative">
                    <img
                      src={category.image}
                      alt={category.name}
-                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[120%] sm:h-[130%] md:h-[140%] w-auto object-contain z-10 drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
+                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[140%] w-auto object-contain z-10 drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
                    />
                 </div>
-
+ 
                 {/* Text Container */}
-                <div className="w-1/2 p-4 text-white relative z-10">
-                  <p className="text-xs font-light mb-1 uppercase opacity-80">Gamme</p>
-                  <h3 className="font-bold text-lg leading-tight uppercase">{category.name}</h3>
+                <div className="w-1/2 p-4 text-white flex flex-col justify-center relative z-10">
+                   <p className="text-xs font-light mb-1 uppercase opacity-80">Gamme</p>
+                   <h3 className="font-bold text-lg leading-tight uppercase">{category.name}</h3>
                 </div>
               </Link>
             )
