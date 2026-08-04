@@ -66,7 +66,7 @@ const BestSellersSection = () => {
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {displayProducts.map((product) => (
-            <Link to={`/produit/${product.slug}`} key={product.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-100 flex flex-col items-center hover:shadow-xl transition-shadow cursor-pointer block">
+            <Link to={`/produit/${product.id}`} key={product.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-100 flex flex-col items-center hover:shadow-xl transition-shadow cursor-pointer block">
               <img src={product.image} alt={product.name} className="h-40 sm:h-48 object-contain mb-4 w-full" />
               <div className="w-full text-left mt-auto">
                 <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{product.name}</h3>

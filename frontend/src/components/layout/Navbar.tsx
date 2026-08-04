@@ -44,7 +44,7 @@ const Navbar = () => {
               <img 
                 src={logoSrc} 
                 alt="El Amine Logo" 
-                className={`h-16 md:h-24 w-auto object-contain transition-all duration-300 ${isHome ? 'drop-shadow-[0_0_20px_rgba(255,255,255,0.7)]' : ''}`} 
+                className={`h-20 md:h-28 w-auto object-contain transition-all duration-300 ${isHome ? 'drop-shadow-[0_0_20px_rgba(255,255,255,0.7)]' : ''}`} 
               />
             </Link>
           </div>
