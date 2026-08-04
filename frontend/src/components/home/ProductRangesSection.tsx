@@ -32,18 +32,18 @@ const ProductRangesSection = () => {
                 className="bg-[#00bfff] rounded-xl shadow-md flex items-stretch h-28 sm:h-32 md:h-36 hover:bg-[#00a8e6] transition-colors cursor-pointer group relative mt-4 mb-4 overflow-visible"
               >
                 {/* Image Container */}
-                <div className="w-1/2 relative overflow-visible z-20">
+                <div className="w-[45%] relative overflow-visible z-20">
                    <img
                      src={category.image}
                      alt={category.name}
-                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[115%] sm:h-[120%] md:h-[125%] w-auto max-w-none object-contain z-10 drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
+                     className="absolute bottom-1 -left-2 sm:-left-4 md:-left-6 h-[115%] sm:h-[120%] md:h-[125%] w-auto max-w-none object-contain z-10 drop-shadow-lg group-hover:scale-110 origin-bottom transition-transform duration-300"
                    />
                 </div>
  
                 {/* Text Container */}
-                <div className="w-1/2 p-4 text-white flex flex-col justify-center relative z-10">
-                   <p className="text-xs font-light mb-1 uppercase opacity-80">Gamme</p>
-                   <h3 className="font-bold text-lg leading-tight uppercase">{category.name}</h3>
+                <div className="w-[55%] pr-4 py-4 text-white flex flex-col justify-center relative z-10">
+                   <p className="text-sm sm:text-base md:text-lg mb-0 font-medium">Gamme</p>
+                   <h3 className="font-bold text-base sm:text-lg md:text-xl leading-tight uppercase">{category.name}</h3>
                 </div>
               </Link>
             )
