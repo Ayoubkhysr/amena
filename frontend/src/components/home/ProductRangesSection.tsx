@@ -36,7 +36,7 @@ const ProductRangesSection = () => {
                    <img
                      src={category.image}
                      alt={category.name}
-                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[130%] sm:h-[140%] md:h-[150%] w-auto max-w-none object-contain z-10 drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
+                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[115%] sm:h-[120%] md:h-[125%] w-auto max-w-none object-contain z-10 drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
                    />
                 </div>
  
