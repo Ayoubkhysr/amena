@@ -29,7 +29,7 @@ const Footer = () => {
       <div className="bg-white py-12 px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Logo */}
         <div className="flex justify-center md:justify-start items-center">
-           <img src="/logo-el-amine.png" alt="El Amine Logo" className="h-24 object-contain" />
+           <img src="/logo-el-amine.png" alt="El Amine Logo" className="h-32 md:h-40 object-contain" />
         </div>
         
         {/* Products Links */}
