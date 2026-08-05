@@ -36,7 +36,7 @@ const BTN_PRIMARY = 'rounded-md bg-brand-blue px-4 py-2 text-sm font-bold text-w
 const BTN_GHOST = 'rounded-md border border-slate-300 bg-white px-3 py-2 min-h-11 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors'
 
 const DEFAULT_STORE_INFO: StoreInfo = {
-  name: 'Etablissement Al Amine',
+  name: 'Société El Amine',
   email: 'contact@etablissement-alamine.tn',
   phone: '+216 71 000 000',
   address: '12 Rue de la République, Tunis, 1001',

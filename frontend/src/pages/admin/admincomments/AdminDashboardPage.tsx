@@ -548,14 +548,14 @@ function AdminDashboardPage() {
               <div className="flex items-center gap-3">
                 <img
                   src="/logo-el-amine.png"
-                  alt="Logo Etablissement El Amine"
+                  alt="Logo Société El Amine"
                   className="h-14 w-16 rounded-md object-contain bg-white p-1 shadow-sm"
                   onError={(e) => {
                     ; (e.currentTarget as HTMLImageElement).style.display = 'none'
                   }}
                 />
                 <div>
-                  <h1 className="text-lg font-extrabold tracking-tight text-brand-blue">Etablissement Al Amine</h1>
+                  <h1 className="text-lg font-extrabold tracking-tight text-brand-blue">Société El Amine</h1>
                   <p className="mt-0.5 text-xs font-medium text-brand-light">Panneau d&apos;administration</p>
                 </div>
               </div>
