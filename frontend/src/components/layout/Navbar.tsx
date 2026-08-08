@@ -91,7 +91,7 @@ const Navbar = () => {
               <span className={`${linkTextClass} opacity-50 cursor-not-allowed transition-colors`} title="Bientôt disponible">Accessoires</span>
               <Link to="/a-propos" className={`${hoverTextClass} transition-colors`}>À propos</Link>
               <Link to="/nos-magasins" className={`${hoverTextClass} transition-colors`}>Nos magasins</Link>
-              <span className={`${linkTextClass} opacity-50 cursor-not-allowed transition-colors`} title="Bientôt disponible">Promos</span>
+              <Link to="/tous-les-produits?promo=true" className={`${hoverTextClass} transition-colors`}>Promos</Link>
             </div>
 
           </div>
@@ -146,7 +146,7 @@ const Navbar = () => {
             <span className="font-semibold text-lg text-gray-400 cursor-not-allowed py-2 border-b border-gray-100" title="Bientôt disponible">Accessoires</span>
             <Link to="/a-propos" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">À propos</Link>
             <Link to="/nos-magasins" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Nos magasins</Link>
-            <span className="font-semibold text-lg text-gray-400 cursor-not-allowed py-2" title="Bientôt disponible">Promos</span>
+            <Link to="/tous-les-produits?promo=true" className="font-semibold text-lg hover:text-red-600 transition-colors py-2">Promos</Link>
           </div>
         </div>
       </nav>

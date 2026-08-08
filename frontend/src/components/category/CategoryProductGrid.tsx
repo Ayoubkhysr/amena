@@ -6,6 +6,7 @@ export interface ProductItem {
   category: string;
   subcategories?: string[];
   price: string;
+  compareAtPrice?: string;
   rating: number;
   image: string;
 }
@@ -23,8 +24,10 @@ const CategoryProductGrid = ({ products }: CategoryProductGridProps) => {
             <div 
               className="bg-white rounded-2xl p-4 flex flex-col items-center hover:shadow-lg transition-shadow cursor-pointer h-full border border-[#c2eaff]"
             >
-              {/* Image Container */}
-            <div className="w-full h-40 sm:h-48 md:h-56 flex justify-center items-center mb-4">
+              <div className="w-full h-40 sm:h-48 md:h-56 flex justify-center items-center mb-4 relative">
+              {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) && (
+                <span className="absolute top-0 left-0 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg rounded-tl-lg z-10 shadow-sm uppercase">Promo</span>
+              )}
               <img src={product.image} alt={product.name} className="max-h-full object-contain" />
             </div>
             
@@ -41,7 +44,12 @@ const CategoryProductGrid = ({ products }: CategoryProductGridProps) => {
                  </div>
               </div>
               <p className="text-[10px] text-gray-400 mb-1 uppercase tracking-wide">{product.category}</p>
-              <span className="font-bold text-[#007dd6] text-sm">{product.price}</span>
+              <div className="flex items-center gap-2">
+                <span className={`font-bold text-sm ${product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) ? 'text-red-600' : 'text-[#007dd6]'}`}>{product.price}</span>
+                {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) && (
+                  <span className="text-xs text-gray-400 line-through">{product.compareAtPrice}</span>
+                )}
+              </div>
             </div>
           </div>
           </Link>

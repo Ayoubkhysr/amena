@@ -42,6 +42,7 @@ function ProductDetailsPage() {
                 name: uiP.name,
                 category: uiP.category,
                 price: `${uiP.price.toFixed(3)}dt`,
+                compareAtPrice: uiP.compareAtPrice ? `${uiP.compareAtPrice.toFixed(3)}dt` : undefined,
                 rating: 5,
                 image: uiP.imageUrl || `https://placehold.co/150x250/E5E7EB/A1A1AA?text=${encodeURIComponent(uiP.name)}`
               }
@@ -132,7 +133,12 @@ function ProductDetailsPage() {
 
         {/* Middle Column: Info & Description */}
         <div className="flex-1 w-full flex flex-col">
-          <h1 className="text-3xl sm:text-4xl font-bold text-blue-800 uppercase mb-1">{product.name}</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-3xl sm:text-4xl font-bold text-blue-800 uppercase">{product.name}</h1>
+            {product.compareAtPrice && product.compareAtPrice > product.price && (
+              <span className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">Promo</span>
+            )}
+          </div>
           <p className="text-gray-500 text-sm mb-4">{product.category}</p>
 
           <div className="flex items-center gap-4 mb-6">
@@ -170,7 +176,12 @@ function ProductDetailsPage() {
           
           <div className="flex justify-between items-center pb-4 border-b border-gray-100">
             <span className="text-blue-500 font-medium text-sm leading-tight max-w-[80px]">Prix unitaire</span>
-            <span className="text-gray-900 font-bold text-sm">{product.price.toFixed(3)}DT</span>
+            <div className="flex flex-col items-end">
+              <span className={`font-bold text-sm ${product.compareAtPrice && product.compareAtPrice > product.price ? 'text-red-600' : 'text-gray-900'}`}>{product.price.toFixed(3)}DT</span>
+              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                <span className="text-xs text-gray-400 line-through">{product.compareAtPrice.toFixed(3)}DT</span>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-between items-center py-4 border-b border-gray-100">
@@ -204,7 +215,10 @@ function ProductDetailsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {relatedProducts.map((relProduct) => (
               <Link to={`/produit/${relProduct.id}`} key={relProduct.id} className="block">
-                <div className="bg-white rounded-2xl p-4 flex flex-col items-center hover:shadow-lg transition-shadow border border-blue-200">
+                <div className="bg-white rounded-2xl p-4 flex flex-col items-center hover:shadow-lg transition-shadow border border-blue-200 relative">
+                  {relProduct.compareAtPrice && parseFloat(relProduct.compareAtPrice) > parseFloat(relProduct.price) && (
+                    <span className="absolute top-0 left-0 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg rounded-tl-lg z-10 shadow-sm uppercase">Promo</span>
+                  )}
                   <div className="w-full h-40 sm:h-48 flex justify-center items-center mb-4">
                     <img src={relProduct.image} alt={relProduct.name} className="max-h-full object-contain" />
                   </div>
@@ -220,7 +234,12 @@ function ProductDetailsPage() {
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">{relProduct.category}</p>
-                    <span className="font-bold text-[#007dd6]">{relProduct.price}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`font-bold ${relProduct.compareAtPrice && parseFloat(relProduct.compareAtPrice) > parseFloat(relProduct.price) ? 'text-red-600' : 'text-[#007dd6]'}`}>{relProduct.price}</span>
+                      {relProduct.compareAtPrice && parseFloat(relProduct.compareAtPrice) > parseFloat(relProduct.price) && (
+                        <span className="text-xs text-gray-400 line-through">{relProduct.compareAtPrice}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Link>

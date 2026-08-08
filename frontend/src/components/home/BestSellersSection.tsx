@@ -30,6 +30,7 @@ const BestSellersSection = () => {
         name: p.name,
         description: p.description || 'Produit El Amine',
         price: `${p.price?.toFixed(3) || '0.000'} DT`,
+        compareAtPrice: p.compareAtPrice ? `${p.compareAtPrice.toFixed(3)} DT` : undefined,
         image: resolveImageUrl(p.imageUrl),
         rating: 5,
         slug: p.slug
@@ -39,6 +40,7 @@ const BestSellersSection = () => {
         name: p.name,
         description: p.description || 'Produit El Amine',
         price: `${p.price?.toFixed(3) || '0.000'} DT`,
+        compareAtPrice: undefined,
         image: p.imageUrl,
         rating: 5,
         slug: p.slug
@@ -66,13 +68,21 @@ const BestSellersSection = () => {
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {displayProducts.map((product) => (
-            <Link to={`/produit/${product.id}`} key={product.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-100 flex flex-col items-center hover:shadow-xl transition-shadow cursor-pointer block">
+            <Link to={`/produit/${product.id}`} key={product.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-100 flex flex-col items-center hover:shadow-xl transition-shadow cursor-pointer block relative">
+              {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) && (
+                <span className="absolute top-0 left-0 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg rounded-tl-lg z-10 shadow-sm uppercase">Promo</span>
+              )}
               <img src={product.image} alt={product.name} className="h-40 sm:h-48 object-contain mb-4 w-full" />
               <div className="w-full text-left mt-auto">
                 <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{product.name}</h3>
                 <p className="text-xs text-gray-500 mb-2 line-clamp-1">{product.description}</p>
                 <div className="flex justify-between items-end">
-                  <span className="font-bold text-blue-600">{product.price}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-bold ${product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) ? 'text-red-600' : 'text-blue-600'}`}>{product.price}</span>
+                    {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) && (
+                      <span className="text-xs text-gray-400 line-through">{product.compareAtPrice}</span>
+                    )}
+                  </div>
                   <div className="flex text-yellow-400 text-xs">
                     {[...Array(product.rating)].map((_, i) => (
                       <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">

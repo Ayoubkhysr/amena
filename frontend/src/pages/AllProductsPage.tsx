@@ -73,6 +73,7 @@ function AllProductsPage() {
             category: uiProd.category,
             subcategories: uiProd.subcategories,
             price: `${uiProd.price.toFixed(3)}dt`,
+            compareAtPrice: uiProd.compareAtPrice ? `${uiProd.compareAtPrice.toFixed(3)}dt` : undefined,
             rating: 5,
             image: uiProd.imageUrl || `https://placehold.co/150x250/E5E7EB/A1A1AA?text=${encodeURIComponent(uiProd.name)}`
           };
@@ -137,10 +138,22 @@ function AllProductsPage() {
       });
     }
 
-    return result;
-  }, [products, selectedFilters, minPrice, maxPrice]);
+    // Filter by Promo
+    const isPromo = searchParams.get('promo') === 'true' || (selectedFilters['Popularité'] && selectedFilters['Popularité'].includes('Promotions'));
+    if (isPromo) {
+      result = result.filter(product => {
+        if (!product.compareAtPrice) return false;
+        const comparePriceNum = parseFloat(product.compareAtPrice.replace('dt', '').trim());
+        const priceNum = parseFloat(product.price.replace('dt', '').trim());
+        return !isNaN(comparePriceNum) && !isNaN(priceNum) && comparePriceNum > priceNum;
+      });
+    }
 
-  const pageTitle = searchQuery ? `Résultats pour "${searchQuery}"` : "Tous les Produits";
+    return result;
+  }, [products, selectedFilters, minPrice, maxPrice, searchParams]);
+
+  const isPromoPage = searchParams.get('promo') === 'true';
+  const pageTitle = searchQuery ? `Résultats pour "${searchQuery}"` : isPromoPage ? "Nos Promotions" : "Tous les Produits";
 
   return (
     <div className="w-full flex flex-col font-sans bg-[#fbfcfd]">

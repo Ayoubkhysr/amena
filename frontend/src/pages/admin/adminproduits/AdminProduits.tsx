@@ -172,7 +172,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
   const [editForm, setEditForm] = useState<Product | null>(null)
   
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
-    name: '', sku: '', category: '', price: 0, stock: 0, status: 'Actif', imageUrl: '', description: ''
+    name: '', sku: '', category: '', price: 0, compareAtPrice: undefined, stock: 0, status: 'Actif', imageUrl: '', description: ''
   })
   const [newProductSubCategories, setNewProductSubCategories] = useState<string[]>([])
   const [showNewSubcatInput, setShowNewSubcatInput] = useState(false)
@@ -224,6 +224,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
       sku: '',
       category: '',
       price: 0,
+      compareAtPrice: undefined,
       stock: 0,
       status: 'Actif',
       imageUrl: '',
@@ -433,7 +434,11 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Prix (TND)</label>
-              <input type="number" step="0.01" value={newProduct.price || ''} onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value)})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: 15.50" />
+              <input type="number" step="0.01" value={newProduct.price || ''} onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: 15.50" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Ancien Prix (barré)</label>
+              <input type="number" step="0.01" value={newProduct.compareAtPrice || ''} onChange={e => setNewProduct({...newProduct, compareAtPrice: e.target.value ? parseFloat(e.target.value) : undefined})} className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue" placeholder="Ex: 20.00 (Promo)" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Stock initial</label>
@@ -481,6 +486,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                   category: newProduct.category,
                   subcategories: newProductSubCategories.length > 0 ? newProductSubCategories : undefined,
                   price: newProduct.price || 0,
+                  compareAtPrice: newProduct.compareAtPrice,
                   stock: newProduct.stock || 0,
                   status: (newProduct.stock || 0) > 5 ? 'Actif' : 'Rupture',
                   description: newProduct.description || '',
@@ -870,6 +876,7 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
               <th className="px-4 py-3">Catégorie</th>
               <th className="px-4 py-3">Sous-catég</th>
               <th className="px-4 py-3">Prix</th>
+              <th className="px-4 py-3">Ancien Prix</th>
               <th className="px-4 py-3">Stock</th>
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3 text-right rounded-tr-lg">Actions</th>
@@ -942,8 +949,17 @@ export function AdminProduits({ products, activeSection, categories, handleEditP
                       <input
                         type="number" step="0.01"
                         value={editForm.price}
-                        onChange={(e) => setEditForm({...editForm, price: parseFloat(e.target.value)})}
+                        onChange={(e) => setEditForm({...editForm, price: parseFloat(e.target.value) || 0})}
                         className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none"
+                      />
+                    </td>
+                    <td className="px-4 py-4">
+                      <input
+                        type="number" step="0.01"
+                        value={editForm.compareAtPrice || ''}
+                        onChange={(e) => setEditForm({...editForm, compareAtPrice: e.target.value ? parseFloat(e.target.value) : undefined})}
+                        className="w-full rounded-md border border-slate-300 px-2 py-2 text-sm focus:border-brand-blue focus:outline-none placeholder:text-slate-300"
+                        placeholder="Optionnel"
                       />
                     </td>
                     <td className="px-4 py-4">

@@ -21,6 +21,7 @@ export type Product = {
   category: string
   subcategories?: string[]
   price: number
+  compareAtPrice?: number
   stock: number
   status: 'Actif' | 'Inactif' | 'Rupture'
   imageUrl?: string
