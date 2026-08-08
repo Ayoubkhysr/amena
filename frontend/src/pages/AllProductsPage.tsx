@@ -30,13 +30,23 @@ function AllProductsPage() {
       });
     }
 
-    // Filter subcategories
-    const subCategories = categories.filter(c => c.parentId);
-    if (subCategories.length > 0) {
-      dynamicFilters.push({
-        title: 'Sous-catégories',
-        options: subCategories.map(c => c.name)
-      });
+    // Filter subcategories ONLY if gammes are selected
+    const selectedGammes = selectedFilters['Gammes'] || [];
+    if (selectedGammes.length > 0) {
+      const selectedGammeIds = topCategories
+        .filter(c => selectedGammes.includes(c.name))
+        .map(c => c.id);
+
+      const relevantSubCategories = categories.filter(c => 
+        c.parentId && selectedGammeIds.includes(c.parentId)
+      );
+
+      if (relevantSubCategories.length > 0) {
+        dynamicFilters.push({
+          title: 'Sous-catégories',
+          options: relevantSubCategories.map(c => c.name)
+        });
+      }
     }
 
     // Add a default filter for sorting/popularity
@@ -46,7 +56,7 @@ function AllProductsPage() {
     });
 
     setFilters(dynamicFilters);
-  }, [categories]);
+  }, [categories, selectedFilters]);
 
   useEffect(() => {
     async function loadAllProducts() {
