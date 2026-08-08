@@ -4,7 +4,7 @@ import PageBreadcrumb from '../components/common/PageBreadcrumb';
 import CategorySidebar, { FilterSection } from '../components/category/CategorySidebar';
 import CategoryProductGrid, { ProductItem } from '../components/category/CategoryProductGrid';
 import { useStore } from '../context/StoreContext';
-import { fetchProductsPage, toUiProduct } from '../services/productService';
+import { fetchProductsPage, toUiProduct, fetchBestSellers } from '../services/productService';
 
 function AllProductsPage() {
   const { categories } = useStore();
@@ -14,6 +14,7 @@ function AllProductsPage() {
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [minPrice, setMinPrice] = useState<number | undefined>();
   const [maxPrice, setMaxPrice] = useState<number | undefined>();
+  const [bestSellerIds, setBestSellerIds] = useState<Set<number>>(new Set());
   
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || undefined;
@@ -62,7 +63,14 @@ function AllProductsPage() {
     async function loadAllProducts() {
       setLoading(true);
       try {
-        const page = await fetchProductsPage(0, 1000, searchQuery, undefined, undefined, 'createdAt', 'desc', undefined, true);
+        const [page, bestSellers] = await Promise.all([
+          fetchProductsPage(0, 1000, searchQuery, undefined, undefined, 'createdAt', 'desc', undefined, true),
+          fetchBestSellers(20)
+        ]);
+        
+        const bestSellerIdSet = new Set(bestSellers.map(p => Number(p.id)));
+        setBestSellerIds(bestSellerIdSet);
+
         const apiProducts = page.content;
 
         const mappedProducts: ProductItem[] = apiProducts.map(p => {
@@ -74,6 +82,8 @@ function AllProductsPage() {
             subcategories: uiProd.subcategories,
             price: `${uiProd.price.toFixed(3)}dt`,
             compareAtPrice: uiProd.compareAtPrice ? `${uiProd.compareAtPrice.toFixed(3)}dt` : undefined,
+            createdAt: uiProd.createdAt,
+            isBestSeller: bestSellerIdSet.has(Number(p.id)),
             rating: 5,
             image: uiProd.imageUrl || `https://placehold.co/150x250/E5E7EB/A1A1AA?text=${encodeURIComponent(uiProd.name)}`
           };
@@ -138,14 +148,38 @@ function AllProductsPage() {
       });
     }
 
-    // Filter by Promo
-    const isPromo = searchParams.get('promo') === 'true' || (selectedFilters['Popularité'] && selectedFilters['Popularité'].includes('Promotions'));
-    if (isPromo) {
+    // Filter by Popularité (OR logic across selected popularity types)
+    const popularityFilters = selectedFilters['Popularité'] || [];
+    const isPromoParam = searchParams.get('promo') === 'true';
+    
+    if (popularityFilters.length > 0 || isPromoParam) {
       result = result.filter(product => {
-        if (!product.compareAtPrice) return false;
-        const comparePriceNum = parseFloat(product.compareAtPrice.replace('dt', '').trim());
-        const priceNum = parseFloat(product.price.replace('dt', '').trim());
-        return !isNaN(comparePriceNum) && !isNaN(priceNum) && comparePriceNum > priceNum;
+        let isMatch = false;
+
+        if (popularityFilters.includes('Promotions') || isPromoParam) {
+          if (product.compareAtPrice) {
+            const comparePriceNum = parseFloat(product.compareAtPrice.replace('dt', '').trim());
+            const priceNum = parseFloat(product.price.replace('dt', '').trim());
+            if (!isNaN(comparePriceNum) && !isNaN(priceNum) && comparePriceNum > priceNum) {
+              isMatch = true;
+            }
+          }
+        }
+
+        if (popularityFilters.includes('Nouveautés') && product.createdAt) {
+          const createdAtDate = new Date(product.createdAt);
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          if (createdAtDate >= thirtyDaysAgo) {
+            isMatch = true;
+          }
+        }
+
+        if (popularityFilters.includes('Meilleures ventes') && product.isBestSeller) {
+          isMatch = true;
+        }
+
+        return isMatch;
       });
     }
 

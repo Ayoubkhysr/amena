@@ -9,6 +9,8 @@ export interface ProductItem {
   compareAtPrice?: string;
   rating: number;
   image: string;
+  createdAt?: string;
+  isBestSeller?: boolean;
 }
 
 interface CategoryProductGridProps {

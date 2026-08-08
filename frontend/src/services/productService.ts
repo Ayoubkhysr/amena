@@ -78,6 +78,7 @@ export function toUiProduct(api: ApiProduct, categories: Category[]): Product {
     status: isActive ? 'Actif' : 'Inactif',
     description: api.description ?? '',
     imageUrl: resolveImageUrl(api.imageUrl),
+    createdAt: api.createdAt,
   }
 }
 

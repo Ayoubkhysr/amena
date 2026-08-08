@@ -26,6 +26,7 @@ export type Product = {
   status: 'Actif' | 'Inactif' | 'Rupture'
   imageUrl?: string
   description?: string
+  createdAt?: string
   /** Local file selected in the admin form; uploaded after product save. */
   pendingImageFile?: File
 }

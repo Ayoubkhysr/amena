@@ -4,7 +4,7 @@ import PageBreadcrumb from '../components/common/PageBreadcrumb';
 import CategorySidebar, { FilterSection } from '../components/category/CategorySidebar';
 import CategoryProductGrid, { ProductItem } from '../components/category/CategoryProductGrid';
 import { useStore } from '../context/StoreContext';
-import { fetchProductsPage, resolveImageUrl, toUiProduct } from '../services/productService';
+import { fetchProductsPage, resolveImageUrl, toUiProduct, fetchBestSellers } from '../services/productService';
 
 function CategoryPage() {
   const { category } = useParams();
@@ -17,6 +17,7 @@ function CategoryPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [minPrice, setMinPrice] = useState<number | undefined>();
   const [maxPrice, setMaxPrice] = useState<number | undefined>();
+  const [bestSellerIds, setBestSellerIds] = useState<Set<number>>(new Set());
   
   // Basic formatting to capitalize and replace dashes with spaces
   const formattedCategoryName = category 
@@ -69,7 +70,13 @@ function CategoryPage() {
           categoryId = Number(categoryObj.id);
         }
 
-        const page = await fetchProductsPage(0, 1000, undefined, categoryId, undefined, 'createdAt', 'desc', undefined, true);
+        const [page, bestSellers] = await Promise.all([
+          fetchProductsPage(0, 1000, undefined, categoryId, undefined, 'createdAt', 'desc', undefined, true),
+          fetchBestSellers(20)
+        ]);
+
+        const bestSellerIdSet = new Set(bestSellers.map(p => Number(p.id)));
+        setBestSellerIds(bestSellerIdSet);
         
         // Ensure we only show products belonging to this category (in case categoryId was undefined, we filter manually as a fallback, or just rely on API)
         let apiProducts = page.content;
@@ -93,6 +100,8 @@ function CategoryPage() {
             subcategories: uiProd.subcategories,
             price: `${uiProd.price.toFixed(3)}dt`, // Using toFixed(3) as TND usually has 3 decimal places
             compareAtPrice: uiProd.compareAtPrice ? `${uiProd.compareAtPrice.toFixed(3)}dt` : undefined,
+            createdAt: uiProd.createdAt,
+            isBestSeller: bestSellerIdSet.has(Number(p.id)),
             rating: 5, // Mock rating as it's not in API yet
             image: uiProd.imageUrl || `https://placehold.co/150x250/E5E7EB/A1A1AA?text=${encodeURIComponent(uiProd.name)}`
           };
@@ -160,7 +169,38 @@ function CategoryPage() {
       });
     }
 
-    // Add filtering for other things like Popularité if needed here
+    // Filter by Popularité
+    const popularityFilters = selectedFilters['Popularité'] || [];
+    if (popularityFilters.length > 0) {
+      result = result.filter(product => {
+        let isMatch = false;
+
+        if (popularityFilters.includes('Promotions')) {
+          if (product.compareAtPrice) {
+            const comparePriceNum = parseFloat(product.compareAtPrice.replace('dt', '').trim());
+            const priceNum = parseFloat(product.price.replace('dt', '').trim());
+            if (!isNaN(comparePriceNum) && !isNaN(priceNum) && comparePriceNum > priceNum) {
+              isMatch = true;
+            }
+          }
+        }
+
+        if (popularityFilters.includes('Nouveautés') && product.createdAt) {
+          const createdAtDate = new Date(product.createdAt);
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          if (createdAtDate >= thirtyDaysAgo) {
+            isMatch = true;
+          }
+        }
+
+        if (popularityFilters.includes('Meilleures ventes') && product.isBestSeller) {
+          isMatch = true;
+        }
+
+        return isMatch;
+      });
+    }
 
     return result;
   }, [products, selectedFilters, minPrice, maxPrice]);
