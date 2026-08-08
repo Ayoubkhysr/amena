@@ -92,6 +92,7 @@ function CategoryPage() {
             category: uiProd.category,
             subcategories: uiProd.subcategories,
             price: `${uiProd.price.toFixed(3)}dt`, // Using toFixed(3) as TND usually has 3 decimal places
+            compareAtPrice: uiProd.compareAtPrice ? `${uiProd.compareAtPrice.toFixed(3)}dt` : undefined,
             rating: 5, // Mock rating as it's not in API yet
             image: uiProd.imageUrl || `https://placehold.co/150x250/E5E7EB/A1A1AA?text=${encodeURIComponent(uiProd.name)}`
           };
