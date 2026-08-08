@@ -65,7 +65,7 @@ function PanierPage() {
                 <div className="text-sm font-bold text-gray-900 mb-2">150DT</div>
                 <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-red-600 transition-all"
+                    className={`h-full transition-all ${freeShipping ? 'bg-green-500' : 'bg-red-600'}`}
                     style={{ width: `${Math.min((subtotal / shippingThreshold) * 100, 100)}%` }}
                   ></div>
                 </div>

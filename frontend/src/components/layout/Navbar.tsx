@@ -29,7 +29,9 @@ const Navbar = () => {
       {topHeaderText && (
         <div className="bg-[#e60000] text-white text-[13px] py-2 px-4 font-medium tracking-wide overflow-hidden whitespace-nowrap w-full relative">
           <div className="animate-marquee hover:[animation-play-state:paused] inline-block">
-            {topHeaderText}
+            {topHeaderText.split('\n').map((line, idx) => (
+              <span key={idx} className="mx-6 whitespace-pre">{line}</span>
+            ))}
           </div>
         </div>
       )}
