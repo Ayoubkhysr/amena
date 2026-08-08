@@ -210,7 +210,14 @@ function CategoryPage() {
       <PageBreadcrumb pageName={formattedCategoryName} />
       
       <div className="max-w-7xl mx-auto w-full px-8 py-10 flex flex-col md:flex-row gap-8">
-        <CategorySidebar filters={filters} onFilterChange={handleFilterChange} onPriceChange={handlePriceChange} />
+        <CategorySidebar 
+          filters={filters} 
+          selectedFilters={selectedFilters}
+          minPriceValue={minPrice}
+          maxPriceValue={maxPrice}
+          onFilterChange={handleFilterChange} 
+          onPriceChange={handlePriceChange} 
+        />
         {loading ? (
           <div className="w-full flex justify-center items-center h-64">
             <p className="text-slate-500 font-medium">Chargement des produits...</p>

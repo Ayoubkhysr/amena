@@ -7,27 +7,18 @@ export interface FilterSection {
 
 interface CategorySidebarProps {
   filters: FilterSection[];
+  selectedFilters: Record<string, string[]>;
+  minPriceValue?: number;
+  maxPriceValue?: number;
   onFilterChange?: (selectedFilters: Record<string, string[]>) => void;
   onPriceChange?: (min: number | undefined, max: number | undefined) => void;
 }
 
-const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySidebarProps) => {
-  const [selected, setSelected] = useState<Record<string, string[]>>({});
-  const [minPrice, setMinPrice] = useState<string>('');
-  const [maxPrice, setMaxPrice] = useState<string>('');
+const CategorySidebar = ({ filters, selectedFilters, minPriceValue, maxPriceValue, onFilterChange, onPriceChange }: CategorySidebarProps) => {
 
-  // Reset selected when filters change (i.e. category changes)
-  useEffect(() => {
-    setSelected({});
-    setMinPrice('');
-    setMaxPrice('');
-    if (onPriceChange) {
-      onPriceChange(undefined, undefined);
-    }
-  }, [filters]);
 
   const handleCheckboxChange = (filterTitle: string, option: string, isChecked: boolean) => {
-    const newSelected = { ...selected };
+    const newSelected = { ...selectedFilters };
     if (!newSelected[filterTitle]) {
       newSelected[filterTitle] = [];
     }
@@ -38,7 +29,6 @@ const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySid
       newSelected[filterTitle] = newSelected[filterTitle].filter(item => item !== option);
     }
 
-    setSelected(newSelected);
     if (onFilterChange) {
       onFilterChange(newSelected);
     }
@@ -46,21 +36,17 @@ const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySid
 
   const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setMinPrice(val);
     if (onPriceChange) {
       const min = val === '' ? undefined : parseFloat(val);
-      const max = maxPrice === '' ? undefined : parseFloat(maxPrice);
-      onPriceChange(min, max);
+      onPriceChange(min, maxPriceValue);
     }
   };
 
   const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setMaxPrice(val);
     if (onPriceChange) {
-      const min = minPrice === '' ? undefined : parseFloat(minPrice);
       const max = val === '' ? undefined : parseFloat(val);
-      onPriceChange(min, max);
+      onPriceChange(minPriceValue, max);
     }
   };
 
@@ -82,7 +68,7 @@ const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySid
                     <input 
                       type="checkbox" 
                       className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 w-4 h-4 min-w-4"
-                      checked={selected[filter.title]?.includes(option) || false}
+                      checked={selectedFilters[filter.title]?.includes(option) || false}
                       onChange={(e) => handleCheckboxChange(filter.title, option, e.target.checked)}
                     />
                     <span className="flex-1">{option}</span>
@@ -99,7 +85,7 @@ const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySid
               <input 
                 type="number" 
                 placeholder="Min" 
-                value={minPrice}
+                value={minPriceValue ?? ''}
                 onChange={handleMinPriceChange}
                 className="w-full min-w-0 px-3 py-2.5 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
               />
@@ -107,7 +93,7 @@ const CategorySidebar = ({ filters, onFilterChange, onPriceChange }: CategorySid
               <input 
                 type="number" 
                 placeholder="Max" 
-                value={maxPrice}
+                value={maxPriceValue ?? ''}
                 onChange={handleMaxPriceChange}
                 className="w-full min-w-0 px-3 py-2.5 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500" 
               />

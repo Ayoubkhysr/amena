@@ -21,7 +21,11 @@ const Navbar = () => {
   const navTextClass = isHome ? "text-white" : "text-gray-800";
   const hoverTextClass = isHome ? "hover:text-white" : "hover:text-red-600";
   const linkTextClass = isHome ? "text-white/90" : "text-gray-600";
+  const activeTextClass = isHome ? "text-white font-bold" : "text-gray-900 font-bold";
   const logoSrc = "/logo-el-amine.png";
+
+  const isPromoActive = location.pathname === '/tous-les-produits' && location.search.includes('promo=true');
+  const isTousLesProduitsActive = location.pathname === '/tous-les-produits' && !location.search.includes('promo=true');
 
   return (
     <header className="w-full font-sans">
@@ -85,13 +89,13 @@ const Navbar = () => {
 
             {/* Links Row */}
             <div className={`flex items-center justify-center space-x-6 text-[13px] font-medium w-full whitespace-nowrap ${linkTextClass}`}>
-              <Link to="/" className={`${hoverTextClass} transition-colors`}>Accueil</Link>
-              <Link to="/tous-les-produits" className={`${hoverTextClass} transition-colors`}>Nos Produits</Link>
-              <Link to="/produits" className={`${hoverTextClass} transition-colors`}>Nos gammes</Link>
+              <Link to="/" className={`${location.pathname === '/' ? activeTextClass : hoverTextClass} transition-colors`}>Accueil</Link>
+              <Link to="/tous-les-produits" className={`${isTousLesProduitsActive ? activeTextClass : hoverTextClass} transition-colors`}>Nos Produits</Link>
+              <Link to="/produits" className={`${location.pathname.startsWith('/produits') ? activeTextClass : hoverTextClass} transition-colors`}>Nos gammes</Link>
               <span className={`${linkTextClass} opacity-50 cursor-not-allowed transition-colors`} title="Bientôt disponible">Accessoires</span>
-              <Link to="/a-propos" className={`${hoverTextClass} transition-colors`}>À propos</Link>
-              <Link to="/nos-magasins" className={`${hoverTextClass} transition-colors`}>Nos magasins</Link>
-              <Link to="/tous-les-produits?promo=true" className={`${hoverTextClass} transition-colors`}>Promos</Link>
+              <Link to="/a-propos" className={`${location.pathname === '/a-propos' ? activeTextClass : hoverTextClass} transition-colors`}>À propos</Link>
+              <Link to="/nos-magasins" className={`${location.pathname === '/nos-magasins' ? activeTextClass : hoverTextClass} transition-colors`}>Nos magasins</Link>
+              <Link to="/tous-les-produits?promo=true" className={`${isPromoActive ? activeTextClass : hoverTextClass} transition-colors`}>Promos</Link>
             </div>
 
           </div>
