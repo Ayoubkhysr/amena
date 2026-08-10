@@ -8,7 +8,7 @@ const FeaturesSection = () => {
             El Amine est une marque tunisienne spécialisée dans la production des produits d'entretien et de nettoyage pour la maison, créée en 2021.
           </p>
           <p className="mt-4">
-            Notre objectif est de proposer des produits de haute qualité avec des prix très compétitifs, qui répondent aux besoins des ménages tunisiens. Nous mettons à votre disposition une large gamme de produits pour satisfaire vos attentes: liquides vaisselle, nettoyants, désodorisants et autres.
+            Notre objectif est de proposer des produits de haute qualité avec des prix très compétitifs, qui répondent aux besoins des ménages tunisiens. Nous mettons à votre disposition une large gamme de produits pour satisfaire vos attentes: liquides vaisselle, nettoyants et produits d'hygiène, désodorisants et autres.
           </p>
         </div>
 

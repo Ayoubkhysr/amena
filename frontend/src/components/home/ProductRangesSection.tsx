@@ -4,7 +4,7 @@ const ProductRangesSection = () => {
   const categories = [
     { id: 1, name: "SOL ET SURFACE", image: "/images/Sol%20Et%20Surface.png" },
     { id: 2, name: "LESSIVE LINGE", image: "/images/lessive.png" },
-    { id: 3, name: "NETTOYANT", image: "/images/Gamme%20%20NETTOYANT.png" },
+    { id: 3, name: "NETTOYANT ET HYGIÈNE", image: "/images/Gamme%20%20NETTOYANT.png" },
     { id: 4, name: "VAISSELLE", image: "/images/Gamme%20%20VAISSELLE.png" },
     { id: 5, name: "DÉSODORISANTS", image: "/images/Desodorisants.png" },
     { id: 6, name: "OUTILS DE NETTOYAGE", image: "/images/Gamme%20%20ENTRETIEN%20NETTOYAGE.png" },

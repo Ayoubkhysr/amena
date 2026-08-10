@@ -39,7 +39,7 @@ const Footer = () => {
             <li><Link to="/produits/lessive-linge" className="hover:text-blue-600">Gamme Lessive Linge</Link></li>
             <li><Link to="/produits/vaisselle" className="hover:text-blue-600">Gamme Vaisselle</Link></li>
             <li><Link to="/produits/sol-et-surface" className="hover:text-blue-600">Gamme Sol et Surface</Link></li>
-            <li><Link to="/produits/nettoyant" className="hover:text-blue-600">Gamme Nettoyant</Link></li>
+            <li><Link to="/produits/nettoyant-et-hygiene" className="hover:text-blue-600">Gamme Nettoyant et Hygiène</Link></li>
             <li><Link to="/produits/desodorisants" className="hover:text-blue-600">Gamme Désodorisant</Link></li>
           </ul>
         </div>
