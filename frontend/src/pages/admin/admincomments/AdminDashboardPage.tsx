@@ -21,7 +21,7 @@ import {
 
 import { AdminCommandes, Order, OrderStatus } from '../admincommandes/AdminCommandes'
 
-import { AdminComments, Review, ReviewStatus } from './AdminComments'
+import { AdminSiteReviews } from './AdminSiteReviews'
 import { AdminClients, Client } from '../adminclients/AdminClients'
 import { AdminProduits } from '../adminproduits/AdminProduits'
 import { AdminContenu, Banner, StaticPage } from '../admincontenu/AdminContenu'
@@ -97,8 +97,7 @@ const SECTION_META: Record<AdminSection, { title: string; subtitle: string }> = 
   'clients-historique': { title: "Historique d'achat", subtitle: 'Analyser les achats par client.' },
   'avis-tous': { title: 'Tous les avis', subtitle: 'Avis et commentaires globaux.' },
   'avis-attente': { title: 'En attente de modération', subtitle: 'Modérer les nouveaux avis.' },
-  'avis-approuves': { title: 'Approuvés', subtitle: 'Avis publiés.' },
-  'avis-rejetes': { title: 'Rejetés', subtitle: 'Avis non publiés.' },
+  'avis-site': { title: 'Gérer les avis', subtitle: 'Avis publiés sur le site.' },
   'promos-codes': { title: 'Codes promo', subtitle: 'Créer et gérer les coupons de réduction.' },
   'promos-offres': { title: 'Offres & réductions', subtitle: 'Remises générales.' },
   'contenu-bannieres': { title: 'Bannières / Slider', subtitle: 'Visuels de la page d\'accueil.' },
@@ -115,7 +114,7 @@ const SECTION_META: Record<AdminSection, { title: string; subtitle: string }> = 
 const PRODUITS_KEYS: AdminSection[] = ['produits-liste', 'produits-ajouter', 'produits-categories', 'produits-rupture']
 const COMMANDES_KEYS: AdminSection[] = ['commandes-toutes', 'commandes-attente', 'commandes-expediees', 'commandes-retours']
 const CLIENTS_KEYS: AdminSection[] = ['clients-liste', 'clients-historique']
-const AVIS_KEYS: AdminSection[] = ['avis-tous', 'avis-attente', 'avis-approuves', 'avis-rejetes']
+const AVIS_KEYS: AdminSection[] = ['avis-site']
 const PROMOS_KEYS: AdminSection[] = ['promos-codes', 'promos-offres']
 const CONTENU_KEYS: AdminSection[] = ['contenu-bannieres', 'contenu-pages', 'contenu-entete']
 const RAPPORTS_KEYS: AdminSection[] = ['rapports-ventes', 'rapports-produits']
@@ -606,10 +605,7 @@ function AdminDashboardPage() {
               <NavGroupHeader label="Avis & Commentaires" Icon={IconMessage} open={navOpen.avis} onToggle={() => setNavOpen((o) => ({ ...o, avis: !o.avis }))} />
               {navOpen.avis && (
                 <div className="mt-1 space-y-1 border-l-2 border-[#0079dd]/20 pl-3 ml-4">
-                  <NavLeaf sectionKey="avis-tous" label="Tous les avis" Icon={IconMessage} />
-                  <NavLeaf sectionKey="avis-attente" label="En attente de modération" Icon={IconEyeOff} badge={pendingReviews > 0 ? pendingReviews.toString() : undefined} />
-                  <NavLeaf sectionKey="avis-approuves" label="Approuvés" Icon={IconStar} />
-                  <NavLeaf sectionKey="avis-rejetes" label="Rejetés" Icon={IconArchive} />
+                  <NavLeaf sectionKey="avis-site" label="Gérer les avis" Icon={IconMessage} />
                 </div>
               )}
             </div>
@@ -830,11 +826,7 @@ function AdminDashboardPage() {
               ) : CLIENTS_KEYS.includes(activeSection) ? (
                 <AdminClients clients={clients} activeSection={activeSection} orders={orders} handleEditClient={handleEditClient} />
               ) : AVIS_KEYS.includes(activeSection) ? (
-                <AdminComments
-                  reviews={reviews}
-                  activeSection={activeSection}
-                  handleReviewStatus={handleReviewStatus}
-                />
+                <AdminSiteReviews />
               ) : CONTENU_KEYS.includes(activeSection) ? (
                 <AdminContenu
                   activeSection={activeSection}
