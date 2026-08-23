@@ -44,7 +44,9 @@ function ProductDetailsPage() {
                 price: `${uiP.price.toFixed(3)}dt`,
                 compareAtPrice: uiP.compareAtPrice ? `${uiP.compareAtPrice.toFixed(3)}dt` : undefined,
                 rating: 5,
-                image: uiP.imageUrl || `https://placehold.co/150x250/E5E7EB/A1A1AA?text=${encodeURIComponent(uiP.name)}`
+                image: uiP.imageUrl || `https://placehold.co/150x250/E5E7EB/A1A1AA?text=${encodeURIComponent(uiP.name)}`,
+                stock: uiP.stock,
+                status: uiP.status
               }
             })
             .slice(0, 4) // max 4 items
@@ -102,7 +104,7 @@ function ProductDetailsPage() {
     )
   }
 
-  const isStockAvailable = product.stock > 0 || product.status === 'Actif'
+  const isStockAvailable = product.stock > 0 && product.status === 'Actif'
   const totalPrice = product.price * quantity
 
   return (
@@ -142,10 +144,15 @@ function ProductDetailsPage() {
           <p className="text-gray-500 text-sm mb-4">{product.category}</p>
 
           <div className="flex items-center gap-4 mb-6">
-            {isStockAvailable && (
+            {isStockAvailable ? (
               <div className="flex items-center gap-2 border border-green-200 rounded-full px-3 py-1 bg-white">
                 <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
                 <span className="text-xs font-bold text-gray-700 uppercase">EN STOCK</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 border border-red-200 rounded-full px-3 py-1 bg-white">
+                <div className="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
+                <span className="text-xs font-bold text-gray-700 uppercase">EN RUPTURE</span>
               </div>
             )}
             <div className="flex items-center bg-white">
@@ -198,7 +205,7 @@ function ProductDetailsPage() {
             <span className="text-gray-900 font-extrabold text-lg">{totalPrice.toFixed(3)} DT</span>
           </div>
 
-          <button onClick={handleAddToCart} className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3.5 px-4 rounded-xl transition-colors text-sm uppercase tracking-wide flex justify-center items-center text-center">
+          <button onClick={handleAddToCart} disabled={!isStockAvailable} className={`w-full ${isStockAvailable ? 'bg-blue-700 hover:bg-blue-800' : 'bg-gray-400 cursor-not-allowed'} text-white font-semibold py-3.5 px-4 rounded-xl transition-colors text-sm uppercase tracking-wide flex justify-center items-center text-center`}>
             AJOUTEZ AU PANIER
           </button>
         </div>
@@ -218,6 +225,9 @@ function ProductDetailsPage() {
                 <div className="bg-white rounded-2xl p-4 flex flex-col items-center hover:shadow-lg transition-shadow border border-blue-200 relative">
                   {relProduct.compareAtPrice && parseFloat(relProduct.compareAtPrice) > parseFloat(relProduct.price) && (
                     <span className="absolute top-0 left-0 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg rounded-tl-lg z-10 shadow-sm uppercase">Promo</span>
+                  )}
+                  {relProduct.stock !== undefined && relProduct.stock <= 0 && relProduct.status === 'Actif' && (
+                    <span className="absolute top-0 right-0 bg-gray-800 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg z-10 shadow-sm uppercase">En rupture</span>
                   )}
                   <div className="w-full h-40 sm:h-48 flex justify-center items-center mb-4">
                     <img src={relProduct.image} alt={relProduct.name} className="max-h-full object-contain" />

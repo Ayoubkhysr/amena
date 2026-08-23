@@ -13,6 +13,7 @@ import com.amena.backend.mapper.CommandeMapper;
 import com.amena.backend.repository.AdresseRepository;
 import com.amena.backend.repository.CommandeRepository;
 import com.amena.backend.repository.CouponRepository;
+import com.amena.backend.repository.ProduitRepository;
 import com.amena.backend.repository.UtilisateurRepository;
 import jakarta.persistence.criteria.JoinType;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,7 @@ public class CommandeService {
     private final UtilisateurRepository utilisateurRepository;
     private final AdresseRepository adresseRepository;
     private final CouponRepository couponRepository;
+    private final ProduitRepository produitRepository;
     private final CommandeMapper commandeMapper;
 
     @Transactional(readOnly = true)
@@ -102,6 +104,14 @@ public class CommandeService {
                 ligne.setProductName("Produit Inconnu");
             }
             ligne.setTotalPrice(BigDecimal.valueOf(itemReq.getUnitPrice() * itemReq.getQuantity()));
+
+            if (itemReq.getProductId() != null) {
+                produitRepository.findById(itemReq.getProductId()).ifPresent(produit -> {
+                    produit.setStock(produit.getStock() != null ? Math.max(0, produit.getStock() - itemReq.getQuantity()) : 0);
+                    produitRepository.save(produit);
+                });
+            }
+
             return ligne;
         }).toList();
 

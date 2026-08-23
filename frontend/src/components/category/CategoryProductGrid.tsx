@@ -11,6 +11,8 @@ export interface ProductItem {
   image: string;
   createdAt?: string;
   isBestSeller?: boolean;
+  stock?: number;
+  status?: string;
 }
 
 interface CategoryProductGridProps {
@@ -29,6 +31,9 @@ const CategoryProductGrid = ({ products }: CategoryProductGridProps) => {
               <div className="w-full h-40 sm:h-48 md:h-56 flex justify-center items-center mb-4 relative">
               {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) && (
                 <span className="absolute top-0 left-0 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg rounded-tl-lg z-10 shadow-sm uppercase">Promo</span>
+              )}
+              {product.stock !== undefined && product.stock <= 0 && product.status === 'Actif' && (
+                <span className="absolute top-0 right-0 bg-gray-800 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg z-10 shadow-sm uppercase">En rupture</span>
               )}
               <img src={product.image} alt={product.name} className="max-h-full object-contain" />
             </div>

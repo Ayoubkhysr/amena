@@ -85,7 +85,9 @@ function AllProductsPage() {
             createdAt: uiProd.createdAt,
             isBestSeller: bestSellerIdSet.has(Number(p.id)),
             rating: 5,
-            image: uiProd.imageUrl || `https://placehold.co/150x250/E5E7EB/A1A1AA?text=${encodeURIComponent(uiProd.name)}`
+            image: uiProd.imageUrl || `https://placehold.co/150x250/E5E7EB/A1A1AA?text=${encodeURIComponent(uiProd.name)}`,
+            stock: uiProd.stock,
+            status: uiProd.status
           };
         });
 
