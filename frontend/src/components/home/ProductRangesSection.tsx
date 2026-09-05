@@ -8,6 +8,7 @@ const ProductRangesSection = () => {
     { id: 4, name: "VAISSELLE", image: "/images/Gamme%20%20VAISSELLE.png" },
     { id: 5, name: "DÉSODORISANTS", image: "/images/Desodorisants.png" },
     { id: 6, name: "OUTILS DE NETTOYAGE", image: "/images/Gamme%20%20ENTRETIEN%20NETTOYAGE.png" },
+    { id: 7, name: "ACCESSOIRES", image: "/images/Tampan.png" },
   ];
 
   return (

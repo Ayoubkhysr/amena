@@ -92,7 +92,7 @@ const Navbar = () => {
               <Link to="/" className={`${location.pathname === '/' ? activeTextClass : hoverTextClass} transition-colors`}>Accueil</Link>
               <Link to="/tous-les-produits" className={`${isTousLesProduitsActive ? activeTextClass : hoverTextClass} transition-colors`}>Nos Produits</Link>
               <Link to="/produits" className={`${location.pathname.startsWith('/produits') ? activeTextClass : hoverTextClass} transition-colors`}>Nos gammes</Link>
-              <span className={`${linkTextClass} opacity-50 cursor-not-allowed transition-colors`} title="Bientôt disponible">Accessoires</span>
+              <Link to="/produits/accessoires" className={`${location.pathname === '/produits/accessoires' ? activeTextClass : hoverTextClass} transition-colors`}>Accessoires</Link>
               <Link to="/a-propos" className={`${location.pathname === '/a-propos' ? activeTextClass : hoverTextClass} transition-colors`}>À propos</Link>
               <Link to="/nos-magasins" className={`${location.pathname === '/nos-magasins' ? activeTextClass : hoverTextClass} transition-colors`}>Nos magasins</Link>
               <Link to="/tous-les-produits?promo=true" className={`${isPromoActive ? activeTextClass : hoverTextClass} transition-colors`}>Promos</Link>
@@ -147,7 +147,7 @@ const Navbar = () => {
             <Link to="/" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Accueil</Link>
             <Link to="/tous-les-produits" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Nos Produits</Link>
             <Link to="/produits" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Nos gammes</Link>
-            <span className="font-semibold text-lg text-gray-400 cursor-not-allowed py-2 border-b border-gray-100" title="Bientôt disponible">Accessoires</span>
+            <Link to="/produits/accessoires" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Accessoires</Link>
             <Link to="/a-propos" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">À propos</Link>
             <Link to="/nos-magasins" className="font-semibold text-lg hover:text-red-600 transition-colors py-2 border-b border-gray-100">Nos magasins</Link>
             <Link to="/tous-les-produits?promo=true" className="font-semibold text-lg hover:text-red-600 transition-colors py-2">Promos</Link>
