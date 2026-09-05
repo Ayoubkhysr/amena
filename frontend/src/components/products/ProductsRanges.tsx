@@ -8,7 +8,6 @@ const ProductsRanges = () => {
     { id: 4, name: "VAISSELLE", slug: "vaisselle", image: "/images/Gamme%20%20VAISSELLE.png" },
     { id: 5, name: "DÉSODORISANTS", slug: "desodorisants", image: "/images/Desodorisants.png" },
     { id: 6, name: "OUTILS DE NETTOYAGE", slug: "outils-de-nettoyage", image: "/images/Gamme%20%20ENTRETIEN%20NETTOYAGE.png" },
-    { id: 7, name: "ACCESSOIRES", slug: "accessoires", image: "/images/Tampan.png" },
   ];
 
   return (
